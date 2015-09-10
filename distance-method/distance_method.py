@@ -49,7 +49,6 @@ from os import listdir
 from os.path import join, splitext, basename
 from itertools import imap
 
-
 from skbio.parse.sequences import parse_fasta
 
 
@@ -120,8 +119,8 @@ def preprocess_data(working_dir,
     verbose: boolean, optional
       output details about the running processes of this function
 
-    Return
-    ------
+    Returns
+    -------
     gene_map: dictionary
       "two-way" dictionary storing gene names as keys and their pseudo
       names as values, and vica versa
@@ -179,8 +178,8 @@ def launch_blast(query_proteome_fp,
     debug: boolean
       if True, run function in debug mode
 
-    Return
-    ------
+    Returns
+    -------
     out_file_fp: string
       filepath to tabular alignment file output by
       BLASTP
