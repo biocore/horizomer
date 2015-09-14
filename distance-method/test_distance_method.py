@@ -82,7 +82,8 @@ class DistanceMethodTests(TestCase):
         """ Test functionality of preprocess_data()
         """
         gene_map, ref_db, species = preprocess_data(self.working_dir,
-                                                    self.target_proteomes_dir)
+                                                    self.target_proteomes_dir,
+                                                    ['fa', 'fasta', 'faa'])
         gene_map_exp = {'G1_SE001': '0_0', 'G1_SE002': '1_0',
                         'G1_SE003': '2_0', 'G1_SE004': '3_0',
                         '0_0': 'G1_SE001', '1_0': 'G1_SE002',
