@@ -263,9 +263,7 @@ def parse_blast(alignments_fp,
         for line in alignments_f:
             if debug:
                 sys.stdout.write("[DEBUG] %s" % line)
-            line = line.split()
-            query = line[0]
-            ref = line[1]
+            query, ref = line.split()[:2]
             if query not in hits:
                 hits[query] = [ref]
             else:
