@@ -54,12 +54,12 @@ def trim_gene_tree_leaves(gene_tree):
 
     Notes
     -----
-        This function will keep only the word before the first '_' in the
-        complete node ID. In ALF simulated sequences, the genes are labeled
-        as "SPECIES_GENE". Most phylogenetic reconciliation tools
-        require the associations between species leaves and gene leaves to
-        be equal, therefore needing to remove the _GENENAME part in the gene
-        tree.
+    This function will keep only the word before the first '_' in the
+    complete node ID. In ALF simulated sequences, the genes are labeled
+    as "SPECIES_GENE". Most phylogenetic reconciliation tools
+    require the associations between species leaves and gene leaves to
+    be equal, therefore needing to remove the _GENENAME part in the gene
+    tree.
     """
     for node in gene_tree.tips():
         node.name = node.name.split()[0]
@@ -88,16 +88,16 @@ def species_gene_mapping(gene_tree,
 
     Notes
     -----
-        Given the label format "SPECIES" for the species leaves and
-        "SPECIES_GENE" in the gene leaves, report the associations between all
-        species and gene leaves. Only one instance of the '_' delimiter is
-        allowed in the gene leaves and this is used as a separator between the
-        species name and the gene name.
+    Given the label format "SPECIES" for the species leaves and
+    "SPECIES_GENE" in the gene leaves, report the associations between all
+    species and gene leaves. Only one instance of the '_' delimiter is
+    allowed in the gene leaves and this is used as a separator between the
+    species name and the gene name.
 
-        Ex.
+    Ex.
 
-        mapping = {"SE001":["SE001_1", "SE001_2"],
-                   "SE002":["SE002_1"]}
+    mapping = {"SE001":["SE001_1", "SE001_2"],
+               "SE002":["SE002_1"]}
     """
     mapping_leaves = {}
     for node in species_tree.tips():
@@ -157,9 +157,9 @@ def reformat_rangerdtl(gene_tree,
 
     Notes
     -----
-        The species name in the leaves of species and gene trees must be
-        equal. For multiple genes from the same species, the format
-        "SPECIES_GENE" is acceptable in the gene trees
+    The species name in the leaves of species and gene trees must be equal.
+    For multiple genes from the same species, the format "SPECIES_GENE" is
+    acceptable in the gene trees.
 
     """
     remove_branch_lengths(tree=gene_tree)
@@ -189,8 +189,8 @@ def reformat_trex(gene_tree,
 
     Notes
     -----
-        Binary trees only, leaves of species and gene trees must have equal
-        names.
+    Binary trees only, leaves of species and gene trees must have equal
+    names.
     """
     # trim gene tree leaves to exclude '_GENENAME' (if exists)
     trim_gene_tree_leaves(gene_tree)
@@ -260,8 +260,8 @@ def reformat_jane4(gene_tree,
 
     Notes
     -----
-        Input to Jane4 is a Nexus file, the trees cannot not contain
-        branch lengths and the species/gene leaves mapping is required
+    Input to Jane4 is a Nexus file, the trees cannot not contain branch
+    lengths and the species/gene leaves mapping is required.
     """
     nexus_file = """#NEXUS
 begin host;
@@ -369,12 +369,12 @@ def _main(gene_tree_fp,
           method):
     """ Reformat trees to input accepted by various HGT detection methods.
 
-        Species tree can be multifurcating, however will be converted to
-        bifurcating trees for software that require them. Leaf labels of
-        species tree and gene tree must match, however the label
-        SPECIES_GENE is acceptable for multiple genes in the gene
-        tree. Leaf labels must also be at most 10 characters long (for
-        PHYLIP manipulations).
+    Species tree can be multifurcating, however will be converted to
+    bifurcating trees for software that require them. Leaf labels of
+    species tree and gene tree must match, however the label
+    SPECIES_GENE is acceptable for multiple genes in the gene
+    tree. Leaf labels must also be at most 10 characters long (for
+    PHYLIP manipulations).
     """
 
     # add function to check where tree is multifurcating and the labeling
