@@ -11,7 +11,7 @@ The following libraries are required:
 The following software is required:
 
 	* T-REX 3.4
-	* [RANGER-DTL-U 1.0](http://compbio.mit.edu/ranger-dtl/ranger-dtl-linux.tar.gz)
+	* (RANGER-DTL-U 1.0)[http://compbio.mit.edu/ranger-dtl/ranger-dtl-linux.tar.gz]
 	* [RIATA-HGT (PhyloNet) 3.5.6](http://bioinfo.cs.rice.edu/sites/bioinfo.cs.rice.edu/files/kcfinder/files/PhyloNet_3.5.6.jar)
 	* [Jane 4](https://www.cs.hmc.edu/~hadas/jane/index.html)
 	* [TREE-PUZZLE 5.3.rc16](http://www.tree-puzzle.de/tree-puzzle-5.3.rc16-linux.tar.gz)
