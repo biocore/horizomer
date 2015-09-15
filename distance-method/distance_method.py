@@ -114,12 +114,6 @@ def preprocess_data(working_dir,
                     verbose=False):
     """ Map each gene to sudo name (ex. 1_1 for species 1, gene 1).
 
-    Notes
-    -----
-        This will facilitate easier output comparison and the 10 character
-        name limitation in PHYLIP output. This format is limited up to 9999
-        species and 99999 genes per species.
-
     Parameters
     ----------
     working_dir:  string
@@ -141,6 +135,12 @@ def preprocess_data(working_dir,
         reference databases
     species: integer
         the number of species in the reference databases
+
+    Notes
+    -----
+        This will facilitate easier output comparison and the 10 character
+        name limitation in PHYLIP output. This format is limited up to 9999
+        species and 99999 genes per species.
     """
     gene_map = {}
     ref_db = {}
@@ -240,11 +240,6 @@ def parse_blast(alignments_fp,
                 debug=False):
     """ Parse BLASTp alignment file into a dictionary.
 
-    Notes
-    -----
-        The keys are the queries and the values are all the reference
-        sequences to which the query mapped with E-value cutoff score.
-
     Parameters
     ----------
     alignments_fp: string
@@ -257,6 +252,11 @@ def parse_blast(alignments_fp,
       names as values, and vica versa
     debug: boolean
       if True, run function in debug mode
+
+    Notes
+    -----
+        The keys are the queries and the values are all the reference
+        sequences to which the query mapped with E-value cutoff score.
     """
     # read blastp results
     with open(alignments_fp, 'U') as alignments_f:
@@ -325,16 +325,16 @@ def compute_distances(phylip_command_fp,
                       warnings=False):
     """ Compute distances between each pair of sequences in the MSA.
 
-    Notes
-    -----
-        Use PHYLIP's protdist function.
-
     Parameters
     ----------
     phylip_command_fp: string
       filepath to the PHYLIP command (interactive)
     warnings: boolean, optional
       print warnings output by PHYLIP
+
+    Notes
+    -----
+        Use PHYLIP's protdist function.
     """
     with open(phylip_command_fp, 'U') as phylip_command_f:
         proc = subprocess.Popen("protdist",
@@ -356,6 +356,27 @@ def normalize_distances(phylip_fp,
                         gene_bitvector_map,
                         debug=False):
     """ Parse and normalize the output file of PHYLIP's protdist function.
+
+    Parameters
+    ----------
+    phylip_fp: string
+        filepath to distance matrix output by PHYLIP's protdist function
+    full_distance_matrix: dictionary
+        complete distance matrix for pairwise alignments between all species
+        for every gene
+    num_species: integer
+        number of species in the reference database
+    full_distance_matrix_offset: integer
+        the index offset for elements in full_distance_matrix where to write
+        the next array
+    species_set_dict: dictionary
+        dictionary containing the binary indicator vectors as keys and the
+        number of genes with identical species set represented by the binary
+        vectors as values
+    gene_bitvector_map: list
+        list containing the binary indicator vector for each query gene
+    debug: boolean
+        if True, run function in debug mode
 
     Notes
     -----
@@ -398,27 +419,6 @@ def normalize_distances(phylip_fp,
         2_2 nan          nan         nan
 
         (species pairs)
-
-    Parameters
-    ----------
-    phylip_fp: string
-        filepath to distance matrix output by PHYLIP's protdist function
-    full_distance_matrix: dictionary
-        complete distance matrix for pairwise alignments between all species
-        for every gene
-    num_species: integer
-        number of species in the reference database
-    full_distance_matrix_offset: integer
-        the index offset for elements in full_distance_matrix where to write
-        the next array
-    species_set_dict: dictionary
-        dictionary containing the binary indicator vectors as keys and the
-        number of genes with identical species set represented by the binary
-        vectors as values
-    gene_bitvector_map: list
-        list containing the binary indicator vector for each query gene
-    debug: boolean
-        if True, run function in debug mode
     """
     # assume a pairwise alignment exists for all species
     missing_species = [str(x) for x in range(0, num_species)]
@@ -508,28 +508,6 @@ def cluster_distances(species_set_dict,
                       hamming_distance):
     """ Hamming distance clustering algorithm
 
-    Notes
-    -----
-        Cluster gene families by species with detectable orthologs in exactly
-        the same subset of the considered species.
-
-        Ex. Assume we have 4 genes and 5 species with the following distance
-        matrix:
-
-            0             1             2             3
-        0_0 nan           nan           nan           nan
-        0_1 -1.59564844   -1.388031632  -0.9634704748 -1.342272936
-        0_2 -0.4259542606 nan           0.7035215923  1.223837777
-        0_3 -1.55041393   -1.51499567   -0.9634704748 -1.330178178
-        0_4 -0.3659762821 0.8346037464  0.6565725705  1.15274682
-        ..
-        ..
-
-        There are two binary indicator vectors to represent the species
-        present in the four genes: IIIII (gene 0, 2 and 3), II0II (gene 1). If
-        the core set threshold was 3, then there would be 1 core species set
-        represented by IIIII.
-
     Parameters
     ----------
     species_set_dict: dictionary
@@ -552,6 +530,28 @@ def cluster_distances(species_set_dict,
       and all belonging species sets as values
       (determined by the Hamming distance clustering
       algorithm)
+
+    Notes
+    -----
+        Cluster gene families by species with detectable orthologs in exactly
+        the same subset of the considered species.
+
+        Ex. Assume we have 4 genes and 5 species with the following distance
+        matrix:
+
+            0             1             2             3
+        0_0 nan           nan           nan           nan
+        0_1 -1.59564844   -1.388031632  -0.9634704748 -1.342272936
+        0_2 -0.4259542606 nan           0.7035215923  1.223837777
+        0_3 -1.55041393   -1.51499567   -0.9634704748 -1.330178178
+        0_4 -0.3659762821 0.8346037464  0.6565725705  1.15274682
+        ..
+        ..
+
+        There are two binary indicator vectors to represent the species
+        present in the four genes: IIIII (gene 0, 2 and 3), II0II (gene 1). If
+        the core set threshold was 3, then there would be 1 core species set
+        represented by IIIII.
     """
     sorted_species_set = sorted(species_set_dict.items(),
                                 key=operator.itemgetter(1), reverse=True)
@@ -608,31 +608,6 @@ def detect_outlier_genes(species_set,
                          debug=False):
     """ Detect outlier genes.
 
-    Notes
-    -----
-        Algorithm described in section "Detecting `Outlier' Genes" of the Wei.
-        X et al. paper. The full distance matrix is represented in the format:
-
-        full_distance_matrix[#genes][#species][#species] =
-        [[[0_0, 0_1, 0_2, .., 0_n]
-          [1_0, 1_1, 1_2, .., 1_n]
-          ..
-          [n_0, n_1, n_2, .., n_n]]
-
-         [[0_0, 0_1, 0_2, .., 0_n]
-          [1_0, 1_1, 1_2, .., 1_n]
-          ..
-          [n_0, n_1, n_2, .., n_n]]
-
-          ..
-         [[0_0, 0_1, 0_2, .., 0_n]
-          [1_0, 1_1, 1_2, .., 1_n]
-          ..
-          [n_0, n_1, n_2, .., n_n]]]
-
-        The mean and standard deviation are computed for each species pair
-        including all genes.
-
     Parameters
     ----------
     species_set: list
@@ -662,6 +637,31 @@ def detect_outlier_genes(species_set,
     -------
     outlier_genes: set
         set of atypical genes
+
+    Notes
+    -----
+        Algorithm described in section "Detecting `Outlier' Genes" of the Wei.
+        X et al. paper. The full distance matrix is represented in the format:
+
+        full_distance_matrix[#genes][#species][#species] =
+        [[[0_0, 0_1, 0_2, .., 0_n]
+          [1_0, 1_1, 1_2, .., 1_n]
+          ..
+          [n_0, n_1, n_2, .., n_n]]
+
+         [[0_0, 0_1, 0_2, .., 0_n]
+          [1_0, 1_1, 1_2, .., 1_n]
+          ..
+          [n_0, n_1, n_2, .., n_n]]
+
+          ..
+         [[0_0, 0_1, 0_2, .., 0_n]
+          [1_0, 1_1, 1_2, .., 1_n]
+          ..
+          [n_0, n_1, n_2, .., n_n]]]
+
+        The mean and standard deviation are computed for each species pair
+        including all genes.
     """
     numpy.around(full_distance_matrix, decimals=5, out=full_distance_matrix)
     outlier_flag_matrix = numpy.zeros(
