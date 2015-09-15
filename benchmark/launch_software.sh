@@ -12,44 +12,55 @@
 #          follow input format for each tool and parse output files to report
 #          standardized statistics (number of HGTs, donors, recipients, gains
 #          and losses)
+#
+# usage: bash launch_software.sh working_dir scripts_dir species_tree_fp \
+#             species_genome_fp species_model_fp query_species_coding_seqs_fp \
+#             ref_species_coding_seqs_fp gene_tree_dir gene_msa_dir \
+#             phylonet_install_dir jane_install_dir trex_install_dir \
+#             verbose_str
 
 # working dir
 working_dir=$1
-echo "working dir: $working_dir"
 # scripts dir
 scripts_dir=$2
-echo "scripts_dir: $scripts_dir"
 # species tree in Newick format
 species_tree_fp=$3
-echo "species tree: $species_tree_fp"
 # species raw genome in FASTA format
 species_genome_fp=$4
-echo "species genome: $species_genome_fp"
 # species HMM model (produced by GeneMarkS)
 species_model_fp=$5
-echo "HMM model: $species_model_fp"
 # query species protein coding sequences in FASTA format
 query_species_coding_seqs_fp=$6
-echo "query genomes: $query_species_coding_seqs_fp"
 # reference species protein coding sequences in FASTA format
 ref_species_coding_seqs_fp=$7
-echo "species proteome: $ref_species_coding_seqs_fp"
 # gene trees in Newick format
 gene_tree_dir=$8
-echo "gene trees: $gene_tree_dir"
 # gene multiple sequence alignment dir
 gene_msa_dir=$9
-echo "gene MSAs: $gene_msa_dir"
 # PhyloNet install dir
 phylonet_install_dir=${10}
-echo "PhyloNet install dir: $phylonet_install_dir"
 # Jane 4 install dir
 jane_install_dir=${11}
-echo "Jane 4 install dir: $jane_install_dir"
 # T-REX install dir
 trex_install_dir=${12}
-echo "T-REX install dir: $trex_install_dir"
+# Verbose string 'true' or 'false'
+verbose=${13}
 
+if [ "$verbose" == "true" ]
+then
+    echo "working dir: $working_dir"
+    echo "scripts_dir: $scripts_dir"
+    echo "species tree: $species_tree_fp"
+    echo "species genome: $species_genome_fp"
+    echo "HMM model: $species_model_fp"
+    echo "query genomes: $query_species_coding_seqs_fp"
+    echo "species proteome: $ref_species_coding_seqs_fp"
+    echo "gene trees: $gene_tree_dir"
+    echo "gene MSAs: $gene_msa_dir"
+    echo "PhyloNet install dir: $phylonet_install_dir"
+    echo "Jane 4 install dir: $jane_install_dir"
+    echo "T-REX install dir: $trex_install_dir"
+fi
 
 TIMEFORMAT='%U %R'
 base_input_file_nwk="input_tree.nwk"
@@ -64,9 +75,7 @@ input_msa_phy=$working_dir/$base_input_file_phy
 stderr=$working_dir/"stderr.txt"
 stdout=$working_dir/"stdout.txt"
 
-if [ ! -d "${working_dir}" ]; then
-    mkdir $working_dir
-fi
+mkdir -p $working_dir
 
 total_user_time_trex="0.0"
 total_wall_time_trex="0.0"
@@ -91,9 +100,12 @@ do
     gene_tree_file=$(basename $gene_tree)
     gene_number=$(echo $gene_tree_file | sed 's/[^0-9]*//g')
     printf "$i\t$gene_number\t" >> $hgt_summary_file
-    echo "Processing gene $i .."
     # T-REX
-    echo -e "\tT-REX"
+    if [ "$verbose" == "true" ]
+    then
+        echo "Processing gene $i .."
+        echo -e "\tT-REX"
+    fi
     python ${scripts_dir}/reformat_input.py --method 'trex' \
                                             --gene-tree-fp $gene_tree \
                                             --species-tree-fp $species_tree_fp \
@@ -104,12 +116,15 @@ do
     printf "\t" >> $hgt_summary_file
     user_time=$(echo $TIME | awk '{print $1;}')
     wall_time=$(echo $TIME | awk '{print $2;}')
-    total_user_time_trex=$(python -c "print $total_user_time_trex + $user_time")
-    total_wall_time_trex=$(python -c "print $total_wall_time_trex + $wall_time")
+    total_user_time_trex=$(echo $total_user_time_trex + $user_time | bc)
+    total_wall_time_trex=$(echo $total_wall_time_trex + $wall_time | bc)
     rm $stdout
 
     # RANGER-DTL
-    echo -e "\tRANGER-DTL"
+    if [ "$verbose" == "true" ]
+    then
+        echo -e "\tRANGER-DTL"
+    fi
     python ${scripts_dir}/reformat_input.py --method 'ranger-dtl' \
                                             --gene-tree-fp $gene_tree \
                                             --species-tree-fp $species_tree_fp \
@@ -119,12 +134,15 @@ do
     printf "\t" >> $hgt_summary_file
     user_time=$(echo $TIME | awk '{print $1;}')
     wall_time=$(echo $TIME | awk '{print $2;}')
-    total_user_time_rangerdtl=$(python -c "print $total_user_time_rangerdtl + $user_time")
-    total_wall_time_rangerdtl=$(python -c "print $total_wall_time_rangerdtl + $wall_time")
+    total_user_time_rangerdtl=$(echo $total_user_time_rangerdtl + $user_time | bc)
+    total_wall_time_rangerdtl=$(echo $total_wall_time_rangerdtl + $wall_time | bc)
     rm $output_file
 
     # RIATA-HGT (in PhyloNet)
-    echo -e "\tRIATA-HGT"
+    if [ "$verbose" == "true" ]
+    then
+        echo -e "\tRIATA-HGT"
+    fi
     python ${scripts_dir}/reformat_input.py --method 'riata-hgt' \
                                             --gene-tree-fp $gene_tree \
                                             --species-tree-fp $species_tree_fp \
@@ -134,15 +152,18 @@ do
     printf "\t" >> $hgt_summary_file
     user_time=$(echo $TIME | awk '{print $1;}')
     wall_time=$(echo $TIME | awk '{print $2;}')
-    total_user_time_riatahgt=$(python -c "print $total_user_time_riatahgt + $user_time")
-    total_wall_time_riatahgt=$(python -c "print $total_wall_time_riatahgt + $wall_time")
+    total_user_time_riatahgt=$(echo $total_user_time_riatahgt + $user_time | bc)
+    total_wall_time_riatahgt=$(echo $total_user_time_riatahgt + $user_time | bc)
     rm $output_file
 
     # JANE4
     # input conditions: requires NEXUS input file;
     # supports one-to-many mapping in both directions (ex. multiple genes per
     # species)
-    echo -e "\tJane 4"
+    if [ "$verbose" == "true" ]
+    then
+        echo -e "\tJane 4"
+    fi
     python ${scripts_dir}/reformat_input.py --method 'jane4' \
                                             --gene-tree-fp $gene_tree \
                                             --species-tree-fp $species_tree_fp \
@@ -152,8 +173,8 @@ do
     printf "\t" >> $hgt_summary_file
     user_time=$(echo $TIME | awk '{print $1;}')
     wall_time=$(echo $TIME | awk '{print $2;}')
-    total_user_time_jane=$(python -c "print $total_user_time_jane + $user_time")
-    total_wall_time_jane=$(python -c "print $total_wall_time_jane + $wall_time")
+    total_user_time_jane=$(echo $total_user_time_jane + $user_time | bc)
+    total_wall_time_jane=$(echo $total_wall_time_jane + $wall_time | bc)
     rm $output_file
 
     # CONSEL (AU Test)
@@ -162,7 +183,10 @@ do
     # (b) if MSA provided (ex. ALF), Fasta2Phylip.py
     # TREE-PUZZLE (reconstruct phylogenetic tree using maximum likelihood)
     # CONSEL (apply AU Test on matrix)
-    echo -e "\tTree-Puzzle and CONSEL"
+    if [ "$verbose" == "true" ]
+    then
+        echo -e "\tTree-Puzzle and CONSEL"
+    fi
     gene_msa_fasta_fp=$gene_msa_dir/"MSA_${gene_number}_aa.fa"
     gene_msa_phylip_fp=$working_dir/"MSA_${gene_number}_aa.phy"
     python ${scripts_dir}/reformat_input.py --method 'tree-puzzle' \
@@ -182,8 +206,8 @@ do
     printf "\n" >> $hgt_summary_file
     user_time=$(echo $TIME | awk '{print $1;}')
     wall_time=$(echo $TIME | awk '{print $2;}')
-    total_user_time_consel=$(python -c "print $total_user_time_consel + $user_time")
-    total_wall_time_consel=$(python -c "print $total_wall_time_consel + $wall_time")
+    total_user_time_consel=$(echo $total_user_time_consel + $user_time | bc)
+    total_wall_time_consel=$(echo $total_wall_time_consel + $wall_time | bc)
 
     ## Clean up
     rm $gene_msa_phylip_fp
