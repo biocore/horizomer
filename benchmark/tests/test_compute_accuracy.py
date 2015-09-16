@@ -152,8 +152,7 @@ time 5.8385: insertion of length 4 in org/gene 4/579
 62 lgt events resulting in 96 genes
 """
 
-hgt_summary = """
-#number of HGTs detected
+hgt_summary = """#number of HGTs detected
 #\tgene ID\tT-REX\tRANGER-DTL\tRIATA-HGT\tJane 4\tConsel
 0\t1000\t1\t1\t1\t1\t0.99 0.01
 1\t1001\t0\t0\t0\t0\t0.00 0.00

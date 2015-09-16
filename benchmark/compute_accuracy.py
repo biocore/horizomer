@@ -13,7 +13,7 @@
 import sys
 import click
 import re
-
+from collections import defaultdict
 
 # strings for parsing HGT information from logfile.txt of ALF simulations
 hgt_search_string = "lgt from organism "
@@ -75,16 +75,14 @@ def parse_observed_transfers(observed_hgts_f,
     1	1001	0	0	0	0	0.00 0.00
     ..
     """
-    tools = {}
     tools_id = []
+    tools = defaultdict(list)
+    # skip header line
     next(observed_hgts_f)
     for line in observed_hgts_f:
         line = line.strip().split('\t')
-        if line[0].startswith('#'):
-            for tool in line[2:]:
-                tools_id.append(tool)
-                if tool not in tools:
-                    tools[tool] = []
+        if line[0] == "#":
+            tools_id = [tool for tool in line[2:]]
             continue
         gene_id = line[1]
         for i, entry in enumerate(line[2:]):
@@ -92,7 +90,7 @@ def parse_observed_transfers(observed_hgts_f,
             # consel output (2 p-values for AU Test)
             if len(entry) == 2:
                 # species tree p-value
-                if entry[0] != "0.00":
+                if float(entry[0]) != 0.00:
                     # gene tree p-value
                     pvalue = entry[1]
                     if pvalue != 'NaN':
