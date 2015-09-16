@@ -13,10 +13,7 @@ from os.path import join
 
 from skbio.util import remove_files
 
-from parse_output import (parse_trex,
-                          parse_rangerdtl,
-                          parse_riatahgt,
-                          parse_jane4,
+from parse_output import (parse_hgts,
                           parse_consel)
 
 
@@ -63,32 +60,32 @@ class ParseOutputTests(TestCase):
         remove_files(self.files_to_remove)
         rmtree(self.working_dir)
 
-    def test_parse_trex(self):
-        """ Test functionality of parse_trex()
+    def test_parse_hgts_trex(self):
+        """ Test functionality of parse_hgts() for TREX
         """
         with open(self.trex_output_hgt_fp, 'U') as f:
-            output = parse_trex(input_f=f)
+            output = parse_hgts(f, 'trex')
         self.assertEqual(int(output), 1)
 
-    def test_parse_rangerdtl(self):
-        """ Test functionality of parse_rangerdtl
+    def test_parse_hgts_rangerdtl(self):
+        """ Test functionality of parse_hgts() for RANGER-DTL-U
         """
         with open(self.rangerdtl_output_hgt_fp, 'U') as f:
-            output = parse_rangerdtl(input_f=f)
+            output = parse_hgts(f, 'ranger-dtl')
         self.assertEqual(int(output), 1)
 
-    def test_parse_riatahgt(self):
-        """ Test functionality of parse_riatahgt
+    def test_parse_hgts_riatahgt(self):
+        """ Test functionality of parse_hgts() for RIATA-HGT in PhyloNet
         """
         with open(self.riatahgt_output_hgt_fp, 'U') as f:
-            output = parse_riatahgt(input_f=f)
+            output = parse_hgts(f, 'riata-hgt')
         self.assertEqual(int(output), 1)
 
-    def test_parse_jane4(self):
-        """ Test functionality of parse_jane4
+    def test_parse_hgts_jane4(self):
+        """ Test functionality of parse_hgts() for Jane 4
         """
         with open(self.jane4_output_hgt_fp, 'U') as f:
-            output = parse_jane4(input_f=f)
+            output = parse_hgts(f, 'jane')
         self.assertEqual(int(output), 1)
 
     def test_parse_consel(self):

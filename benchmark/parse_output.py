@@ -14,84 +14,49 @@ import click
 import sys
 
 
-def parse_trex(input_f):
-    """ Parse output of T-REX version 3.6.
+# T-REX version 3.6
+# RANGER-DTL-U version 1.0
+# RIATA-HGT version 3.5.6
+# JANE version 4
+# each tuple consists of three strings, first string is the unique string to
+# identify the line with HGT information, second and third strings are the
+# bounds for the actual number of HGTs
+hgt_parse_strs = {
+    'ranger-dtl': ('The minimum reconciliation cost is: ',
+                   'Transfers: ',
+                   ', Losses'),
+    'trex': ('hgt : number of HGT(s) found = ', 
+             'hgt : number of HGT(s) found = ',
+             ' '),
+    'jane': ('Host Switch: ',
+             'Host Switch: ',
+             ' '),
+    'riata-hgt': ('There are ',
+                  'There are ',
+                  ' component(s)')}
+
+
+def parse_hgts(input_f, method):
+    """ Extract number of HGTs found.
 
     Parameters
     ----------
     input_f: string
         file descriptor for T-REX output results
+    method: string
+        HGT detection method
 
     Returns
     -------
     number_of_hgts: string
-        number of HGTs reported by a tool, or NaN if an error occurred
+        number of HGTs reported by a tool, or NaN if an entry was not found
     """
-    string = 'hgt : number of HGT(s) found = '
     for line in input_f:
-        if string in line:
-            return line.split(string)[1].strip()
-    return "NaN"
-
-
-def parse_rangerdtl(input_f):
-    """ Parse output of RANGER-DTL version 1.0.
-
-    Parameters
-    ----------
-    input_f: string
-        file descriptor for RANGER-DTL output results
-
-    Returns
-    -------
-    number_of_hgts: string
-        number of HGTs reported by a tool, or NaN if an error occurred
-    """
-    string = "The minimum reconciliation cost is: "
-    for line in input_f:
-        if string in line:
-            return line.split("Transfers: ")[1].split(",")[0]
-    return "NaN"
-
-
-def parse_riatahgt(input_f):
-    """ Parse output of RIATA-HGT version 3.5.6.
-
-    Parameters
-    ----------
-    input_f: string
-        file descriptor for RIATA-HGT output results
-
-    Returns
-    -------
-    number_of_hgts: string
-        number of HGTs reported by a tool, or NaN if an error occurred
-    """
-    string = "There are "
-    for line in input_f:
-        if string in line:
-            return line.split(string)[1].split(" component(s)")[0]
-    return "NaN"
-
-
-def parse_jane4(input_f):
-    """ Parse output of Jane 4.
-
-    Parameters
-    ----------
-    input_f: string
-        file descriptor for RIATA-HGT output results
-
-    Returns
-    -------
-    number_of_hgts: string
-        number of HGTs reported by a tool, or NaN if an error occurred
-    """
-    string = "Host Switch: "
-    for line in input_f:
-        if string in line:
-            return line.split(string)[1].strip()
-    return "NaN"
+        if hgt_parse_strs[method][0] in line:
+            return line.strip().split(
+                hgt_parse_strs[method][1])[1].split(
+                    hgt_parse_strs[method][2])[0]
+    return 'NaN'
 
 
 def parse_consel(input_f):
@@ -141,20 +106,20 @@ def _main(hgt_results_fp,
     """ Parsing functions for various HGT detection tool outputs.
     """
     with open(hgt_results_fp, 'U') as input_f:
-        if method == 'ranger-dtl':
-            output = parse_rangerdtl(input_f=input_f)
-        elif method == 'trex':
-            output = parse_trex(input_f=input_f)
-        elif method == 'riata-hgt':
-            output = parse_riatahgt(input_f=input_f)
-        elif method == 'jane4':
-            output = parse_jane4(input_f=input_f)
+        if (method == 'ranger-dtl' or
+                method == 'trex' or
+                method == 'jane4' or
+                method == 'riata-hgt'):
+            output = parse_hgts(input_f=input_f,
+                                method=method)
         elif method == 'consel':
             output = parse_consel(input_f=input_f)
             if output is None:
                 output = "NaN"
             else:
                 output = " ".join(output)
+        else:
+            raise ValueError("Method is not supported: %s" % method)
 
     sys.stdout.write(output)
 
