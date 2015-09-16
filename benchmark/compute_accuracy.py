@@ -6,15 +6,18 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
-"""
-Given known HGTs, compute precision, recall and F-score for various tools
-=========================================================================
-"""
+#
+# Given known HGTs, compute precision, recall and F-score for various tools.
+#
 
 import sys
 import click
 import re
 
+
+# strings for parsing HGT information from logfile.txt of ALF simulations
+hgt_search_string = "lgt from organism "
+hgt_parse_string = 'lgt from organism | with gene | to organism |, now gene '
 
 def parse_expected_transfers(ground_truth_f):
     """ Parse ALF's log file.
@@ -36,12 +39,9 @@ def parse_expected_transfers(ground_truth_f):
     gene donated, organism recipient and gene received.
     """
     expected_transfers = []
-    string = "lgt from organism "
     for line in ground_truth_f:
-        if string in line:
-            content = re.split(
-                'lgt from organism | with gene | to organism |, now gene ',
-                line.strip())
+        if hgt_search_string in line:
+            content = re.split(hgt_parse_string, line.strip())
             expected_transfers.append(tuple(content[1:]))
     return expected_transfers
 
@@ -126,11 +126,9 @@ def compute_accuracy(expected_transfers,
         false-positive (fp), false-negative (fn) reported HGTs and precision,
         recall and F-score
     """
-    exp_s = set()
+    exp_s = set([tup[1] for tup in expected_transfers])
     obs_s = set()
     tools_accuracy = {}
-    for tup in expected_transfers:
-        exp_s.add(tup[1])
     sys.stdout.write("#expected HGTs: %s\n" % len(exp_s))
     sys.stdout.write("#tool\tTP\tFP\tFN\tprecision\trecall\tF-score\n")
     for tool in observed_transfers:
