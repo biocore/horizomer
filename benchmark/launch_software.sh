@@ -20,9 +20,9 @@
 #             verbose_str
 
 # working dir
-working_dir=$1
+working_dir=$(readlink $1)
 # scripts dir
-scripts_dir=$2
+scripts_dir=$(readlink $2)
 # species tree in Newick format
 species_tree_fp=$3
 # species raw genome in FASTA format
@@ -210,6 +210,7 @@ do
     total_wall_time_consel=$(echo $total_wall_time_consel + $wall_time | bc)
 
     ## Clean up
+    rm $output_file
     rm $gene_msa_phylip_fp
     rm ${input_file_nwk}_puzzle.pv
     rm ${input_file_nwk}_puzzle.sitelh
