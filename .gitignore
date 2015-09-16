@@ -11,11 +11,6 @@ nosetests.xml
 # Translations
 *.mo
 
-# Mr Developer
-.mr.developer.cfg
-.project
-.pydevproject
-
 # OSX files
 .DS_Store
 
