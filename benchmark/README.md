@@ -1,6 +1,6 @@
 ### Benchmark for HGT detection software
 
-## Script details
+## Scripts details
 
 	* `launch_software.sh` launch all tested software
 	* `reformat_input.py` reformats input data (ex. species
@@ -22,7 +22,8 @@ for the dependencies list.
 
 ## Example
 
-``` bash launch_software.sh /path/to/output/folder /path/to/WGS-HGT/benchmark /path/to/WGS-HGT/benchmark/test_benchmark/RealTree.nwk None None None None /path/to/WGS-HGT/benchmark/test_benchmark/GeneTrees/ /path/to/WGS-HGT/benchmark/test_benchmark/MSA/ /path/to/phylonet/install/dir /path/to/jane4/install/dir /path/to/trex/install/dir false
+```
+bash launch_software.sh /path/to/output/folder /path/to/WGS-HGT/benchmark /path/to/WGS-HGT/benchmark/test_benchmark/RealTree.nwk None None None None /path/to/WGS-HGT/benchmark/test_benchmark/GeneTrees/ /path/to/WGS-HGT/benchmark/test_benchmark/MSA/ /path/to/phylonet/install/dir /path/to/jane4/install/dir /path/to/trex/install/dir false
 ```
 
 ## Additional information
