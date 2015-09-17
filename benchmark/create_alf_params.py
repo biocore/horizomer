@@ -6,10 +6,9 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
-"""
-Create parameters file for ALF genome simulations
-=================================================
-"""
+#
+# Create parameters file for ALF genome simulations
+#
 
 import sys
 from string import replace
