@@ -20,9 +20,9 @@
 #             verbose_str
 
 # working dir
-working_dir=$1
+working_dir=$(readlink -m $1)
 # scripts dir
-scripts_dir=$2
+scripts_dir=$(readlink -m $2)
 # species tree in Newick format
 species_tree_fp=$3
 # species raw genome in FASTA format
@@ -75,7 +75,7 @@ input_msa_phy=$working_dir/$base_input_file_phy
 stderr=$working_dir/"stderr.txt"
 stdout=$working_dir/"stdout.txt"
 
-mkdir -p $working_dir
+mkdir -p "${working_dir}"
 
 total_user_time_trex="0.0"
 total_wall_time_trex="0.0"
@@ -210,6 +210,7 @@ do
     total_wall_time_consel=$(echo $total_wall_time_consel + $wall_time | bc)
 
     ## Clean up
+    rm $output_file
     rm $gene_msa_phylip_fp
     rm ${input_file_nwk}_puzzle.pv
     rm ${input_file_nwk}_puzzle.sitelh

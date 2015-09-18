@@ -46,7 +46,7 @@ import threading
 import subprocess
 import traceback
 import shlex
-from os.path import join, splitext, basename
+from os.path import join, basename
 from itertools import imap
 from glob import glob
 
@@ -121,7 +121,7 @@ def preprocess_data(working_dir,
     target_proteomes_dir: string
         path to directory holding proteomes for all target organisms
     extensions: list
-        list of extensions for reference proteomes 
+        list of extensions for reference proteomes
     verbose: boolean, optional
         output details about the running processes of this function
 
@@ -148,7 +148,8 @@ def preprocess_data(working_dir,
         sys.stdout.write("Target organism\tNumber of genes\n")
     # each file contains genes for species
     for ext in extensions:
-        for species, _file in enumerate(glob("%s/*%s" % (target_proteomes_dir, ext))):
+        for species, _file in enumerate(
+                glob("%s/*%s" % (target_proteomes_dir, ext))):
             if verbose:
                 sys.stdout.write("%s. %s\t" % (
                     species+1, basename(_file)))
@@ -159,7 +160,7 @@ def preprocess_data(working_dir,
                     sudo_label = "%s_%s" % (species, gene)
                     if label in gene_map:
                         raise ValueError("Duplicate sequence labels are "
-                            "not allowed: %s" % label)
+                                         "not allowed: %s" % label)
                     gene_map[label] = sudo_label
                     gene_map[sudo_label] = label
                 if verbose:
@@ -270,7 +271,7 @@ def parse_blast(alignments_fp,
                 # check that the query mapped to a different species
                 # since we only want the best homolog per species
                 if gene_map[ref].split('_')[0] not in [
-                gene_map[gene].split('_')[0] for gene in hits[query]]:
+                        gene_map[gene].split('_')[0] for gene in hits[query]]:
                     hits[query].append(ref)
 
 
@@ -556,7 +557,7 @@ def cluster_distances(species_set_dict,
     sorted_species_set = sorted(species_set_dict.items(),
                                 key=operator.itemgetter(1), reverse=True)
 
-    # determine core clusters (initial species sets with more than 
+    # determine core clusters (initial species sets with more than
     # species_set_size genes)
     gene_clusters_dict = {}
     # if the largest species set contains less than threshold
@@ -742,7 +743,7 @@ def output_full_matrix(matrix, num_species):
 @click.option('--ext', multiple=True, type=str, required=False,
               default=['fa', 'fasta', 'faa'], show_default=True,
               help="File extensions of target proteomes (multiple extensions "
-                "can be given by calling --ext ext1 --ext ext2)")
+                   "can be given by calling --ext ext1 --ext ext2)")
 @click.option('--min-num-homologs', type=int, required=False, default=3,
               show_default=True, help="The mininum number of homologs "
                                       "(determined by BLAST search) for each "
