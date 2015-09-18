@@ -25,7 +25,7 @@ hgt_parse_strs = {
     'ranger-dtl': ('The minimum reconciliation cost is: ',
                    'Transfers: ',
                    ', Losses'),
-    'trex': ('hgt : number of HGT(s) found = ', 
+    'trex': ('hgt : number of HGT(s) found = ',
              'hgt : number of HGT(s) found = ',
              ' '),
     'jane': ('Host Switch: ',
@@ -74,9 +74,10 @@ def parse_consel(input_f):
     """
     pvalues = []
     # skip header lines
-    input_f.next()
-    input_f.next()
-    input_f.next()
+    skip_lines = 3
+    for s in xrange(skip_lines):
+        input_f.next()
+
     for line in input_f:
         line = line.split()
         # skip empty line at bottom of file

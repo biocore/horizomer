@@ -13,8 +13,8 @@ from os.path import join
 
 from skbio.util import remove_files
 
-from parse_output import (parse_hgts,
-                          parse_consel)
+from benchmark.parse_output import (parse_hgts,
+                                    parse_consel)
 
 
 class ParseOutputTests(TestCase):
@@ -203,10 +203,13 @@ rangerdtl_output_hgt = """
 
  ------------ Reconciliation for Gene Tree 1 (rooted) -------------
 Species Tree:
-(((((((SE001,SE010)n7,SE008)n6,(SE006,SE009)n8)n5,SE005)n4,SE004)n3,SE003)n2,(SE002,SE007)n9)n1;
+(((((((SE001,SE010)n7,SE008)n6,(SE006,SE009)n8)n5,SE005)n4,SE004)n3,SE003)n2,\
+(SE002,SE007)n9)n1;
 
 Gene Tree:
-(((((SE008_01000,(SE006_01000,SE009_01000)m7)m5,(SE005_01000,(SE001_04150,SE010_04150)m12)m10)m4,SE004_01000)m3,SE003_01000)m2,(SE002_01000,SE007_01000)m17)m1;
+(((((SE008_01000,(SE006_01000,SE009_01000)m7)m5,(SE005_01000,(SE001_04150,SE0\
+10_04150)m12)m10)m4,SE004_01000)m3,SE003_01000)m2,(SE002_01000,SE007_01000)m1\
+7)m1;
 
 Reconciliation:
 SE008_01000: Leaf Node
@@ -218,7 +221,8 @@ SE005_01000: Leaf Node
 SE001_04150: Leaf Node
 SE010_04150: Leaf Node
 m12 = LCA[SE001_04150, SE010_04150]: Speciation, Mapping --> n7
-m10 = LCA[SE005_01000, SE010_04150]: Transfer, Mapping --> SE005, Recipient --> n7
+m10 = LCA[SE005_01000, SE010_04150]: Transfer, Mapping --> SE005, Recipient \
+--> n7
 m4 = LCA[SE008_01000, SE010_04150]: Speciation, Mapping --> n4
 SE004_01000: Leaf Node
 m3 = LCA[SE008_01000, SE004_01000]: Speciation, Mapping --> n3
@@ -229,22 +233,34 @@ SE007_01000: Leaf Node
 m17 = LCA[SE002_01000, SE007_01000]: Speciation, Mapping --> n9
 m1 = LCA[SE008_01000, SE007_01000]: Speciation, Mapping --> n1
 
-The minimum reconciliation cost is: 4 (Duplications: 0, Transfers: 1, Losses: 1)
+The minimum reconciliation cost is: 4 (Duplications: 0, Transfers: 1, \
+Losses: 1)
 """
 
 riatahgt_output_hgt = """
 RIATAHGT speciesTree {geneTree}
-species tree: (((((((SE001:2.1494877,SE010:1.08661)I2:3.7761166,SE008:0.86305436)I3:0.21024487,(SE006:0.56704221,SE009:0.5014676)I1:0.90294223)I4:0.20542323,SE005:3.0992506)I5:0.37145632,SE004:1.8129133)I6:0.72933621,SE003:1.737411)I7:0.24447835,(SE002:1.6606127,SE007:0.70000178)I0:1.6331374)I8:1.594016;
-gene tree: (((((SE008:6.135849,(SE006:5.2329068,SE009:5.2329068)I1:0.9029422):0.2054233,(SE005:3.1308178,(SE001:2.1494876,SE010:2.1494876)I2:0.9813302):3.2104545):0.3714563,SE004:6.7127286):0.7293362,SE003:7.4420648):0.2444784,(SE002:6.0534057,SE007:6.0534057)I0:1.6331375):1.594016;
+species tree: (((((((SE001:2.1494877,SE010:1.08661)I2:3.7761166,SE008:0.86305\
+436)I3:0.21024487,(SE006:0.56704221,SE009:0.5014676)I1:0.90294223)I4:0.205423\
+23,SE005:3.0992506)I5:0.37145632,SE004:1.8129133)I6:0.72933621,SE003:1.737411\
+)I7:0.24447835,(SE002:1.6606127,SE007:0.70000178)I0:1.6331374)I8:1.594016;
+gene tree: (((((SE008:6.135849,(SE006:5.2329068,SE009:5.2329068)I1:0.9029422)\
+:0.2054233,(SE005:3.1308178,(SE001:2.1494876,SE010:2.1494876)I2:0.9813302):3.\
+2104545):0.3714563,SE004:6.7127286):0.7293362,SE003:7.4420648):0.2444784,(SE0\
+02:6.0534057,SE007:6.0534057)I0:1.6331375):1.594016;
 There are 1 component(s), which account(s) for 1 solution(s), each of size 1
------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------\
+------------------------
             Component I5:
             Subsolution1:
                 SE005 -> I2
 
-*****************************************************************************************************
+*****************************************************************************\
+************************
 Consensus network for this set of gene trees
-(((((((SE001:2.1494877,SE010:1.08661)I2:3.7761166,SE008:0.86305436)I3:0.21024487,(SE006:0.56704221,SE009:0.5014676)I1:0.90294223)I4:0.20542323,SE005:3.0992506)I5:0.37145632,SE004:1.8129133)I6:0.72933621,SE003:1.737411)I7:0.24447835,(SE002:1.6606127,SE007:0.70000178)I0:1.6331374)I8:1.594016;
+(((((((SE001:2.1494877,SE010:1.08661)I2:3.7761166,SE008:0.86305436)I3:0.21024\
+487,(SE006:0.56704221,SE009:0.5014676)I1:0.90294223)I4:0.20542323,SE005:3\
+.0992506)I5:0.37145632,SE004:1.8129133)I6:0.72933621,SE003:1.737411)I7:0.2444\
+7835,(SE002:1.6606127,SE007:0.70000178)I0:1.6331374)I8:1.594016;
 SE005 -> I2
 
 """
@@ -440,7 +456,8 @@ Failure to Diverge: 0
 """
 
 consel_output_hgt = """
-# reading /home/evko1434/hgt-detection/datasets/simulated/alf_simulations/detect_hgts/input_tree.nwk_puzzle.pv
+# reading /home/evko1434/hgt-detection/datasets/simulated/alf_simulations/det\
+ect_hgts/input_tree.nwk_puzzle.pv
 # rank item    obs     au     np |     bp     pp     kh     sh    wkh    wsh |
 #    1    2  -12.2  0.988  0.957 |  0.955  1.000  0.927  0.927  0.927  0.927 |
 #    2    1   12.2  0.012  0.043 |  0.045  5e-06  0.073  0.073  0.073  0.073 |
