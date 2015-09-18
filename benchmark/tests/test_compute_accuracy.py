@@ -13,9 +13,9 @@ from os.path import join
 
 from skbio.util import remove_files
 
-from compute_accuracy import (parse_expected_transfers,
-                              parse_observed_transfers,
-                              compute_accuracy)
+from benchmark.compute_accuracy import (parse_expected_transfers,
+                                        parse_observed_transfers,
+                                        compute_accuracy)
 
 
 class ComputeAccuracyTests(TestCase):

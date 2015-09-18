@@ -1,0 +1,20 @@
+*.py[cod]
+
+# C extensions
+*.so
+
+# Unit test / coverage reports
+.coverage
+.tox
+nosetests.xml
+
+# Translations
+*.mo
+
+# OSX files
+.DS_Store
+
+# vi swap and temp files
+*.swp
+*.swo
+*~

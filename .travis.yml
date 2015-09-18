@@ -1,0 +1,32 @@
+language: python
+sudo: false
+env:
+  global:
+    - PYTHON_VERSION=2.7
+before_install:
+  - wget http://repo.continuum.io/miniconda/Miniconda3-3.7.3-Linux-x86_64.sh -O miniconda.sh
+  - chmod +x miniconda.sh
+  - ./miniconda.sh -b
+  - export PATH=/home/travis/miniconda3/bin:$PATH
+  # Update conda itself
+  - conda update --yes conda
+  # Installing RANGER
+  - wget http://compbio.mit.edu/ranger-dtl/ranger-dtl-linux.tar.gz
+  - tar zxvf ranger-dtl-linux.tar.gz
+  - export PATH=$PWD/ranger-dtl-linux:$PATH
+  # Installing Java goodies
+  - mkdir java-files
+  # Installing PhyloNet
+  - wget http://bioinfo.cs.rice.edu/sites/bioinfo.cs.rice.edu/files/kcfinder/files/PhyloNet_3.5.6.jar -O java-files/PhyloNet_3.5.6.jar
+install:
+  # install a few of the dependencies that pip would otherwise try to install
+  # when intalling scikit-bio
+  - travis_retry conda create --yes -n env_name python=$PYTHON_VERSION pip nose flake8 'scipy>0.13.0' 'numpy>=1.7'
+  - source activate env_name
+  - pip install coveralls
+  - travis_retry pip install .
+script:
+  - nosetests --with-doctest --with-coverage
+  - flake8 benchmark/*.py benchmark/tests/*.py distance-method/*.py
+after_success:
+  - coveralls
