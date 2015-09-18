@@ -15,9 +15,9 @@ from os.path import join
 from skbio.util import remove_files
 from skbio import TreeNode
 
-from hgt_analysis.reformat_input import (join_trees,
-                                         trim_gene_tree_leaves,
-                                         species_gene_mapping)
+from benchmark.reformat_input import (join_trees,
+                                      trim_gene_tree_leaves,
+                                      species_gene_mapping)
 
 
 class workflowTests(TestCase):
