@@ -19,6 +19,7 @@ from collections import defaultdict
 hgt_search_string = "lgt from organism "
 hgt_parse_string = 'lgt from organism | with gene | to organism |, now gene '
 
+
 def parse_expected_transfers(ground_truth_f):
     """ Parse ALF's log file.
 
