@@ -16,3 +16,8 @@ The following software is required:
 	* [Jane 4](https://www.cs.hmc.edu/~hadas/jane/index.html)
 	* [TREE-PUZZLE 5.3.rc16](http://www.tree-puzzle.de/tree-puzzle-5.3.rc16-linux.tar.gz)
 	* [CONSEL 1.20](http://www.sigmath.es.osaka-u.ac.jp/shimo-lab/prog/consel/pub/cnsls020.tgz)
+	* [OrthoFinder](https://github.com/davidemms/OrthoFinder)
+		* [MCL Package](https://packages.debian.org/unstable/math/mcl)
+		* FastTree
+		* Blast+
+		* MAFFT
