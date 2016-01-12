@@ -12,12 +12,6 @@
 # their trees and MSAs, run BLASTP on the query genome) and passes this data
 # to launch_software.sh for executing HGT detection software
 
-# usage: bash launch_benchmark.sh working_dir scripts_dir species_tree_fp \
-#             species_genome_fp species_model_fp query_species_coding_seqs_fp \
-#             ref_species_coding_seqs_fp gene_tree_dir gene_msa_dir \
-#             phylonet_install_dir jane_install_dir trex_install_dir \
-#             verbose_str
-
 # working dir
 working_dir=$(readlink -m $1)
 # scripts dir
