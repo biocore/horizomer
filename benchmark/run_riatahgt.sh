@@ -47,4 +47,4 @@ do
     i=$((i+1))
 done
 
-echo "Total time RIATA-HGT: $total_user_time_riatahgt"
+echo "Total time RIATA-HGT: $total_user_time_riatahgt" >> $stderr

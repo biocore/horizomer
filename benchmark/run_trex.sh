@@ -48,4 +48,4 @@ do
     i=$((i+1))
 done
 
-echo "Total time T-REX: $total_user_time_trex"
+echo "Total time T-REX: $total_user_time_trex" >> $stderr

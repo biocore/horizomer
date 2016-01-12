@@ -70,4 +70,4 @@ do
     i=$((i+1))
 done
 
-echo "Total time AU-Test: $total_user_time_consel"
+echo "Total time AU-Test: $total_user_time_consel" >> $stderr

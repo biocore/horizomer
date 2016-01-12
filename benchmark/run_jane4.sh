@@ -50,4 +50,4 @@ do
     i=$((i+1))
 done
 
-echo "Total time Jane 4: $total_user_time_jane"
+echo "Total time Jane 4: $total_user_time_jane" >> $stderr
