@@ -68,24 +68,31 @@ fi
 mkdir -p "${working_dir}/diamond"
 filename=$(basename "${query_species_coding_seqs_fp}")
 diamond_output=${working_dir}/diamond/$filename
-# launch DIAMOND if alignments don't exist for genome
-if [ ! -f "${diamond_output}"]
-then
-    diamond blastp --db ${diamond_nr} \
-                   --query ${query_species_coding_seqs_fp} \
-                   --evalue 1e-5 \
-                   --max-target-seqs 500 \
-                   --threads ${threads} \
-                   --daa ${diamond_output}.daa \
-                   --sensitive
-    # convert output to tab delimited format
-    diamond view --daa ${diamond_output}.daa -f tab -o ${diamond_output}.m8
-fi
+## launch DIAMOND if alignments don't exist for genome
+#if [ "${diamond_output}" == "None" ]
+#then
+#    diamond blastp --db ${diamond_nr} \
+#                   --query ${query_species_coding_seqs_fp} \
+#                   --evalue 1e-5 \
+#                   --max-target-seqs 500 \
+#                   --threads ${threads} \
+#                   --daa ${diamond_output}.daa \
+#                   --sensitive
+#    # convert output to tab delimited format
+#    diamond view --daa ${diamond_output}.daa -f tab -o ${diamond_output}.m8
+#fi
 
-# build HMM model if doesn't exist for genome
+## run GeneMarkS training (generate typical and atypical gene models)
+mkdir -p "${working_dir}/hmm-models"
+filename=$(basename "${species_genome_fp}")
+hmm_output=${working_dir}/hmm-models/$filename
+#if [ "${species_model_fp}" == "None" ]
+#then
+#    gmsn.pl --combine --gm --clean --name ${species_model_fp} "${hmm_output%.*}"
+#    species_model_fp="${hmm_output%.*}_hmm_combined.mod"
+#fi
 
-
-# launch all software
+## launch all software
 bash ${scripts_dir}/launch_software.sh ${working_dir} \
                                        ${scripts_dir} \
                                        ${species_tree_fp} \

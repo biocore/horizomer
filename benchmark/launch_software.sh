@@ -55,23 +55,6 @@ threads=${16}
 # qsub params
 qsub="-q route -m abe -M jenya.kopylov@gmail.com -l nodes=1:ppn=${threads} -l walltime=230:00:00 -l pmem=10gb -l mem=20gb"
 
-if [ "$verbose" == "true" ]
-then
-    echo "working dir: $working_dir"
-    echo "scripts_dir: $scripts_dir"
-    echo "species tree: $species_tree_fp"
-    echo "species genome: $species_genome_fp"
-    echo "HMM model: $species_model_fp"
-    echo "query genomes: $query_species_coding_seqs_fp"
-    echo "species proteome: $ref_species_coding_seqs_fp"
-    echo "gene trees: $gene_tree_dir"
-    echo "gene MSAs: $gene_msa_dir"
-    echo "PhyloNet install dir: $phylonet_install_dir"
-    echo "Jane 4 install dir: $jane_install_dir"
-    echo "T-REX install dir: $trex_install_dir"
-    echo "initial command: $init_command"
-fi
-
 TIMEFORMAT='%U %R'
 base_input_file_nwk="input_tree_nwk"
 base_input_file_nex="input_tree_nex"
@@ -84,6 +67,10 @@ stderr=$working_dir/"stderr"
 stdout=$working_dir/"stdout"
 
 mkdir -p "${working_dir}"
+if [ "${init_command}" == "None" ]
+then
+    init_command="sleep 1"
+fi
 
 ## run T-REX
 #echo "${init_command}; bash ${scripts_dir}/run_trex.sh ${gene_tree_dir} \
@@ -109,7 +96,7 @@ mkdir -p "${working_dir}"
 #                                        ${output_file}.ranger.txt" | qsub $qsub -N run_ranger; sleep 2
 
 ## run RIATA-HGT
-#echo "bash ${scripts_dir}/run_riatahgt.sh $gene_tree_dir \
+#echo "bash ${scripts_dir}/run_riatahgt.sh ${gene_tree_dir} \
 #                                          ${hgt_summary}.riatahgt.txt \
 #                                          $verbose \
 #                                          ${stdout}.riatahgt.txt \
@@ -121,7 +108,7 @@ mkdir -p "${working_dir}"
 #                                          ${phylonet_install_dir}" | qsub $qsub -N run_riatahgt; sleep 2
 
 ## run JANE 4
-#echo "bash ${scripts_dir}/run_jane4.sh $gene_tree_dir \
+#echo "bash ${scripts_dir}/run_jane4.sh $g{ene_tree_dir} \
 #                                       ${hgt_summary}.jane4.txt \
 #                                       $verbose \
 #                                       ${stdout}.jane4.txt \
@@ -133,7 +120,7 @@ mkdir -p "${working_dir}"
 #                                       ${jane_install_dir}" | qsub $qsub -N run_jane4; sleep 2
 
 ## run CONSEL
-#echo "${init_command}; bash ${scripts_dir}/run_consel.sh $gene_tree_dir \
+#echo "${init_command}; bash ${scripts_dir}/run_consel.sh ${gene_tree_dir} \
 #                                                         ${hgt_summary}.consel.txt \
 #                                                         $verbose \
 #                                                         ${stdout}.consel.txt \
@@ -146,3 +133,10 @@ mkdir -p "${working_dir}"
 #                                                         ${working_dir} " | qsub $qsub -N run_consel; sleep 2
 
 ## run DarkHorse
+
+## run GeneMark
+echo "${init_command}; bash ${scripts_dir}/run_genemark.sh ${species_model_fp} \
+                                                           ${output_file}.gm.txt \
+                                                           ${species_genome_fp} \
+                                                           ${stdout}.gm.txt \
+                                                           ${stderr}.gm.txt" | qsub $qsub -N run_gm; sleep 2

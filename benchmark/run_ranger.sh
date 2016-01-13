@@ -46,4 +46,5 @@ do
     i=$((i+1))
 done
 
-echo "Total time RANGER-DTL: $total_user_time_rangerdtl" >> $stderr
+echo "Total wall time RANGER-DTL: $total_wall_time_rangerdtl" >> $stderr
+echo "Total user time RANGER-DTL: $total_user_time_rangerdtl" >> $stderr
