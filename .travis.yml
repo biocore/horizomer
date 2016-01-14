@@ -24,7 +24,7 @@ install:
   - travis_retry conda create --yes -n env_name python=$PYTHON_VERSION pip nose flake8 'scipy>0.13.0' 'numpy>=1.7'
   - source activate env_name
   - pip install coveralls
-  - travis_retry pip install .
+  - travis_retry pip install --process-dependency-links .
 script:
   - nosetests --with-doctest --with-coverage
   - flake8 benchmark/*.py benchmark/tests/*.py distance-method/*.py
