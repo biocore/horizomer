@@ -30,7 +30,7 @@ hgt_parse_strs = {
              ' '),
     'jane4': ('Host Switch: ',
               'Host Switch: ',
-             ' '),
+              ' '),
     'riata-hgt': ('There are ',
                   'There are ',
                   ' component(s)')}
