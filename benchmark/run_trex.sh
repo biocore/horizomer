@@ -20,6 +20,7 @@ input_file_nwk=$8
 trex_install_dir=$9
 base_input_file_nwk=${10}
 
+TIMEFORMAT='%U %R'
 total_user_time_trex="0.0"
 total_wall_time_trex="0.0"
 i=0

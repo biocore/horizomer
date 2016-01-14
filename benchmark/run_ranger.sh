@@ -19,6 +19,7 @@ species_tree_fp=$7
 input_file_nwk=$8
 output_file=$9
 
+TIMEFORMAT='%U %R'
 total_user_time_rangerdtl="0.0"
 total_wall_time_rangerdtl="0.0"
 i=0

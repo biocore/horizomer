@@ -21,6 +21,7 @@ output_file=$9
 gene_msa_dir=${10}
 working_dir=${11}
 
+TIMEFORMAT='%U %R'
 total_user_time_consel="0.0"
 total_wall_time_consel="0.0"
 i=0

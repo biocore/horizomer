@@ -55,7 +55,6 @@ threads=${16}
 # qsub params
 qsub="-q route -m abe -M jenya.kopylov@gmail.com -l nodes=1:ppn=${threads} -l walltime=230:00:00 -l pmem=10gb -l mem=20gb"
 
-TIMEFORMAT='%U %R'
 base_input_file_nwk="input_tree_nwk"
 base_input_file_nex="input_tree_nex"
 base_output_file="results_prog"
@@ -73,70 +72,80 @@ then
 fi
 
 ## run T-REX
-#echo "${init_command}; bash ${scripts_dir}/run_trex.sh ${gene_tree_dir} \
-#                                                       ${hgt_summary}.trex.txt \
-#                                                       ${verbose}\
-#                                                       ${stdout}.trex.txt \
-#                                                       ${stderr}.trex.txt \
-#                                                       ${scripts_dir} \
-#                                                       ${species_tree_fp} \
-#                                                       ${input_file_nwk}.trex.txt \
-#                                                       ${trex_install_dir} \
-#                                                       ${base_input_file_nwk}.trex.txt" | qsub $qsub -N run_trex; sleep 2
+echo "source ~/.bash_profile; \
+      ${init_command}; \
+      bash ${scripts_dir}/run_trex.sh ${gene_tree_dir} \
+                                      ${hgt_summary}.trex.txt \
+                                      ${verbose}\
+                                      ${stdout}.trex.txt \
+                                      ${stderr}.trex.txt \
+                                      ${scripts_dir} \
+                                      ${species_tree_fp} \
+                                      ${input_file_nwk}.trex.txt \
+                                      ${trex_install_dir} \
+                                      ${base_input_file_nwk}.trex.txt" | qsub $qsub -N run_trex; sleep 2
 
 ## run RANGER-DTL
-#echo "bash ${scripts_dir}/run_ranger.sh ${gene_tree_dir} \
-#                                        ${hgt_summary}.ranger.txt \
-#                                        ${verbose} \
-#                                        ${stdout}.ranger.txt \
-#                                        ${stderr}.ranger.txt \
-#                                        ${scripts_dir} \
-#                                        ${species_tree_fp} \
-#                                        ${input_file_nwk}.ranger.txt \
-#                                        ${output_file}.ranger.txt" | qsub $qsub -N run_ranger; sleep 2
+echo "source ~/.bash_profile; \
+      ${init_command}; \
+      bash ${scripts_dir}/run_ranger.sh ${gene_tree_dir} \
+                                        ${hgt_summary}.ranger.txt \
+                                        ${verbose} \
+                                        ${stdout}.ranger.txt \
+                                        ${stderr}.ranger.txt \
+                                        ${scripts_dir} \
+                                        ${species_tree_fp} \
+                                        ${input_file_nwk}.ranger.txt \
+                                        ${output_file}.ranger.txt" | qsub $qsub -N run_ranger; sleep 2
 
 ## run RIATA-HGT
-#echo "bash ${scripts_dir}/run_riatahgt.sh ${gene_tree_dir} \
-#                                          ${hgt_summary}.riatahgt.txt \
-#                                          $verbose \
-#                                          ${stdout}.riatahgt.txt \
-#                                          ${stderr}.riatahgt.txt \
-#                                          ${scripts_dir} \
-#                                          ${species_tree_fp} \
-#                                          ${input_file_nex}.riata.txt \
-#                                          ${output_file}.riatahgt.txt \
-#                                          ${phylonet_install_dir}" | qsub $qsub -N run_riatahgt; sleep 2
+echo "source ~/.bash_profile; \
+      ${init_command}; \
+      bash ${scripts_dir}/run_riatahgt.sh ${gene_tree_dir} \
+                                          ${hgt_summary}.riatahgt.txt \
+                                          $verbose \
+                                          ${stdout}.riatahgt.txt \
+                                          ${stderr}.riatahgt.txt \
+                                          ${scripts_dir} \
+                                          ${species_tree_fp} \
+                                          ${input_file_nex}.riata.txt \
+                                          ${output_file}.riatahgt.txt \
+                                          ${phylonet_install_dir}" | qsub $qsub -N run_riatahgt; sleep 2
 
 ## run JANE 4
-#echo "bash ${scripts_dir}/run_jane4.sh $g{ene_tree_dir} \
-#                                       ${hgt_summary}.jane4.txt \
-#                                       $verbose \
-#                                       ${stdout}.jane4.txt \
-#                                       ${stderr}.jane4.txt \
-#                                       ${scripts_dir} \
-#                                       ${species_tree_fp} \
-#                                       ${input_file_nex}.jane.txt \
-#                                       ${output_file}.jane4.txt \
-#                                       ${jane_install_dir}" | qsub $qsub -N run_jane4; sleep 2
+echo "source ~/.bash_profile; \
+      ${init_command}; \
+      bash ${scripts_dir}/run_jane4.sh ${gene_tree_dir} \
+                                       ${hgt_summary}.jane4.txt \
+                                       $verbose \
+                                       ${stdout}.jane4.txt \
+                                       ${stderr}.jane4.txt \
+                                       ${scripts_dir} \
+                                       ${species_tree_fp} \
+                                       ${input_file_nex}.jane.txt \
+                                       ${output_file}.jane4.txt \
+                                       ${jane_install_dir}" | qsub $qsub -N run_jane4; sleep 2
 
 ## run CONSEL
-#echo "${init_command}; bash ${scripts_dir}/run_consel.sh ${gene_tree_dir} \
-#                                                         ${hgt_summary}.consel.txt \
-#                                                         $verbose \
-#                                                         ${stdout}.consel.txt \
-#                                                         ${stderr}.consel.txt \
-#                                                         ${scripts_dir} \
-#                                                         ${species_tree_fp} \
-#                                                         ${input_file_nwk}.consel.txt \
-#                                                         ${output_file}.consel.txt \
-#                                                         ${gene_msa_dir} \
-#                                                         ${working_dir} " | qsub $qsub -N run_consel; sleep 2
+echo "source ~/.bash_profile; \
+      ${init_command}; \
+      bash ${scripts_dir}/run_consel.sh ${gene_tree_dir} \
+                                        ${hgt_summary}.consel.txt \
+                                        $verbose \
+                                        ${stdout}.consel.txt \
+                                        ${stderr}.consel.txt \
+                                        ${scripts_dir} \
+                                        ${species_tree_fp} \
+                                        ${input_file_nwk}.consel.txt \
+                                        ${output_file}.consel.txt \
+                                        ${gene_msa_dir} \
+                                        ${working_dir} " | qsub $qsub -N run_consel; sleep 2
 
 ## run DarkHorse
 
 ## run GeneMark
-echo "${init_command}; bash ${scripts_dir}/run_genemark.sh ${species_model_fp} \
-                                                           ${output_file}.gm.txt \
-                                                           ${species_genome_fp} \
-                                                           ${stdout}.gm.txt \
-                                                           ${stderr}.gm.txt" | qsub $qsub -N run_gm; sleep 2
+#echo "${init_command}; bash ${scripts_dir}/run_genemark.sh ${species_model_fp} \
+#                                                           ${output_file}.gm.txt \
+#                                                           ${species_genome_fp} \
+#                                                           ${stdout}.gm.txt \
+#                                                           ${stderr}.gm.txt" | qsub $qsub -N run_gm; sleep 2
