@@ -25,6 +25,7 @@ total_wall_time_rangerdtl="0.0"
 i=0
 
 printf "#RANGER\n" >> $output_fp
+touch ${output_file%.*}.total_results.txt
 # search for HGTs in each gene tree
 for gene_tree in $gene_tree_dir/*.nwk
 do
@@ -43,9 +44,11 @@ do
     wall_time=$(echo $TIME | awk '{print $2;}')
     total_user_time_rangerdtl=$(echo $total_user_time_rangerdtl + $user_time | bc)
     total_wall_time_rangerdtl=$(echo $total_wall_time_rangerdtl + $wall_time | bc)
+    echo "#!#Gene $i" >> ${output_file%.*}.total_results.txt
+    cat $output_file >> ${output_file%.*}.total_results.txt
     rm ${output_file}
     i=$((i+1))
 done
 
-echo "Total wall time RANGER-DTL: $total_wall_time_rangerdtl" >> $stderr
-echo "Total user time RANGER-DTL: $total_user_time_rangerdtl" >> $stderr
+echo "Total wall time RANGER-DTL: $total_wall_time_rangerdtl" >> $output_fp
+echo "Total user time RANGER-DTL: $total_user_time_rangerdtl" >> $output_fp

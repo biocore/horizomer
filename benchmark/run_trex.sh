@@ -26,6 +26,7 @@ total_wall_time_trex="0.0"
 i=0
 
 printf "#TREX\n" >> $output_fp
+touch ${stdout%.*}.total_results.txt
 # search for HGTs in each gene tree
 for gene_tree in $gene_tree_dir/*.nwk
 do
@@ -40,6 +41,8 @@ do
     cp $input_file_nwk $trex_install_dir
     TIME="$( time (cd $trex_install_dir; ./hgt3.4 -inputfile=${base_input_file_nwk} 1>$stdout 2>>$stderr) 2>&1)"
     python ${scripts_dir}/parse_output.py --hgt-results-fp $stdout --method 'trex' >> $output_fp
+    echo "#!#Gene $i" >> ${stdout%.*}.total_results.txt
+    cat $stdout >> ${stdout%.*}.total_results.txt
     printf "\n" >> $output_fp
     user_time=$(echo $TIME | awk '{print $1;}')
     wall_time=$(echo $TIME | awk '{print $2;}')
@@ -49,5 +52,5 @@ do
     i=$((i+1))
 done
 
-echo "Total user time T-REX: $total_user_time_trex" >> $stderr
-echo "Total wall time T-REX: $total_wall_time_trex" >> $stderr
+echo "Total wall time T-REX: $total_wall_time_trex" >> $output_fp
+echo "Total user time T-REX: $total_user_time_trex" >> $output_fp

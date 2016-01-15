@@ -52,8 +52,46 @@ verbose=${14}
 init_command="${15}"
 # Number of threads
 threads=${16}
+# DIAMOND database for genome
+diamond_nr=${17}
+# Bash config file path (if None, default ~/.bash_profile)
+bash_config="${18}"
+# Launch on qsub cluster environment (true or false, if None, defaults to true)
+qsub_env=${19}
 # qsub params
 qsub="-q route -m abe -M jenya.kopylov@gmail.com -l nodes=1:ppn=${threads} -l walltime=230:00:00 -l pmem=10gb -l mem=20gb"
+
+if [ "$verbose" == "true" ]
+then
+    echo "working dir: $working_dir"
+    echo "scripts_dir: $scripts_dir"
+    echo "species tree: $species_tree_fp"
+    echo "species genome: $species_genome_fp"
+    echo "HMM model: $species_model_fp"
+    echo "query genomes: $query_species_coding_seqs_fp"
+    echo "species proteome: $ref_species_coding_seqs_fp"
+    echo "gene trees: $gene_tree_dir"
+    echo "gene MSAs: $gene_msa_dir"
+    echo "DIAMOND alignments of query genome: ${diamond_query_tabular}"
+    echo "PhyloNet install dir: $phylonet_install_dir"
+    echo "Jane 4 install dir: $jane_install_dir"
+    echo "T-REX install dir: $trex_install_dir"
+    echo "verbose: $verbose"
+    echo "initial command: $init_command"
+    echo "DIAMOND nr: $diamond_nr"
+    echo "threads: $threads"
+    echo "bash config file: $bash_config"
+    echo "qsub_env: $qsub_env" 
+fi
+
+if [ "${bash_config}" == "None" ]
+then
+    bash_config="~/.bash_profile"
+fi
+if [ "${qsub_env}" == "None" ]
+then
+    qsub_env="true"
+fi
 
 base_input_file_nwk="input_tree_nwk"
 base_input_file_nex="input_tree_nex"
@@ -70,9 +108,14 @@ if [ "${init_command}" == "None" ]
 then
     init_command="sleep 1"
 fi
+source_config="sleep 1"
+if [ "${qsub_env}" == "true" ]
+then
+    source_config="source ${bash_config}"
+fi
 
 ## run T-REX
-echo "source ~/.bash_profile; \
+echo "${source_config}; \
       ${init_command}; \
       bash ${scripts_dir}/run_trex.sh ${gene_tree_dir} \
                                       ${hgt_summary}.trex.txt \
@@ -86,7 +129,7 @@ echo "source ~/.bash_profile; \
                                       ${base_input_file_nwk}.trex.txt" | qsub $qsub -N run_trex; sleep 2
 
 ## run RANGER-DTL
-echo "source ~/.bash_profile; \
+echo "${source_config}; \
       ${init_command}; \
       bash ${scripts_dir}/run_ranger.sh ${gene_tree_dir} \
                                         ${hgt_summary}.ranger.txt \
@@ -99,7 +142,7 @@ echo "source ~/.bash_profile; \
                                         ${output_file}.ranger.txt" | qsub $qsub -N run_ranger; sleep 2
 
 ## run RIATA-HGT
-echo "source ~/.bash_profile; \
+echo "${source_config}; \
       ${init_command}; \
       bash ${scripts_dir}/run_riatahgt.sh ${gene_tree_dir} \
                                           ${hgt_summary}.riatahgt.txt \
@@ -113,7 +156,7 @@ echo "source ~/.bash_profile; \
                                           ${phylonet_install_dir}" | qsub $qsub -N run_riatahgt; sleep 2
 
 ## run JANE 4
-echo "source ~/.bash_profile; \
+echo "${source_config}; \
       ${init_command}; \
       bash ${scripts_dir}/run_jane4.sh ${gene_tree_dir} \
                                        ${hgt_summary}.jane4.txt \
@@ -127,7 +170,7 @@ echo "source ~/.bash_profile; \
                                        ${jane_install_dir}" | qsub $qsub -N run_jane4; sleep 2
 
 ## run CONSEL
-echo "source ~/.bash_profile; \
+echo "${source_config}; \
       ${init_command}; \
       bash ${scripts_dir}/run_consel.sh ${gene_tree_dir} \
                                         ${hgt_summary}.consel.txt \
@@ -141,11 +184,12 @@ echo "source ~/.bash_profile; \
                                         ${gene_msa_dir} \
                                         ${working_dir} " | qsub $qsub -N run_consel; sleep 2
 
-## run DarkHorse
-
 ## run GeneMark
-#echo "${init_command}; bash ${scripts_dir}/run_genemark.sh ${species_model_fp} \
-#                                                           ${output_file}.gm.txt \
-#                                                           ${species_genome_fp} \
-#                                                           ${stdout}.gm.txt \
-#                                                           ${stderr}.gm.txt" | qsub $qsub -N run_gm; sleep 2
+echo "${source_config}; \
+      ${init_command}; \
+      bash ${scripts_dir}/run_genemark.sh ${species_model_fp} \
+                                          ${output_file}.gm.txt \
+                                          ${species_genome_fp} \
+                                          ${stdout}.gm.txt \
+                                          ${stderr}.gm.txt \
+                                          ${working_dir}" | qsub $qsub -N run_gm; sleep 2

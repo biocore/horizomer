@@ -27,6 +27,7 @@ total_wall_time_consel="0.0"
 i=0
 printf "y\n" > $working_dir/puzzle_cmd.txt
 printf "#CONSEL\n" >> $output_fp
+touch ${output_file%.*}.total_results.txt
 
 # search for HGTs in each gene tree
 for gene_tree in $gene_tree_dir/*.nwk
@@ -57,6 +58,8 @@ do
     consel ${input_file_nwk}_puzzle 1>>$stdout 2>>$stderr
     catpv ${input_file_nwk}_puzzle.pv 1>$output_file 2>>$stderr
     python ${scripts_dir}/parse_output.py --hgt-results-fp $output_file --method 'consel' >> $output_fp
+    echo "#!#Gene $i" >> ${output_file%.*}.total_results.txt
+    cat $output_file >> ${output_file%.*}.total_results.txt
     printf "\n" >> $output_fp
     user_time=$(echo $TIME | awk '{print $1;}')
     wall_time=$(echo $TIME | awk '{print $2;}')
@@ -71,5 +74,5 @@ do
     i=$((i+1))
 done
 
-echo "Total wall time AU-Test: $total_wall_time_consel" >> $stderr
-echo "Total user time AU-Test: $total_user_time_consel" >> $stderr
+echo "Total wall time AU-Test: $total_wall_time_consel" >> $output_fp
+echo "Total user time AU-Test: $total_user_time_consel" >> $output_fp

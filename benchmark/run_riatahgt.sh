@@ -20,10 +20,12 @@ input_file_nex=$8
 output_file=$9
 phylonet_install_dir=${10}
 
+TIMEFORMAT='%U %R'
 total_user_time_riatahgt="0.0"
 total_wall_time_riatahgt="0.0"
 i=0
 printf "#RIATAHGT\n" >> $output_fp
+touch ${output_file%.*}.total_results.txt
 
 # search for HGTs in each gene tree
 for gene_tree in $gene_tree_dir/*.nwk
@@ -36,15 +38,18 @@ do
                                             --gene-tree-fp $gene_tree \
                                             --species-tree-fp $species_tree_fp \
                                             --output-tree-fp $input_file_nex
-    TIME="$( time (java -jar $phylonet_install_dir/PhyloNet_3.5.6.jar $input_file_nex 1>$output_file 2>>$stderr) 2>&1)"
+    TIME="$( time (java -jar $phylonet_install_dir/PhyloNet_3.5.7.jar $input_file_nex 1>$output_file 2>>$stderr) 2>&1)"
     python ${scripts_dir}/parse_output.py --hgt-results-fp ${output_file} --method 'riata-hgt' >> $output_fp
     printf "\n" >> $output_fp
     user_time=$(echo $TIME | awk '{print $1;}')
     wall_time=$(echo $TIME | awk '{print $2;}')
     total_user_time_riatahgt=$(echo $total_user_time_riatahgt + $user_time | bc)
     total_wall_time_riatahgt=$(echo $total_user_time_riatahgt + $user_time | bc)
+    echo "#!#Gene $i" >> ${output_file%.*}.total_results.txt
+    cat $output_file >> ${output_file%.*}.total_results.txt
     rm $output_file
     i=$((i+1))
 done
 
-echo "Total time RIATA-HGT: $total_user_time_riatahgt" >> $stderr
+echo "Total wall time RIATA-HGT: $total_wall_time_riatahgt" >> $output_fp
+echo "Total user time RIATA-HGT: $total_user_time_riatahgt" >> $output_fp

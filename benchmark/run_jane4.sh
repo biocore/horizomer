@@ -20,10 +20,12 @@ input_file_nex=$8
 output_file=$9
 jane_install_dir=${10}
 
+TIMEFORMAT='%U %R'
 total_user_time_jane="0.0"
 total_wall_time_jane="0.0"
 i=0
 printf "#JANE4\n" >> $output_fp
+touch ${output_file%.*}.total_results.txt
 
 # search for HGTs in each gene tree
 for gene_tree in $gene_tree_dir/*.nwk
@@ -46,8 +48,11 @@ do
     wall_time=$(echo $TIME | awk '{print $2;}')
     total_user_time_jane=$(echo $total_user_time_jane + $user_time | bc)
     total_wall_time_jane=$(echo $total_wall_time_jane + $wall_time | bc)
+    echo "#!#Gene $i" >> ${output_file%.*}.total_results.txt
+    cat $output_file >> ${output_file%.*}.total_results.txt
     rm $output_file
     i=$((i+1))
 done
 
-echo "Total time Jane 4: $total_user_time_jane" >> $stderr
+echo "Total wall time Jane 4: $total_wall_time_jane" >> $output_fp
+echo "Total user time Jane 4: $total_user_time_jane" >> $output_fp
