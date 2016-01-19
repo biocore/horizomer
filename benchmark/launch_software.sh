@@ -108,15 +108,9 @@ if [ "${init_command}" == "None" ]
 then
     init_command="sleep 1"
 fi
-source_config="sleep 1"
-if [ "${qsub_env}" == "true" ]
-then
-    source_config="source ${bash_config}"
-fi
 
 ## run T-REX
-echo "${source_config}; \
-      ${init_command}; \
+cmd="${init_command}; \
       bash ${scripts_dir}/run_trex.sh ${gene_tree_dir} \
                                       ${hgt_summary}.trex.txt \
                                       ${verbose}\
@@ -126,11 +120,17 @@ echo "${source_config}; \
                                       ${species_tree_fp} \
                                       ${input_file_nwk}.trex.txt \
                                       ${trex_install_dir} \
-                                      ${base_input_file_nwk}.trex.txt" | qsub $qsub -N run_trex; sleep 2
+                                      ${base_input_file_nwk}.trex.txt"
+if [ "${qsub_env}" == "true" ]
+then
+    echo "source ${bash_config}; \
+          ${cmd}" | qsub $qsub -N run_trex; sleep 2
+else
+    echo "${cmd}"
+fi
 
 ## run RANGER-DTL
-echo "${source_config}; \
-      ${init_command}; \
+cmd="${init_command}; \
       bash ${scripts_dir}/run_ranger.sh ${gene_tree_dir} \
                                         ${hgt_summary}.ranger.txt \
                                         ${verbose} \
@@ -139,11 +139,17 @@ echo "${source_config}; \
                                         ${scripts_dir} \
                                         ${species_tree_fp} \
                                         ${input_file_nwk}.ranger.txt \
-                                        ${output_file}.ranger.txt" | qsub $qsub -N run_ranger; sleep 2
+                                        ${output_file}.ranger.txt"
+if [ "${qsub_env}" == "true" ]
+then
+    echo "source ${bash_config}; \
+          ${cmd}" | qsub $qsub -N run_ranger; sleep 2
+else
+    echo "${cmd}"
+fi                                    
 
 ## run RIATA-HGT
-echo "${source_config}; \
-      ${init_command}; \
+cmd="${init_command}; \
       bash ${scripts_dir}/run_riatahgt.sh ${gene_tree_dir} \
                                           ${hgt_summary}.riatahgt.txt \
                                           $verbose \
@@ -153,11 +159,17 @@ echo "${source_config}; \
                                           ${species_tree_fp} \
                                           ${input_file_nex}.riata.txt \
                                           ${output_file}.riatahgt.txt \
-                                          ${phylonet_install_dir}" | qsub $qsub -N run_riatahgt; sleep 2
+                                          ${phylonet_install_dir}"
+if [ "${qsub_env}" == "true" ]
+then
+    echo "source ${bash_config}; \
+          ${cmd}" | qsub $qsub -N run_riata; sleep 2
+else
+    echo "${cmd}"
+fi 
 
 ## run JANE 4
-echo "${source_config}; \
-      ${init_command}; \
+cmd="${init_command}; \
       bash ${scripts_dir}/run_jane4.sh ${gene_tree_dir} \
                                        ${hgt_summary}.jane4.txt \
                                        $verbose \
@@ -167,11 +179,17 @@ echo "${source_config}; \
                                        ${species_tree_fp} \
                                        ${input_file_nex}.jane.txt \
                                        ${output_file}.jane4.txt \
-                                       ${jane_install_dir}" | qsub $qsub -N run_jane4; sleep 2
+                                       ${jane_install_dir}"
+if [ "${qsub_env}" == "true" ]
+then
+    echo "source ${bash_config}; \
+          ${cmd}" | qsub $qsub -N run_jane4; sleep 2
+else
+    echo "${cmd}"
+fi
 
 ## run CONSEL
-echo "${source_config}; \
-      ${init_command}; \
+cmd="${init_command}; \
       bash ${scripts_dir}/run_consel.sh ${gene_tree_dir} \
                                         ${hgt_summary}.consel.txt \
                                         $verbose \
@@ -182,14 +200,27 @@ echo "${source_config}; \
                                         ${input_file_nwk}.consel.txt \
                                         ${output_file}.consel.txt \
                                         ${gene_msa_dir} \
-                                        ${working_dir} " | qsub $qsub -N run_consel; sleep 2
+                                        ${working_dir} "
+if [ "${qsub_env}" == "true" ]
+then
+    echo "source ${bash_config}; \
+          ${cmd}" | qsub $qsub -N run_consel; sleep 2
+else
+    echo "${cmd}"
+fi
 
 ## run GeneMark
-echo "${source_config}; \
-      ${init_command}; \
+cmd="${init_command}; \
       bash ${scripts_dir}/run_genemark.sh ${species_model_fp} \
                                           ${output_file}.gm.txt \
                                           ${species_genome_fp} \
                                           ${stdout}.gm.txt \
                                           ${stderr}.gm.txt \
-                                          ${working_dir}" | qsub $qsub -N run_gm; sleep 2
+                                          ${working_dir}"
+if [ "${qsub_env}" == "true" ]
+then
+    echo "source ${bash_config}; \
+          ${cmd}" | qsub $qsub -N run_genemark; sleep 2
+else
+    echo "${cmd}"
+fi
