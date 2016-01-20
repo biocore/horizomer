@@ -85,7 +85,7 @@ class ParseOutputTests(TestCase):
         """ Test functionality of parse_hgts() for Jane 4
         """
         with open(self.jane4_output_hgt_fp, 'U') as f:
-            output = parse_hgts(f, 'jane')
+            output = parse_hgts(f, 'jane4')
         self.assertEqual(int(output), 1)
 
     def test_parse_consel(self):
