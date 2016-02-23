@@ -932,7 +932,7 @@ def distance_method_main(query_proteome_fp,
                     threads=threads,
                     debug=debug)
             elif align_software == "diamond":
-                 alignments_fp = launch_diamond(
+                alignments_fp = launch_diamond(
                     query_proteome_fp=query_proteome_fp,
                     ref_fp=_file,
                     working_dir=working_dir,
@@ -941,7 +941,7 @@ def distance_method_main(query_proteome_fp,
                     debug=debug)
             else:
                 raise ValueError(
-                    "Software not supported: %s" % align_software)             
+                    "Software not supported: %s" % align_software)            
 
             # generate a dictionary of orthologous genes
             parse_blast(alignments_fp=alignments_fp,
