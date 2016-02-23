@@ -37,6 +37,8 @@
 #        viii. Run outlier detection algorithm on each cluster (paragraph 2
 #              of section 'Detecting Outlier Genes' in original paper)
 #
+#    Requires protdist version 3.696
+#
 
 import sys
 import click
@@ -46,7 +48,8 @@ import threading
 import subprocess
 import traceback
 import shlex
-from os.path import join, basename
+from os.path import join, basename, isdir
+from os import mkdir
 from itertools import imap
 from glob import glob
 
@@ -154,6 +157,7 @@ def preprocess_data(working_dir,
                 sys.stdout.write("%s. %s\t" % (
                     species+1, basename(_file)))
             with open(_file, 'rb') as readfile:
+                num_genes = 0
                 for gene, (label, seq) in enumerate(parse_fasta(readfile)):
                     label = label.split()[0]
                     ref_db[label] = seq
@@ -163,9 +167,94 @@ def preprocess_data(working_dir,
                                          "not allowed: %s" % label)
                     gene_map[label] = sudo_label
                     gene_map[sudo_label] = label
+                    num_genes += 1
                 if verbose:
-                    sys.stdout.write("%s\n" % gene)
+                    sys.stdout.write("%s\n" % num_genes)
     return gene_map, ref_db, species+1
+
+
+def launch_diamond(query_proteome_fp,
+                   ref_fp,
+                   working_dir,
+                   e_value=10e-20,
+                   threads=1,
+                   debug=False):
+    """ Launch DIAMOND for a query and a reference database of proteomes.
+
+    Parameters
+    ----------
+    query_proteome_fp: string
+      filepath to query proteome
+    ref_fp: string
+      filepath to reference proteome
+    working_dir: string
+      working directory path
+    e_value: float, optional
+      the cutoff E-value for BLASTP results
+    threads: integer
+      number of threads to use for running DIAMOND BLASTP
+    debug: boolean
+      if True, run function in debug mode
+
+    Returns
+    -------
+    out_file_fp: string
+      filepath to tabular alignment file output by DIAMOND
+    """
+    db_file_fp = join(working_dir, "%s" % basename(ref_fp))
+    # build DIAMOND database
+    makediamonddb_command = ["diamond",
+                             "makedb",
+                             "--in", ref_fp,
+                             "-d", db_file_fp,
+                             "--threads", str(threads)]
+    proc = subprocess.Popen(makediamonddb_command,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            close_fds=True)
+    proc.wait()
+    stdout, stderr = proc.communicate()
+    if (stderr and debug):
+        print "[DEBUG] %s\n" % stderr
+
+    # launch DIAMOND
+    out_file_fp = join(
+        working_dir, "%s.daa" % basename(query_proteome_fp))
+    diamond_command = ["diamond",
+                       "blastp",
+                       "--db", "%s.dmnd" % db_file_fp,
+                       "--query", query_proteome_fp,
+                       "--evalue", str(e_value),
+                       "--threads", str(threads),
+                       "--daa", out_file_fp,
+                       "--sensitive"]
+    proc = subprocess.Popen(diamond_command,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            close_fds=True)
+    proc.wait()
+    stdout, stderr = proc.communicate()
+    if (stderr and debug):
+        print "[DEBUG] %s\n" % stderr
+
+    # convert output to tab delimited file
+    out_file_conv_fp = join(
+        working_dir, "%s.m8" % basename(query_proteome_fp))
+    diamond_convert_command = ["diamond",
+                               "view",
+                               "--daa", out_file_fp,
+                               "-f", "tab",
+                               "-o", out_file_conv_fp]
+    proc = subprocess.Popen(diamond_convert_command,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            close_fds=True)
+    proc.wait()
+    stdout, stderr = proc.communicate()
+    if (stderr and debug):
+        print "[DEBUG] %s\n" % stderr
+
+    return out_file_conv_fp
 
 
 def launch_blast(query_proteome_fp,
@@ -174,7 +263,7 @@ def launch_blast(query_proteome_fp,
                  e_value=10e-20,
                  threads=1,
                  debug=False):
-    """ Launch BLASTp fora query and a reference database of proteomes.
+    """ Launch BLASTp for a query and a reference database of proteomes.
 
     Parameters
     ----------
@@ -740,6 +829,9 @@ def output_full_matrix(matrix, num_species):
 @click.argument('working-dir', required=True,
                 type=click.Path(resolve_path=True, readable=True, exists=False,
                                 file_okay=True))
+@click.option('--align-software', type=click.Choice(['diamond', 'blast']),
+              required=False, default=['diamond'], show_default=True,
+              help="Software to use for blasting sequences")
 @click.option('--ext', multiple=True, type=str, required=False,
               default=['fa', 'fasta', 'faa'], show_default=True,
               help="File extensions of target proteomes (multiple extensions "
@@ -786,6 +878,7 @@ def output_full_matrix(matrix, num_species):
 def distance_method_main(query_proteome_fp,
                          target_proteomes_dir,
                          working_dir,
+                         align_software,
                          ext,
                          min_num_homologs,
                          e_value,
@@ -808,6 +901,10 @@ def distance_method_main(query_proteome_fp,
     extensions = set(['fa', 'fasta', 'faa'])
     extensions.update(ext)
 
+    # create working directory if doesn't exist
+    if not isdir(working_dir):
+        mkdir(working_dir)
+
     gene_map, ref_db, num_species = preprocess_data(
         working_dir=working_dir,
         target_proteomes_dir=target_proteomes_dir,
@@ -826,13 +923,25 @@ def distance_method_main(query_proteome_fp,
     for ext in extensions:
         for _file in glob("%s/*%s" % (target_proteomes_dir, ext)):
             # launch BLASTp
-            alignments_fp = launch_blast(
-                query_proteome_fp=query_proteome_fp,
-                ref_fp=_file,
-                working_dir=working_dir,
-                e_value=e_value,
-                threads=threads,
-                debug=debug)
+            if align_software == "blast":
+                alignments_fp = launch_blast(
+                    query_proteome_fp=query_proteome_fp,
+                    ref_fp=_file,
+                    working_dir=working_dir,
+                    e_value=e_value,
+                    threads=threads,
+                    debug=debug)
+            elif align_software == "diamond":
+                 alignments_fp = launch_diamond(
+                    query_proteome_fp=query_proteome_fp,
+                    ref_fp=_file,
+                    working_dir=working_dir,
+                    e_value=e_value,
+                    threads=threads,
+                    debug=debug)
+            else:
+                raise ValueError(
+                    "Software not supported: %s" % align_software)             
 
             # generate a dictionary of orthologous genes
             parse_blast(alignments_fp=alignments_fp,

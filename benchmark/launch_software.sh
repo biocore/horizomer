@@ -52,12 +52,27 @@ verbose=${14}
 init_command="${15}"
 # Number of threads
 threads=${16}
-# DIAMOND database for genome
-diamond_nr=${17}
+# nr FASTA file
+nr_fp=${17}
+# directory that contains names.dmp and nodes.dmp
+nr_tax_dp=${18}
+# nr DIAMOND database
+diamond_db_nr=${19}
 # Bash config file path (if None, default ~/.bash_profile)
-bash_config="${18}"
+bash_config="${20}"
 # Launch on qsub cluster environment (true or false, if None, defaults to true)
-qsub_env=${19}
+qsub_env=${21}
+# DarkHorse config file
+darkhorse_config_fp=${22}
+# DarkHorse install directory
+darkhorse_install_dp=${23}
+# HGTector config file
+hgtector_config_fp=${24}
+# HGTector install directory
+hgtector_install_dp=${25}
+# GI-to-TaxID translation table
+# ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/gi_taxid_prot.zip
+gi_to_taxid_fp=${26}
 # qsub params
 qsub="-q route -m abe -M jenya.kopylov@gmail.com -l nodes=1:ppn=${threads} -l walltime=230:00:00 -l pmem=10gb -l mem=20gb"
 
@@ -78,10 +93,16 @@ then
     echo "T-REX install dir: $trex_install_dir"
     echo "verbose: $verbose"
     echo "initial command: $init_command"
-    echo "DIAMOND nr: $diamond_nr"
+    echo "DIAMOND nr: $diamond_db_nr"
+    echo "nr : $nr_fp"
+    echo "nr_tax_dp: $nr_tax_dp"
     echo "threads: $threads"
     echo "bash config file: $bash_config"
     echo "qsub_env: $qsub_env" 
+    echo "darkhorse_config_fp: $darkhorse_config_fp"
+    echo "darkhorse_install_dp: $darkhorse_install_dp"
+    echo "hgtector_config_fp: $hgtector_config_fp"
+    echo "hgtector_install_dp: $hgtector_install_dp"
 fi
 
 if [ "${bash_config}" == "None" ]
@@ -224,3 +245,45 @@ then
 else
     echo "${cmd}"
 fi
+
+## run DarkHorse
+cmd="${init_command}; \
+      bash ${scripts_dir}/run_darkhorse.sh ${nr_fp} \
+                                           ${diamond_db_nr} \
+                                           ${diamond_tabular_query} \
+                                           ${darkhorse_config_fp} \
+                                           ${darkhorse_install_dp} \
+                                           ${query_species_coding_seqs_fp} \
+                                           ${working_dir} \
+                                           ${threads}"
+
+if [ "${qsub_env}" == "true" ]
+then
+    echo "source ${bash_config}; \
+          ${cmd}" | qsub $qsub -N run_darkhorse; sleep 2
+else
+    echo "${cmd}"
+fi
+
+## run HGTector
+cmd="${init_command}; \
+      bash ${scripts_dir}/run_hgtector.sh ${nr_fp} \
+                                          ${diamond_db_nr} \
+                                          ${diamond_tabular_query} \
+                                          ${hgtector_config_fp} \
+                                          ${hgtector_install_dp} \
+                                          ${query_species_coding_seqs_fp} \
+                                          ${working_dir} \
+                                          ${threads} \
+                                          ${tax_id} \
+                                          ${nr_tax_dp} \
+                                          ${gi_to_taxid_fp}"
+
+if [ "${qsub_env}" == "true" ]
+then
+    echo "source ${bash_config}; \
+          ${cmd}" | qsub $qsub -N run_hgtector; sleep 2
+else
+    echo "${cmd}"
+fi
+
