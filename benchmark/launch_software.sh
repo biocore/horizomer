@@ -256,7 +256,6 @@ cmd="${init_command}; \
                                            ${query_species_coding_seqs_fp} \
                                            ${working_dir} \
                                            ${threads}"
-
 if [ "${qsub_env}" == "true" ]
 then
     echo "source ${bash_config}; \
@@ -278,7 +277,23 @@ cmd="${init_command}; \
                                           ${tax_id} \
                                           ${nr_tax_dp} \
                                           ${gi_to_taxid_fp}"
+if [ "${qsub_env}" == "true" ]
+then
+    echo "source ${bash_config}; \
+          ${cmd}" | qsub $qsub -N run_hgtector; sleep 2
+else
+    echo "${cmd}"
+fi
 
+## run the Distance Method
+cmd="${init_command}; \
+      bash ${scripts_dir}/run_hgtector.sh ${distance_method_install_dir} \
+                                          ${query_species_coding_seqs_fp} \
+                                          ${target_proteomes_dir} \
+                                          ${stdout}.dm.txt \
+                                          ${stderr}.dm.txt \
+                                          ${working_dir} \
+                                          ${threads}"
 if [ "${qsub_env}" == "true" ]
 then
     echo "source ${bash_config}; \
