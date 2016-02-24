@@ -16,7 +16,7 @@ from os.path import join, exists
 import numpy
 
 from skbio.util import remove_files
-from skbio.parse.sequences import parse_fasta
+import skbio.io
 
 from distance_method import (preprocess_data,
                              parse_blast,
@@ -105,18 +105,14 @@ class DistanceMethodTests(TestCase):
                         '0_4': 'G5_SE001', '1_4': 'G5_SE002',
                         '2_4': 'G5_SE003', '3_4': 'G5_SE004'}
         ref_db_exp = {}
-        with open(self.species_1_fp, 'U') as fh:
-            for label, seq in parse_fasta(fh):
-                ref_db_exp[label] = seq
-        with open(self.species_2_fp, 'U') as fh:
-            for label, seq in parse_fasta(fh):
-                ref_db_exp[label] = seq
-        with open(self.species_3_fp, 'U') as fh:
-            for label, seq in parse_fasta(fh):
-                ref_db_exp[label] = seq
-        with open(self.species_4_fp, 'U') as fh:
-            for label, seq in parse_fasta(fh):
-                ref_db_exp[label] = seq
+        for seq in skbio.io.read(self.species_1_fp, format='fasta'):
+            ref_db_exp[seq.metadata['id']] = seq
+        for seq in skbio.io.read(self.species_2_fp, format='fasta'):
+            ref_db_exp[seq.metadata['id']] = seq
+        for seq in skbio.io.read(self.species_3_fp, format='fasta'):
+            ref_db_exp[seq.metadata['id']] = seq
+        for seq in skbio.io.read(self.species_4_fp, format='fasta'):
+            ref_db_exp[seq.metadata['id']] = seq
         num_species_exp = 4
         self.assertDictEqual(gene_map, gene_map_exp)
         self.assertDictEqual(ref_db, ref_db_exp)

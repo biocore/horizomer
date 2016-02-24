@@ -53,7 +53,7 @@ from os import mkdir
 from itertools import imap
 from glob import glob
 
-from skbio.parse.sequences import parse_fasta
+import skbio.io
 
 
 class Command(object):
@@ -156,20 +156,19 @@ def preprocess_data(working_dir,
             if verbose:
                 sys.stdout.write("%s. %s\t" % (
                     species+1, basename(_file)))
-            with open(_file, 'rb') as readfile:
-                num_genes = 0
-                for gene, (label, seq) in enumerate(parse_fasta(readfile)):
-                    label = label.split()[0]
-                    ref_db[label] = seq
-                    sudo_label = "%s_%s" % (species, gene)
-                    if label in gene_map:
-                        raise ValueError("Duplicate sequence labels are "
-                                         "not allowed: %s" % label)
-                    gene_map[label] = sudo_label
-                    gene_map[sudo_label] = label
-                    num_genes += 1
-                if verbose:
-                    sys.stdout.write("%s\n" % num_genes)
+            num_genes = 0
+            for gene, seq in enumerate(skbio.io.read(_file, format='fasta')):
+                label = seq.metadata['id']
+                ref_db[label] = seq
+                sudo_label = "%s_%s" % (species, gene)
+                if label in gene_map:
+                    raise ValueError("Duplicate sequence labels are "
+                                     "not allowed: %s" % label)
+                gene_map[label] = sudo_label
+                gene_map[sudo_label] = label
+                num_genes += 1
+            if verbose:
+                sys.stdout.write("%s\n" % num_genes)
     return gene_map, ref_db, species+1
 
 
