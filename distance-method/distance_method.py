@@ -941,7 +941,7 @@ def distance_method_main(query_proteome_fp,
                     debug=debug)
             else:
                 raise ValueError(
-                    "Software not supported: %s" % align_software)            
+                    "Software not supported: %s" % align_software)
 
             # generate a dictionary of orthologous genes
             parse_blast(alignments_fp=alignments_fp,
