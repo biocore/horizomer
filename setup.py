@@ -46,7 +46,7 @@ setup(name='wgshgt',
       glob('benchmark/tests/*py'),
       extras_require={'test': ["nose >= 0.10.1", "pep8"],
                       'doc': ["Sphinx >= 1.2.2", "sphinx-bootstrap-theme"]},
-      install_requires=['click', 'numpy >= 1.7',
+      install_requires=['click',
                         'scikit-bio == 0.4.1-dev',
                         'scipy > 0.13.0'],
 #      dependency_links=[('https://github.com/biocore/scikit-bio/archive/master.zip'

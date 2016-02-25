@@ -1,1 +1,2 @@
 coveralls
+click>=6.0
