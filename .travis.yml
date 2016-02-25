@@ -1,7 +1,7 @@
 language: python
 sudo: false
 env:
-  - PYTHON_VERSION="2.7"
+  - PYTHON_VERSION=2.7
 before_install:
   - wget http://repo.continuum.io/miniconda/Miniconda3-3.7.3-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
@@ -25,7 +25,7 @@ install:
   - conda create -n test_env python=$PYTHON_VERSION --file ci/conda_requirements.txt
   - source activate test_env
   - pip install -r ci/pip_requirements.txt
-  - travis_retry pip install --process-dependency-links .
+  - pip install --process-dependency-links .
 script:
   - nosetests --with-doctest --with-coverage
   - flake8 benchmark/*.py benchmark/tests/*.py distance-method/*.py
