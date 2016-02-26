@@ -13,13 +13,18 @@ from os import close
 from os.path import join
 
 from skbio.util import remove_files
-from skbio import TreeNode
+from skbio import TreeNode, TabularMSA, Protein
 
 from benchmark.reformat_input import (join_trees,
                                       trim_gene_tree_leaves,
                                       species_gene_mapping,
                                       remove_branch_lengths,
-                                      id_mapper)
+                                      id_mapper,
+                                      reformat_rangerdtl,
+                                      reformat_trex,
+                                      reformat_riatahgt,
+                                      reformat_jane4,
+                                      reformat_treepuzzle)
 
 
 class workflowTests(TestCase):
@@ -146,7 +151,7 @@ class workflowTests(TestCase):
 
     def test_id_mapper(self):
         """ Test id_mapper() functionality
-        """ 
+        """
         index = [u'SE001/02297', u'SE002/02297', u'SE003/02297',
                  u'SE004/02297', u'SE005/02297', u'SE006/02297',
                  u'SE008/02297', u'SE009/02297', u'SE010/02297']
@@ -160,7 +165,158 @@ class workflowTests(TestCase):
                        u'SE004/02297': u'SE004',
                        u'SE010/02297': u'SE010',
                        u'SE002/02297': u'SE002'}
-        self.assertDictEqual(mapping_exp, mapping)  
+        self.assertDictEqual(mapping_exp, mapping)
+
+    def test_reformat_rangerdtl(self):
+        """ Test functionality of reformat_rangerdtl()
+        """
+        species_tree = TreeNode.read(self.species_tree_fp, format='newick')
+        gene_tree_1 = TreeNode.read(self.gene_tree_1_fp, format='newick')
+        output_tree_fp = join(self.working_dir, "joined_trees.nwk")
+        reformat_rangerdtl(gene_tree_1,
+                           species_tree,
+                           output_tree_fp)
+        joined_tree_exp = [
+            "(((((((SE001,SE010),SE008),(SE006,SE009)),SE005),"
+            "SE004),SE003),(SE002,SE007));\n",
+            "(((((((SE001_01623,SE010_01623),SE008_01623),(SE006_01623,"
+            "SE009_01623)),SE005_01623),SE004_01623),SE003_01623),"
+            "((SE002_01623,SE007_01623),((((SE001_04123,SE010_04123),"
+            "SE008_04123),(SE006_04123,SE009_04123)),SE005_04123)));\n"]
+        with open(output_tree_fp, 'U') as output_tree_f:
+            joined_tree_act = output_tree_f.readlines()
+        self.assertListEqual(joined_tree_exp, joined_tree_act)
+
+    def test_reformat_trex(self):
+        """ Test functionality of reformat_trex()
+        """
+        species_tree = TreeNode.read(self.species_tree_fp, format='newick')
+        gene_tree_1 = TreeNode.read(self.gene_tree_1_fp, format='newick')
+        output_tree_fp = join(self.working_dir, "joined_trees.nwk")
+        reformat_trex(gene_tree_1,
+                      species_tree,
+                      output_tree_fp)
+        reformat_tree_exp = [
+            "(((((((SE001:2.1494877,SE010:1.08661):3.7761166,SE008:"
+            "0.86305436):0.21024487,(SE006:0.56704221,SE009:0.5014676):"
+            "0.90294223):0.20542323,SE005:3.0992506):0.37145632,SE004:"
+            "1.8129133):0.72933621,SE003:1.737411):0.24447835,(SE002:"
+            "1.6606127,SE007:0.70000178):1.6331374):1.594016;\n",
+            "(((((((SE001:2.1494876,SE010:2.1494876):"
+            "3.7761166,SE008:5.9256042):0.2102448,(SE006:"
+            "5.2329068,SE009:5.2329068):0.9029422):0.2054233,"
+            "SE005:6.3412723):0.3714563,SE004:6.7127286):"
+            "0.7293362,SE003:7.4420648):0.2444784,((SE002:"
+            "6.0534057,SE007:6.0534057):0.4589905,((((SE001:"
+            "2.1494876,SE010:2.1494876):3.7761166,SE008:"
+            "5.9256042):0.2102448,(SE006:5.2329068,SE009:"
+            "5.2329068):0.9029422):0.2054233,SE005:6.3412723):"
+            "0.1711239):1.174147):1.594016;\n"]
+        with open(output_tree_fp, 'U') as output_tree_f:
+            reformat_tree_act = output_tree_f.readlines()
+        self.assertListEqual(reformat_tree_exp, reformat_tree_act)
+
+    def test_reformat_riatahgt(self):
+        """ Test functionality of reformat_riatahgt()
+        """
+        species_tree = TreeNode.read(self.species_tree_fp, format='newick')
+        gene_tree_1 = TreeNode.read(self.gene_tree_1_fp, format='newick')
+        output_tree_fp = join(self.working_dir, "joined_trees.nex")
+        reformat_riatahgt(gene_tree_1,
+                          species_tree,
+                          output_tree_fp)
+        reformat_tree_exp = [
+            "#NEXUS\n", "BEGIN TREES;\n",
+            "Tree speciesTree = "
+            "(((((((SE001:2.1494877,SE010:1.08661):3.7761166,SE008:"
+            "0.86305436):0.21024487,(SE006:0.56704221,SE009:0.5014676):"
+            "0.90294223):0.20542323,SE005:3.0992506):0.37145632,SE004:"
+            "1.8129133):0.72933621,SE003:1.737411):0.24447835,(SE002:"
+            "1.6606127,SE007:0.70000178):1.6331374):1.594016;\n",
+            "Tree geneTree = "
+            "(((((((SE001:2.1494876,SE010:2.1494876):"
+            "3.7761166,SE008:5.9256042):0.2102448,(SE006:"
+            "5.2329068,SE009:5.2329068):0.9029422):0.2054233,"
+            "SE005:6.3412723):0.3714563,SE004:6.7127286):"
+            "0.7293362,SE003:7.4420648):0.2444784,((SE002:"
+            "6.0534057,SE007:6.0534057):0.4589905,((((SE001:"
+            "2.1494876,SE010:2.1494876):3.7761166,SE008:"
+            "5.9256042):0.2102448,(SE006:5.2329068,SE009:"
+            "5.2329068):0.9029422):0.2054233,SE005:6.3412723):"
+            "0.1711239):1.174147):1.594016;\n",
+            "END;\n",
+            "BEGIN PHYLONET;\n",
+            "RIATAHGT speciesTree {geneTree};\n",
+            "END;\n"]
+        with open(output_tree_fp, 'U') as output_tree_f:
+            reformat_tree_act = output_tree_f.readlines()
+        self.assertListEqual(reformat_tree_exp, reformat_tree_act)
+
+    def test_reformat_jane4(self):
+        """ Test functionality of reformat_jane4()
+        """
+        species_tree = TreeNode.read(self.species_tree_fp, format='newick')
+        gene_tree_1 = TreeNode.read(self.gene_tree_1_fp, format='newick')
+        output_tree_fp = join(self.working_dir, "joined_trees.nex")
+        reformat_jane4(gene_tree_1,
+                       species_tree,
+                       output_tree_fp)
+        reformat_tree_exp = [
+            "#NEXUS\n", "begin host;\n",
+            "tree host = "
+            "(((((((SE001,SE010),SE008),(SE006,SE009)),SE005),SE004),SE003),"
+            "(SE002,SE007));\n", "\n",
+            "endblock;\n", "begin parasite;\n",
+            "tree parasite = "
+            "(((((((SE001_01623,SE010_01623),SE008_01623),(SE006_01623,"
+            "SE009_01623)),SE005_01623),SE004_01623),SE003_01623),"
+            "((SE002_01623,SE007_01623),((((SE001_04123,SE010_04123),"
+            "SE008_04123),(SE006_04123,SE009_04123)),SE005_04123)));\n", "\n",
+            "endblock;\n",
+            "begin distribution;\n",
+            "Range SE001_01623:SE001, SE001_04123:SE001, SE010_01623:SE010, "
+            "SE010_04123:SE010, SE002_01623:SE002, SE005_01623:SE005, "
+            "SE005_04123:SE005, SE004_01623:SE004, SE007_01623:SE007, "
+            "SE006_01623:SE006, SE006_04123:SE006, SE009_01623:SE009, "
+            "SE009_04123:SE009, SE008_01623:SE008, SE008_04123:SE008, "
+            "SE003_01623:SE003;\n",
+            "endblock;\n"]
+        with open(output_tree_fp, 'U') as output_tree_f:
+            reformat_tree_act = output_tree_f.readlines()
+        self.assertListEqual(reformat_tree_exp, reformat_tree_act)
+
+    def test_reformat_treepuzzle(self):
+        """ Test functionality of reformat_treepuzzle()
+        """
+        species_tree = TreeNode.read(self.species_tree_fp, format='newick')
+        gene_tree_3 = TreeNode.read(self.gene_tree_3_fp, format='newick')
+        output_tree_fp = join(self.working_dir, "joined_trees.nwk")
+        output_msa_phy_fp = join(self.working_dir, "gene_tree_3.phy")
+        reformat_treepuzzle(gene_tree_3,
+                            species_tree,
+                            self.msa_fa_3_fp,
+                            output_tree_fp,
+                            output_msa_phy_fp)
+        reformat_tree_exp = [
+            "(((((((SE001:2.1494877,SE010:1.08661):3.7761166,SE008:"
+            "0.86305436):0.21024487,(SE006:0.56704221,SE009:0.5014676):"
+            "0.90294223):0.20542323,SE005:3.0992506):0.37145632,SE004:"
+            "1.8129133):0.72933621,SE003:1.737411):0.24447835,(SE002:"
+            "1.6606127,SE007:0.70000178):1.6331374);\n",
+            "(((((((SE001:2.1494876,SE010:2.1494876):"
+            "3.7761166,SE008:5.9256042):0.2102448,(SE006:"
+            "5.2329068,SE009:5.2329068):0.9029422):0.2054233,"
+            "SE005:6.3412723):0.3714563,SE004:6.7127286):"
+            "0.7293362,SE003:7.4420648):0.2444784,SE002:"
+            "7.6865432);\n"]
+        with open(output_tree_fp, 'U') as output_tree_f:
+            reformat_tree_act = output_tree_f.readlines()
+        self.assertListEqual(reformat_tree_exp, reformat_tree_act)
+        msa_fa = TabularMSA.read(output_msa_phy_fp, constructor=Protein)
+        labels_exp = [u'SE001', u'SE002', u'SE003', u'SE004', u'SE005',
+                      u'SE006', u'SE008', u'SE009', u'SE010']
+        labels_act = list(msa_fa.index)
+        self.assertListEqual(labels_exp, labels_act)
 
 
 # 10 species
