@@ -17,7 +17,9 @@ from skbio import TreeNode
 
 from benchmark.reformat_input import (join_trees,
                                       trim_gene_tree_leaves,
-                                      species_gene_mapping)
+                                      species_gene_mapping,
+                                      remove_branch_lengths,
+                                      id_mapper)
 
 
 class workflowTests(TestCase):
@@ -123,12 +125,42 @@ class workflowTests(TestCase):
         self.assertItemsEqual(mapping_obs, mapping_exp)
 
     def test_species_gene_mapping_check_species_labels(self):
+        """ Test ValueError raised
+        """
         species_tree = TreeNode.read(self.species_tree_2_fp, format='newick')
         gene_tree_3 = TreeNode.read(self.gene_tree_3_fp, format='newick')
         self.assertRaises(ValueError,
                           species_gene_mapping,
                           gene_tree=gene_tree_3,
                           species_tree=species_tree)
+
+    def test_remove_branch_lengths(self):
+        """ Test removing branch lengths from tree
+        """
+        species_tree = TreeNode.read(self.species_tree_fp, format='newick')
+        remove_branch_lengths(tree=species_tree)
+        species_tree_exp = (
+            "(((((((SE001,SE010),SE008),(SE006,SE009)),SE005),"
+            "SE004),SE003),(SE002,SE007));")
+        self.assertEqual(species_tree_exp, str(species_tree)[:-1])
+
+    def test_id_mapper(self):
+        """ Test id_mapper() functionality
+        """ 
+        index = [u'SE001/02297', u'SE002/02297', u'SE003/02297',
+                 u'SE004/02297', u'SE005/02297', u'SE006/02297',
+                 u'SE008/02297', u'SE009/02297', u'SE010/02297']
+        mapping = id_mapper(index)
+        mapping_exp = {u'SE008/02297': u'SE008',
+                       u'SE003/02297': u'SE003',
+                       u'SE009/02297': u'SE009',
+                       u'SE005/02297': u'SE005',
+                       u'SE001/02297': u'SE001',
+                       u'SE006/02297': u'SE006',
+                       u'SE004/02297': u'SE004',
+                       u'SE010/02297': u'SE010',
+                       u'SE002/02297': u'SE002'}
+        self.assertDictEqual(mapping_exp, mapping)  
 
 
 # 10 species
