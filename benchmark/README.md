@@ -20,7 +20,7 @@
 5. *test_1_simulate_genomes.sh*
    simulates various data sets using the [ALF simulator](http://mbe.oxfordjournals.org/content/early/2011/12/07/molbev.msr268)
 
-6. *run_*`.sh*
+6. *run_\*.sh*
    contain commands specific to running each HGT detection tool
 
 ### Running benchmark

@@ -19,6 +19,6 @@ working_dir=$5
 threads=$6
 
 python $distance_method_install_dir/distance_method.py $query_species_coding_seqs_fp \ 
-													   $target_proteomes_dir \ 
-													   $working_dir \ 
-													   --threads $threads 1>$stdout 2>$stderr
+                                                       $target_proteomes_dir \ 
+                                                       $working_dir \ 
+                                                       --threads $threads 1>$stdout 2>$stderr
