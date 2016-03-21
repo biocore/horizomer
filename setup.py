@@ -50,9 +50,7 @@ setup(name='wgshgt',
                         'numpy >= 1.7',
                         'scipy > 0.13.0',
                         'scikit-bio == 0.4.1-dev'],
-#      dependency_links=[('https://github.com/biocore/scikit-bio/archive/master.zip'
-#                         '#egg=scikit-bio-0.4.1-dev')],
-# using RNAer's development branch with GenBank support
+      # using RNAer's development branch with GenBank support
       dependency_links=[('https://github.com/RNAer/scikit-bio/archive/micronota.zip'
                          '#egg=scikit-bio-0.4.1-dev')],
       classifiers=classifiers

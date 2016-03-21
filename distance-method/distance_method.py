@@ -156,7 +156,6 @@ def preprocess_data(working_dir,
             if verbose:
                 sys.stdout.write("%s. %s\t" % (
                     species+1, basename(_file)))
-            num_genes = 0
             for gene, seq in enumerate(skbio.io.read(_file, format='fasta')):
                 label = seq.metadata['id']
                 ref_db[label] = seq
@@ -166,9 +165,8 @@ def preprocess_data(working_dir,
                                      "not allowed: %s" % label)
                 gene_map[label] = sudo_label
                 gene_map[sudo_label] = label
-                num_genes += 1
             if verbose:
-                sys.stdout.write("%s\n" % num_genes)
+                sys.stdout.write("%s\n" % gene)
     return gene_map, ref_db, species+1
 
 

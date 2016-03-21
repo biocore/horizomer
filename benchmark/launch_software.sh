@@ -25,7 +25,7 @@ working_dir=$(readlink -m $1)
 scripts_dir=$(readlink -m $2)
 # species tree in Newick format
 species_tree_fp=$3
-# species raw genome in FASTA format
+# reference genome in FASTA format (for compositional methods)
 species_genome_fp=$4
 # species HMM model (produced by GeneMarkS)
 species_model_fp=$5
@@ -130,6 +130,19 @@ then
     init_command="sleep 1"
 fi
 
+# launch job
+function submit_job {
+  cmd=$1
+  tool=$2
+  if [ "${qsub_env}" == "true" ]
+  then
+      echo "source ${bash_config}; \
+            ${cmd}" | qsub $qsub -N run_hgtector; sleep 2
+  else
+      echo "${cmd}"
+  fi
+}
+
 ## run T-REX
 cmd="${init_command}; \
       bash ${scripts_dir}/run_trex.sh ${gene_tree_dir} \
@@ -142,13 +155,7 @@ cmd="${init_command}; \
                                       ${input_file_nwk}.trex.txt \
                                       ${trex_install_dir} \
                                       ${base_input_file_nwk}.trex.txt"
-if [ "${qsub_env}" == "true" ]
-then
-    echo "source ${bash_config}; \
-          ${cmd}" | qsub $qsub -N run_trex; sleep 2
-else
-    echo "${cmd}"
-fi
+submit_job "${cmd}" trex
 
 ## run RANGER-DTL
 cmd="${init_command}; \
@@ -161,13 +168,7 @@ cmd="${init_command}; \
                                         ${species_tree_fp} \
                                         ${input_file_nwk}.ranger.txt \
                                         ${output_file}.ranger.txt"
-if [ "${qsub_env}" == "true" ]
-then
-    echo "source ${bash_config}; \
-          ${cmd}" | qsub $qsub -N run_ranger; sleep 2
-else
-    echo "${cmd}"
-fi                                    
+submit_job "${cmd}" ranger                                   
 
 ## run RIATA-HGT
 cmd="${init_command}; \
@@ -181,13 +182,7 @@ cmd="${init_command}; \
                                           ${input_file_nex}.riata.txt \
                                           ${output_file}.riatahgt.txt \
                                           ${phylonet_install_dir}"
-if [ "${qsub_env}" == "true" ]
-then
-    echo "source ${bash_config}; \
-          ${cmd}" | qsub $qsub -N run_riata; sleep 2
-else
-    echo "${cmd}"
-fi 
+submit_job "${cmd}" riatahgt
 
 ## run JANE 4
 cmd="${init_command}; \
@@ -201,13 +196,7 @@ cmd="${init_command}; \
                                        ${input_file_nex}.jane.txt \
                                        ${output_file}.jane4.txt \
                                        ${jane_install_dir}"
-if [ "${qsub_env}" == "true" ]
-then
-    echo "source ${bash_config}; \
-          ${cmd}" | qsub $qsub -N run_jane4; sleep 2
-else
-    echo "${cmd}"
-fi
+submit_job "${cmd}" jane4
 
 ## run CONSEL
 cmd="${init_command}; \
@@ -222,13 +211,7 @@ cmd="${init_command}; \
                                         ${output_file}.consel.txt \
                                         ${gene_msa_dir} \
                                         ${working_dir} "
-if [ "${qsub_env}" == "true" ]
-then
-    echo "source ${bash_config}; \
-          ${cmd}" | qsub $qsub -N run_consel; sleep 2
-else
-    echo "${cmd}"
-fi
+submit_job "${cmd}" consel
 
 ## run GeneMark
 cmd="${init_command}; \
@@ -238,13 +221,7 @@ cmd="${init_command}; \
                                           ${stdout}.gm.txt \
                                           ${stderr}.gm.txt \
                                           ${working_dir}"
-if [ "${qsub_env}" == "true" ]
-then
-    echo "source ${bash_config}; \
-          ${cmd}" | qsub $qsub -N run_genemark; sleep 2
-else
-    echo "${cmd}"
-fi
+submit_job "${cmd}" genemark
 
 ## run DarkHorse
 cmd="${init_command}; \
@@ -256,13 +233,7 @@ cmd="${init_command}; \
                                            ${query_species_coding_seqs_fp} \
                                            ${working_dir} \
                                            ${threads}"
-if [ "${qsub_env}" == "true" ]
-then
-    echo "source ${bash_config}; \
-          ${cmd}" | qsub $qsub -N run_darkhorse; sleep 2
-else
-    echo "${cmd}"
-fi
+submit_job "${cmd}" darkhorse
 
 ## run HGTector
 cmd="${init_command}; \
@@ -277,13 +248,7 @@ cmd="${init_command}; \
                                           ${tax_id} \
                                           ${nr_tax_dp} \
                                           ${gi_to_taxid_fp}"
-if [ "${qsub_env}" == "true" ]
-then
-    echo "source ${bash_config}; \
-          ${cmd}" | qsub $qsub -N run_hgtector; sleep 2
-else
-    echo "${cmd}"
-fi
+submit_job "${cmd}" hgtector
 
 ## run the Distance Method
 cmd="${init_command}; \
@@ -294,11 +259,5 @@ cmd="${init_command}; \
                                           ${stderr}.dm.txt \
                                           ${working_dir} \
                                           ${threads}"
-if [ "${qsub_env}" == "true" ]
-then
-    echo "source ${bash_config}; \
-          ${cmd}" | qsub $qsub -N run_hgtector; sleep 2
-else
-    echo "${cmd}"
-fi
+submit_job "${cmd}" distance_method
 

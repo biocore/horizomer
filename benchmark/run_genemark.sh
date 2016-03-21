@@ -10,7 +10,7 @@
 
 # usage: run GeneMark software
 species_model_fp=$1
-output_file=$2
+output_fp=$2
 species_genome_fp=$3
 stdout=$4
 stderr=$5
@@ -27,9 +27,9 @@ then
 fi
 
 TIMEFORMAT='%U %R'
-TIME="$( time (gmhmmp -r -m ${species_model_fp} -o $output_file ${species_genome_fp} 1>$stdout 2>>$stderr) 2>&1)"                                                                                              
-user_time=$(echo $TIME | awk '{print $1;}')                                                                                                                                                               
-wall_time=$(echo $TIME | awk '{print $2;}')
+TIME="$( time (gmhmmp -r -m ${species_model_fp} -o $output_fp ${species_genome_fp} 1>$stdout 2>>$stderr) 2>&1)"                                                                                              
+user_time=$(echo $TIME | awk '{print $1}')                                                                                                                                                               
+wall_time=$(echo $TIME | awk '{print $2}')
 
 echo "Total user time GeneMark: ${user_time}" >> $stderr
 echo "Total wall time GeneMark: ${wall_time}" >> $stderr
