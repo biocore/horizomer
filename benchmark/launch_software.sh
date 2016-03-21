@@ -137,7 +137,7 @@ function submit_job {
   if [ "${qsub_env}" == "true" ]
   then
       echo "source ${bash_config}; \
-            ${cmd}" | qsub $qsub -N run_hgtector; sleep 2
+            ${cmd}" | qsub $qsub -N run_$tool; sleep 2
   else
       echo "${cmd}"
   fi
