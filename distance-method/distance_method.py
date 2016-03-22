@@ -150,23 +150,24 @@ def preprocess_data(working_dir,
     if verbose:
         sys.stdout.write("Target organism\tNumber of genes\n")
     # each file contains genes for species
-    for ext in extensions:
-        for species, _file in enumerate(
-                glob("%s/*%s" % (target_proteomes_dir, ext))):
-            if verbose:
-                sys.stdout.write("%s. %s\t" % (
-                    species+1, basename(_file)))
-            for gene, seq in enumerate(skbio.io.read(_file, format='fasta')):
-                label = seq.metadata['id']
-                ref_db[label] = seq
-                sudo_label = "%s_%s" % (species, gene)
-                if label in gene_map:
-                    raise ValueError("Duplicate sequence labels are "
-                                     "not allowed: %s" % label)
-                gene_map[label] = sudo_label
-                gene_map[sudo_label] = label
-            if verbose:
-                sys.stdout.write("%s\n" % gene)
+    files = [f
+             for ext in extensions
+             for f in glob("%s/*%s" % (target_proteomes_dir, ext))]
+    for species, _file in enumerate(files):
+        if verbose:
+            sys.stdout.write("%s. %s\t" % (
+                species+1, basename(_file)))
+        for gene, seq in enumerate(skbio.io.read(_file, format='fasta')):
+            label = seq.metadata['id']
+            ref_db[label] = seq
+            sudo_label = "%s_%s" % (species, gene)
+            if label in gene_map:
+                raise ValueError("Duplicate sequence labels are "
+                                 "not allowed: %s" % label)
+            gene_map[label] = sudo_label
+            gene_map[sudo_label] = label
+        if verbose:
+            sys.stdout.write("%s\n" % gene)
     return gene_map, ref_db, species+1
 
 
@@ -925,35 +926,37 @@ def distance_method(query_proteome_fp,
                     debug=debug)
     # tabular alignments to be created
     else:
-        for ext in extensions:
-            for _file in glob("%s/*%s" % (target_proteomes_dir, ext)):
-                # launch BLASTp
-                if align_software == "blast":
-                    alignments_fp = launch_blast(
-                        query_proteome_fp=query_proteome_fp,
-                        ref_fp=_file,
-                        working_dir=working_dir,
-                        e_value=e_value,
-                        threads=threads,
-                        debug=debug)
-                elif align_software == "diamond":
-                    alignments_fp = launch_diamond(
-                        query_proteome_fp=query_proteome_fp,
-                        ref_fp=_file,
-                        working_dir=working_dir,
-                        tmp_dir=working_dir,
-                        e_value=e_value,
-                        threads=threads,
-                        debug=debug)
-                else:
-                    raise ValueError(
-                        "Software not supported: %s" % align_software)
+        files = [f
+                 for ext in extensions
+                 for f in glob("%s/*%s" % (target_proteomes_dir, ext))]
+        for _file in files:
+            # launch BLASTp
+            if align_software == "blast":
+                alignments_fp = launch_blast(
+                    query_proteome_fp=query_proteome_fp,
+                    ref_fp=_file,
+                    working_dir=working_dir,
+                    e_value=e_value,
+                    threads=threads,
+                    debug=debug)
+            elif align_software == "diamond":
+                alignments_fp = launch_diamond(
+                    query_proteome_fp=query_proteome_fp,
+                    ref_fp=_file,
+                    working_dir=working_dir,
+                    tmp_dir=working_dir,
+                    e_value=e_value,
+                    threads=threads,
+                    debug=debug)
+            else:
+                raise ValueError(
+                    "Software not supported: %s" % align_software)
 
-                # generate a dictionary of orthologous genes
-                parse_blast(alignments_fp=alignments_fp,
-                            hits=hits,
-                            gene_map=gene_map,
-                            debug=debug)
+            # generate a dictionary of orthologous genes
+            parse_blast(alignments_fp=alignments_fp,
+                        hits=hits,
+                        gene_map=gene_map,
+                        debug=debug)
 
     # keep only genes with >= min_num_homologs
     hits_min_num_homologs = {}
