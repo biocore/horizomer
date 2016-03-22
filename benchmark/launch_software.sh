@@ -25,7 +25,7 @@ working_dir=$(readlink -m $1)
 scripts_dir=$(readlink -m $2)
 # species tree in Newick format
 species_tree_fp=$3
-# species raw genome in FASTA format
+# reference genome in FASTA format (for compositional methods)
 species_genome_fp=$4
 # species HMM model (produced by GeneMarkS)
 species_model_fp=$5
@@ -52,12 +52,27 @@ verbose=${14}
 init_command="${15}"
 # Number of threads
 threads=${16}
-# DIAMOND database for genome
-diamond_nr=${17}
+# nr FASTA file
+nr_fp=${17}
+# directory that contains names.dmp and nodes.dmp
+nr_tax_dp=${18}
+# nr DIAMOND database
+diamond_db_nr=${19}
 # Bash config file path (if None, default ~/.bash_profile)
-bash_config="${18}"
+bash_config="${20}"
 # Launch on qsub cluster environment (true or false, if None, defaults to true)
-qsub_env=${19}
+qsub_env=${21}
+# DarkHorse config file
+darkhorse_config_fp=${22}
+# DarkHorse install directory
+darkhorse_install_dp=${23}
+# HGTector config file
+hgtector_config_fp=${24}
+# HGTector install directory
+hgtector_install_dp=${25}
+# GI-to-TaxID translation table
+# ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/gi_taxid_prot.zip
+gi_to_taxid_fp=${26}
 # qsub params
 qsub="-q route -m abe -M jenya.kopylov@gmail.com -l nodes=1:ppn=${threads} -l walltime=230:00:00 -l pmem=10gb -l mem=20gb"
 
@@ -78,10 +93,16 @@ then
     echo "T-REX install dir: $trex_install_dir"
     echo "verbose: $verbose"
     echo "initial command: $init_command"
-    echo "DIAMOND nr: $diamond_nr"
+    echo "DIAMOND nr: $diamond_db_nr"
+    echo "nr : $nr_fp"
+    echo "nr_tax_dp: $nr_tax_dp"
     echo "threads: $threads"
     echo "bash config file: $bash_config"
     echo "qsub_env: $qsub_env" 
+    echo "darkhorse_config_fp: $darkhorse_config_fp"
+    echo "darkhorse_install_dp: $darkhorse_install_dp"
+    echo "hgtector_config_fp: $hgtector_config_fp"
+    echo "hgtector_install_dp: $hgtector_install_dp"
 fi
 
 if [ "${bash_config}" == "None" ]
@@ -109,6 +130,19 @@ then
     init_command="sleep 1"
 fi
 
+# launch job
+function submit_job {
+  cmd=$1
+  tool=$2
+  if [ "${qsub_env}" == "true" ]
+  then
+      echo "source ${bash_config}; \
+            ${cmd}" | qsub $qsub -N run_$tool; sleep 2
+  else
+      echo "${cmd}"
+  fi
+}
+
 ## run T-REX
 cmd="${init_command}; \
       bash ${scripts_dir}/run_trex.sh ${gene_tree_dir} \
@@ -121,13 +155,7 @@ cmd="${init_command}; \
                                       ${input_file_nwk}.trex.txt \
                                       ${trex_install_dir} \
                                       ${base_input_file_nwk}.trex.txt"
-if [ "${qsub_env}" == "true" ]
-then
-    echo "source ${bash_config}; \
-          ${cmd}" | qsub $qsub -N run_trex; sleep 2
-else
-    echo "${cmd}"
-fi
+submit_job "${cmd}" trex
 
 ## run RANGER-DTL
 cmd="${init_command}; \
@@ -140,13 +168,7 @@ cmd="${init_command}; \
                                         ${species_tree_fp} \
                                         ${input_file_nwk}.ranger.txt \
                                         ${output_file}.ranger.txt"
-if [ "${qsub_env}" == "true" ]
-then
-    echo "source ${bash_config}; \
-          ${cmd}" | qsub $qsub -N run_ranger; sleep 2
-else
-    echo "${cmd}"
-fi                                    
+submit_job "${cmd}" ranger                                   
 
 ## run RIATA-HGT
 cmd="${init_command}; \
@@ -160,13 +182,7 @@ cmd="${init_command}; \
                                           ${input_file_nex}.riata.txt \
                                           ${output_file}.riatahgt.txt \
                                           ${phylonet_install_dir}"
-if [ "${qsub_env}" == "true" ]
-then
-    echo "source ${bash_config}; \
-          ${cmd}" | qsub $qsub -N run_riata; sleep 2
-else
-    echo "${cmd}"
-fi 
+submit_job "${cmd}" riatahgt
 
 ## run JANE 4
 cmd="${init_command}; \
@@ -180,13 +196,7 @@ cmd="${init_command}; \
                                        ${input_file_nex}.jane.txt \
                                        ${output_file}.jane4.txt \
                                        ${jane_install_dir}"
-if [ "${qsub_env}" == "true" ]
-then
-    echo "source ${bash_config}; \
-          ${cmd}" | qsub $qsub -N run_jane4; sleep 2
-else
-    echo "${cmd}"
-fi
+submit_job "${cmd}" jane4
 
 ## run CONSEL
 cmd="${init_command}; \
@@ -201,13 +211,7 @@ cmd="${init_command}; \
                                         ${output_file}.consel.txt \
                                         ${gene_msa_dir} \
                                         ${working_dir} "
-if [ "${qsub_env}" == "true" ]
-then
-    echo "source ${bash_config}; \
-          ${cmd}" | qsub $qsub -N run_consel; sleep 2
-else
-    echo "${cmd}"
-fi
+submit_job "${cmd}" consel
 
 ## run GeneMark
 cmd="${init_command}; \
@@ -217,10 +221,43 @@ cmd="${init_command}; \
                                           ${stdout}.gm.txt \
                                           ${stderr}.gm.txt \
                                           ${working_dir}"
-if [ "${qsub_env}" == "true" ]
-then
-    echo "source ${bash_config}; \
-          ${cmd}" | qsub $qsub -N run_genemark; sleep 2
-else
-    echo "${cmd}"
-fi
+submit_job "${cmd}" genemark
+
+## run DarkHorse
+cmd="${init_command}; \
+      bash ${scripts_dir}/run_darkhorse.sh ${nr_fp} \
+                                           ${diamond_db_nr} \
+                                           ${diamond_tabular_query} \
+                                           ${darkhorse_config_fp} \
+                                           ${darkhorse_install_dp} \
+                                           ${query_species_coding_seqs_fp} \
+                                           ${working_dir} \
+                                           ${threads}"
+submit_job "${cmd}" darkhorse
+
+## run HGTector
+cmd="${init_command}; \
+      bash ${scripts_dir}/run_hgtector.sh ${nr_fp} \
+                                          ${diamond_db_nr} \
+                                          ${diamond_tabular_query} \
+                                          ${hgtector_config_fp} \
+                                          ${hgtector_install_dp} \
+                                          ${query_species_coding_seqs_fp} \
+                                          ${working_dir} \
+                                          ${threads} \
+                                          ${tax_id} \
+                                          ${nr_tax_dp} \
+                                          ${gi_to_taxid_fp}"
+submit_job "${cmd}" hgtector
+
+## run the Distance Method
+cmd="${init_command}; \
+      bash ${scripts_dir}/run_hgtector.sh ${distance_method_install_dir} \
+                                          ${query_species_coding_seqs_fp} \
+                                          ${target_proteomes_dir} \
+                                          ${stdout}.dm.txt \
+                                          ${stderr}.dm.txt \
+                                          ${working_dir} \
+                                          ${threads}"
+submit_job "${cmd}" distance_method
+
