@@ -927,8 +927,8 @@ def distance_method(query_proteome_fp,
     # tabular alignments to be created
     else:
         files = [f
-                 for ext in extensions
-                 for f in glob("%s/*%s" % (target_proteomes_dir, ext))]
+                 for e in extensions
+                 for f in glob("%s/*%s" % (target_proteomes_dir, e))]
         for _file in files:
             # launch BLASTp
             if align_software == "blast":
