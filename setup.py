@@ -46,8 +46,13 @@ setup(name='wgshgt',
       glob('benchmark/tests/*py'),
       extras_require={'test': ["nose >= 0.10.1", "pep8"],
                       'doc': ["Sphinx >= 1.2.2", "sphinx-bootstrap-theme"]},
-      install_requires=['click', 'numpy >= 1.7',
-                        'scikit-bio >= 0.2.2, < 0.3.0',
-                        'scipy > 0.13.0'],
+      install_requires=['click>=6.0',
+                        'numpy >= 1.7',
+                        'scipy > 0.13.0',
+                        'scikit-bio == 0.4.1-dev'],
+      # using RNAer's development branch with GenBank support
+      dependency_links=[('https://github.com/RNAer/scikit-bio/archive/micronota.zip'
+                         '#egg=scikit-bio-0.4.1-dev')],
       classifiers=classifiers
       )
+

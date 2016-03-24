@@ -37,6 +37,8 @@
 #        viii. Run outlier detection algorithm on each cluster (paragraph 2
 #              of section 'Detecting Outlier Genes' in original paper)
 #
+#    Requires protdist version 3.696
+#
 
 import sys
 import click
@@ -46,11 +48,12 @@ import threading
 import subprocess
 import traceback
 import shlex
-from os.path import join, basename
+from os.path import join, basename, isdir, exists, getsize
+from os import mkdir
 from itertools import imap
 from glob import glob
 
-from skbio.parse.sequences import parse_fasta
+import skbio.io
 
 
 class Command(object):
@@ -147,25 +150,113 @@ def preprocess_data(working_dir,
     if verbose:
         sys.stdout.write("Target organism\tNumber of genes\n")
     # each file contains genes for species
-    for ext in extensions:
-        for species, _file in enumerate(
-                glob("%s/*%s" % (target_proteomes_dir, ext))):
-            if verbose:
-                sys.stdout.write("%s. %s\t" % (
-                    species+1, basename(_file)))
-            with open(_file, 'rb') as readfile:
-                for gene, (label, seq) in enumerate(parse_fasta(readfile)):
-                    label = label.split()[0]
-                    ref_db[label] = seq
-                    sudo_label = "%s_%s" % (species, gene)
-                    if label in gene_map:
-                        raise ValueError("Duplicate sequence labels are "
-                                         "not allowed: %s" % label)
-                    gene_map[label] = sudo_label
-                    gene_map[sudo_label] = label
-                if verbose:
-                    sys.stdout.write("%s\n" % gene)
+    files = [f
+             for ext in extensions
+             for f in glob("%s/*%s" % (target_proteomes_dir, ext))]
+    for species, _file in enumerate(files):
+        if verbose:
+            sys.stdout.write("%s. %s\t" % (
+                species+1, basename(_file)))
+        for gene, seq in enumerate(skbio.io.read(_file, format='fasta')):
+            label = seq.metadata['id']
+            ref_db[label] = seq
+            sudo_label = "%s_%s" % (species, gene)
+            if label in gene_map:
+                raise ValueError("Duplicate sequence labels are "
+                                 "not allowed: %s" % label)
+            gene_map[label] = sudo_label
+            gene_map[sudo_label] = label
+        if verbose:
+            sys.stdout.write("%s\n" % gene)
     return gene_map, ref_db, species+1
+
+
+def launch_diamond(query_proteome_fp,
+                   ref_fp,
+                   working_dir,
+                   tmp_dir,
+                   e_value=10e-20,
+                   threads=1,
+                   debug=False):
+    """ Launch DIAMOND for a query and a reference database of proteomes.
+
+    Parameters
+    ----------
+    query_proteome_fp: string
+      filepath to query proteome
+    ref_fp: string
+      filepath to reference proteome
+    working_dir: string
+      working directory path
+    tmp_dir:
+      temporary working directory for DIAMOND
+    e_value: float, optional
+      the cutoff E-value for BLASTP results
+    threads: integer
+      number of threads to use for running DIAMOND BLASTP
+    debug: boolean
+      if True, run function in debug mode
+
+    Returns
+    -------
+    out_file_fp: string
+      filepath to tabular alignment file output by DIAMOND
+    """
+    db_file_fp = join(working_dir, "%s" % basename(ref_fp))
+    # build DIAMOND database
+    makediamonddb_command = ["diamond",
+                             "makedb",
+                             "--in", ref_fp,
+                             "-d", db_file_fp,
+                             "--threads", str(threads)]
+    proc = subprocess.Popen(makediamonddb_command,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            close_fds=True)
+    proc.wait()
+    stdout, stderr = proc.communicate()
+    if (stderr and debug):
+        print "[DEBUG] %s\n" % stderr
+
+    # launch DIAMOND
+    out_file_fp = join(
+        working_dir, "%s.daa" % basename(query_proteome_fp))
+    diamond_command = ["diamond",
+                       "blastp",
+                       "-t", tmp_dir,
+                       "--db", "%s.dmnd" % db_file_fp,
+                       "--query", query_proteome_fp,
+                       "--evalue", str(e_value),
+                       "--threads", str(threads),
+                       "--daa", out_file_fp,
+                       "--sensitive"]
+    proc = subprocess.Popen(diamond_command,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            close_fds=True)
+    proc.wait()
+    stdout, stderr = proc.communicate()
+    if (stderr and debug):
+        print "[DEBUG] %s\n" % stderr
+
+    # convert output to tab delimited file
+    out_file_conv_fp = join(
+        working_dir, "%s.m8" % basename(query_proteome_fp))
+    diamond_convert_command = ["diamond",
+                               "view",
+                               "--daa", out_file_fp,
+                               "-f", "tab",
+                               "-o", out_file_conv_fp]
+    proc = subprocess.Popen(diamond_convert_command,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            close_fds=True)
+    proc.wait()
+    stdout, stderr = proc.communicate()
+    if (stderr and debug):
+        print "[DEBUG] %s\n" % stderr
+
+    return out_file_conv_fp
 
 
 def launch_blast(query_proteome_fp,
@@ -174,7 +265,7 @@ def launch_blast(query_proteome_fp,
                  e_value=10e-20,
                  threads=1,
                  debug=False):
-    """ Launch BLASTp fora query and a reference database of proteomes.
+    """ Launch BLASTp for a query and a reference database of proteomes.
 
     Parameters
     ----------
@@ -425,12 +516,15 @@ def normalize_distances(phylip_fp,
     missing_species = [str(x) for x in range(0, num_species)]
     # scan through file and remove species that exist
     # from missing_species list
-    with open(phylip_fp, 'U') as phylip_f:
-        next(phylip_f)
-        for line in phylip_f:
-            if not line.startswith(' '):
-                species = line.split()[0].split('_')[0]
-                missing_species.remove(species)
+    if exists(phylip_fp) and getsize(phylip_fp) > 0:
+        with open(phylip_fp, 'U') as phylip_f:
+            next(phylip_f)
+            for line in phylip_f:
+                if not line.startswith(' '):
+                    species = line.split()[0].split('_')[0]
+                    missing_species.remove(species)
+    else:
+        raise ValueError('%s does not exist or is empty' % phylip_fp)
 
     # scan through file again, collecting alignment
     # distances
@@ -730,75 +824,71 @@ def output_full_matrix(matrix, num_species):
             sys.stdout.write("\n")
 
 
-@click.command()
-@click.argument('query-proteome-fp', required=True,
-                type=click.Path(resolve_path=True, readable=True, exists=True,
-                                file_okay=True))
-@click.argument('target-proteomes-dir', required=True,
-                type=click.Path(resolve_path=True, readable=True, exists=True,
-                                file_okay=True))
-@click.argument('working-dir', required=True,
-                type=click.Path(resolve_path=True, readable=True, exists=False,
-                                file_okay=True))
-@click.option('--ext', multiple=True, type=str, required=False,
-              default=['fa', 'fasta', 'faa'], show_default=True,
-              help="File extensions of target proteomes (multiple extensions "
-                   "can be given by calling --ext ext1 --ext ext2)")
-@click.option('--min-num-homologs', type=int, required=False, default=3,
-              show_default=True, help="The mininum number of homologs "
-                                      "(determined by BLAST search) for each "
-                                      "gene to test")
-@click.option('--e-value', type=float, required=False, default=10e-20,
-              show_default=True, help="The E-value cutoff to identify "
-                                      "orthologous genes using BLASTP")
-@click.option('--threads', type=int, required=False, default=1,
-              show_default=True, help="Number of threads to use")
-@click.option('--stdev-offset', type=float, required=False, default=2.326,
-              show_default=True, help="The number of standard deviations a "
-                                      "gene's normalized distance is from "
-                                      "the mean to identify it as an outlier "
-                                      "for a species pair")
-@click.option('--outlier-hgt', type=float, default=0.5, show_default=True,
-              required=False, help="The fraction (value between (0,1]) of "
-                                   "normalized pairwise distances over all "
-                                   "species-pair vectors belonging to the "
-                                   "same gene that are z-score standard "
-                                   "deviations from the mean")
-@click.option('--species-set-size', type=int, required=False, default=30,
-              show_default=True, help="Threshold number of genes to consider "
-                                      "a species set large (a species set is "
-                                      "a set of genes whose orthologs are "
-                                      "detectable in exactly the same subset "
-                                      "of the considered species)")
-@click.option('--hamming-distance', type=int, required=False, default=2,
-              show_default=True, help="Distance between two binary vectors "
-                                      "indicating the species in which the "
-                                      "corresponding ortholog gene appears")
-@click.option('--verbose', type=bool, required=False, default=False,
-              show_default=True, help="Run in verbose mode")
-@click.option('--debug', type=bool, required=False, default=False,
-              show_default=True, help="Run in debug mode")
-@click.option('--warnings', type=bool, required=False, default=False,
-              show_default=True, help="Print program warnings")
-@click.option('--timeout', type=int, required=False, default=120,
-              show_default=True, help="Number of seconds to allow Clustalw "
-                                      "to run per call")
-def distance_method_main(query_proteome_fp,
-                         target_proteomes_dir,
-                         working_dir,
-                         ext,
-                         min_num_homologs,
-                         e_value,
-                         threads,
-                         stdev_offset,
-                         outlier_hgt,
-                         species_set_size,
-                         hamming_distance,
-                         verbose,
-                         debug,
-                         warnings,
-                         timeout):
-    """ Main function to run the Distance-Method HGT detection algorithm.
+def distance_method(query_proteome_fp,
+                    target_proteomes_dir,
+                    working_dir,
+                    output_hgt_fp,
+                    align_software,
+                    tabular_alignments_fp=None,
+                    ext=['fa', 'fasta', 'faa'],
+                    min_num_homologs=3,
+                    e_value=10e-20,
+                    threads=1,
+                    stdev_offset=2.326,
+                    outlier_hgt=0.5,
+                    species_set_size=30,
+                    hamming_distance=2,
+                    verbose=False,
+                    debug=False,
+                    warnings=False,
+                    timeout=120):
+    """ Run Distance Method algorithm
+
+    Parameters
+    ----------
+    query_proteome_fp: string
+        filepath to query proteome
+    target_proteomes_dir: string
+        dirpath to target proteomes
+    working_dir: string
+        dirpath to working directory
+    output_hgt_fp: string
+        filepath to output file for storing detected HGTs
+    align_software: string
+        software to use for sequence alignment (BLAST or DIAMOND)
+    tabular_alignments_fp: string, optional
+        filepath to tabular sequence alignments
+    ext: list, optional
+        list of file extensions to open in the target proteomes directory
+    min_num_homologs: integer, optional
+        the mininum number of homologs (determined by BLAST search)
+        for each gene to test
+    e_value: float, optional
+        the E-value cutoff to identify orthologous genes using BLASTP
+    threads: integer, optional
+        number of threads to use for sequence alignment
+    stdev_offset: float, optional
+        the number of standard deviations a gene's normalized distance
+        is from the mean to identify it as an outlier for a species pair
+    outlier_hgt: float, optional
+        the fraction (value between (0,1]) of normalized pairwise distances
+        over all species-pair vectors belonging to the same gene that are
+        z-score standard deviations from the mean
+    species_set_size: integer, optional
+        threshold number of genes to consider a species set large (a species
+        set is a set of genes whose orthologs are detectable in exactly the
+        same subset of the considered species)
+    hamming_distance: integer, optional
+        distance between two binary vectors indicating the species in which
+        the corresponding ortholog gene appears
+    verbose: boolean, optional
+        if True, run in verbose mode
+    debug: boolean, optional
+        if True, run in debug mode
+    warnings: boolean, optional
+        if True, output warnings
+    timeout: integer, optional
+        number of seconds to allow Clustalw to run per call
     """
     if verbose:
         sys.stdout.write(
@@ -807,6 +897,10 @@ def distance_method_main(query_proteome_fp,
 
     extensions = set(['fa', 'fasta', 'faa'])
     extensions.update(ext)
+
+    # create working directory if doesn't exist
+    if not isdir(working_dir):
+        mkdir(working_dir)
 
     gene_map, ref_db, num_species = preprocess_data(
         working_dir=working_dir,
@@ -823,16 +917,40 @@ def distance_method_main(query_proteome_fp,
         sys.stdout.write("\nRunning BLASTp ..\n")
     hits = {}
 
-    for ext in extensions:
-        for _file in glob("%s/*%s" % (target_proteomes_dir, ext)):
+    # tabular alignments provided
+    if tabular_alignments_fp is not None:
+        # generate a dictionary of orthologous genes
+        parse_blast(alignments_fp=tabular_alignments_fp,
+                    hits=hits,
+                    gene_map=gene_map,
+                    debug=debug)
+    # tabular alignments to be created
+    else:
+        files = [f
+                 for e in extensions
+                 for f in glob("%s/*%s" % (target_proteomes_dir, e))]
+        for _file in files:
             # launch BLASTp
-            alignments_fp = launch_blast(
-                query_proteome_fp=query_proteome_fp,
-                ref_fp=_file,
-                working_dir=working_dir,
-                e_value=e_value,
-                threads=threads,
-                debug=debug)
+            if align_software == "blast":
+                alignments_fp = launch_blast(
+                    query_proteome_fp=query_proteome_fp,
+                    ref_fp=_file,
+                    working_dir=working_dir,
+                    e_value=e_value,
+                    threads=threads,
+                    debug=debug)
+            elif align_software == "diamond":
+                alignments_fp = launch_diamond(
+                    query_proteome_fp=query_proteome_fp,
+                    ref_fp=_file,
+                    working_dir=working_dir,
+                    tmp_dir=working_dir,
+                    e_value=e_value,
+                    threads=threads,
+                    debug=debug)
+            else:
+                raise ValueError(
+                    "Software not supported: %s" % align_software)
 
             # generate a dictionary of orthologous genes
             parse_blast(alignments_fp=alignments_fp,
@@ -867,8 +985,11 @@ def distance_method_main(query_proteome_fp,
                 "[DEBUG] %s: %s\n" % (query, hits_min_num_homologs[query]))
     # generate command for CLUSTALW
     phy_msa_fp = join(working_dir, "msa.phy")
+    open(phy_msa_fp, 'a').close()
     dnd_msa_fp = join(working_dir, "msa.dnd")
+    open(dnd_msa_fp, 'a').close()
     phylip_fp = join(working_dir, "msa.dis")
+    open(phylip_fp, 'a').close()
     # create fasta file for each gene family and run CLUSTALW
     fasta_in_fp = join(working_dir, "input.faa")
     clustal_command_fp = join(working_dir, "clustal_command.txt")
@@ -934,22 +1055,128 @@ def distance_method_main(query_proteome_fp,
         hamming_distance=hamming_distance)
 
     # detect outlier genes per core cluster of genes
-    sys.stdout.write("\nCandidate HGT genes: \n")
-    for core_cluster in gene_clusters_dict:
-        outlier_genes = detect_outlier_genes(
-            species_set=gene_clusters_dict[core_cluster],
-            gene_bitvector_map=gene_bitvector_map,
-            full_distance_matrix=full_distance_matrix,
-            stdev_offset=stdev_offset,
-            outlier_hgt=outlier_hgt,
-            num_species=num_species,
-            total_genes=total_genes,
-            debug=debug)
+    with open(output_hgt_fp, 'w') as output_hgt_f:
+        output_hgt_f.write("\n# Candidate HGT genes: \n")
+        for core_cluster in gene_clusters_dict:
+            outlier_genes = detect_outlier_genes(
+                species_set=gene_clusters_dict[core_cluster],
+                gene_bitvector_map=gene_bitvector_map,
+                full_distance_matrix=full_distance_matrix,
+                stdev_offset=stdev_offset,
+                outlier_hgt=outlier_hgt,
+                num_species=num_species,
+                total_genes=total_genes,
+                debug=debug)
 
-        for gene in outlier_genes:
-            sys.stdout.write("%s\n" % gene_id[gene])
+        if outlier_genes:
+            for gene in outlier_genes:
+                output_hgt_f("%s\n" % gene_id[gene])
 
     # output_full_matrix(outlier_genes, num_species)
+
+
+@click.command()
+@click.argument('query-proteome-fp', required=True,
+                type=click.Path(resolve_path=True, readable=True, exists=True,
+                                file_okay=True))
+@click.argument('target-proteomes-dir', required=True,
+                type=click.Path(resolve_path=True, readable=True, exists=True,
+                                file_okay=True))
+@click.argument('working-dir', required=True,
+                type=click.Path(resolve_path=True, readable=True, exists=False,
+                                file_okay=True))
+@click.argument('output-hgt-fp', required=True,
+                type=click.Path(resolve_path=True, readable=True, exists=False,
+                                file_okay=True))
+@click.option('--align-software', type=click.Choice(['diamond', 'blast']),
+              required=False, default=['diamond'], show_default=True,
+              help="Software to use for blasting sequences")
+@click.option('--tabular-alignments-fp', required=False,
+              type=click.Path(resolve_path=True, readable=True, exists=False,
+                              file_okay=True),
+              help="Tabular alignments in m6 format (output from BLAST or "
+                   "DIAMOND)")
+@click.option('--ext', multiple=True, type=str, required=False,
+              default=['fa', 'fasta', 'faa'], show_default=True,
+              help="File extensions of target proteomes (multiple extensions "
+                   "can be given by calling --ext ext1 --ext ext2)")
+@click.option('--min-num-homologs', type=int, required=False, default=3,
+              show_default=True, help="The mininum number of homologs "
+                                      "(determined by BLAST search) for each "
+                                      "gene to test")
+@click.option('--e-value', type=float, required=False, default=10e-20,
+              show_default=True, help="The E-value cutoff to identify "
+                                      "orthologous genes using BLASTP")
+@click.option('--threads', type=int, required=False, default=1,
+              show_default=True, help="Number of threads to use")
+@click.option('--stdev-offset', type=float, required=False, default=2.326,
+              show_default=True, help="The number of standard deviations a "
+                                      "gene's normalized distance is from "
+                                      "the mean to identify it as an outlier "
+                                      "for a species pair")
+@click.option('--outlier-hgt', type=float, default=0.5, show_default=True,
+              required=False, help="The fraction (value between (0,1]) of "
+                                   "normalized pairwise distances over all "
+                                   "species-pair vectors belonging to the "
+                                   "same gene that are z-score standard "
+                                   "deviations from the mean")
+@click.option('--species-set-size', type=int, required=False, default=30,
+              show_default=True, help="Threshold number of genes to consider "
+                                      "a species set large (a species set is "
+                                      "a set of genes whose orthologs are "
+                                      "detectable in exactly the same subset "
+                                      "of the considered species)")
+@click.option('--hamming-distance', type=int, required=False, default=2,
+              show_default=True, help="Distance between two binary vectors "
+                                      "indicating the species in which the "
+                                      "corresponding ortholog gene appears")
+@click.option('--verbose', type=bool, required=False, default=False,
+              show_default=True, help="Run in verbose mode")
+@click.option('--debug', type=bool, required=False, default=False,
+              show_default=True, help="Run in debug mode")
+@click.option('--warnings', type=bool, required=False, default=False,
+              show_default=True, help="Print program warnings")
+@click.option('--timeout', type=int, required=False, default=120,
+              show_default=True, help="Number of seconds to allow Clustalw "
+                                      "to run per call")
+def distance_method_main(query_proteome_fp,
+                         target_proteomes_dir,
+                         working_dir,
+                         output_hgt_fp,
+                         align_software,
+                         tabular_alignments_fp,
+                         ext,
+                         min_num_homologs,
+                         e_value,
+                         threads,
+                         stdev_offset,
+                         outlier_hgt,
+                         species_set_size,
+                         hamming_distance,
+                         verbose,
+                         debug,
+                         warnings,
+                         timeout):
+    """ Run the Distance-Method HGT detection algorithm.
+    """
+    distance_method(query_proteome_fp=query_proteome_fp,
+                    target_proteomes_dir=target_proteomes_dir,
+                    working_dir=working_dir,
+                    output_hgt_fp=output_hgt_fp,
+                    align_software=align_software,
+                    tabular_alignments_fp=tabular_alignments_fp,
+                    ext=ext,
+                    min_num_homologs=min_num_homologs,
+                    e_value=e_value,
+                    threads=threads,
+                    stdev_offset=stdev_offset,
+                    outlier_hgt=outlier_hgt,
+                    species_set_size=species_set_size,
+                    hamming_distance=hamming_distance,
+                    verbose=verbose,
+                    debug=debug,
+                    warnings=warnings,
+                    timeout=timeout)
 
 
 if __name__ == "__main__":

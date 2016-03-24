@@ -14,15 +14,20 @@ from tempfile import mkdtemp
 from os import makedirs
 from os.path import join, exists
 import numpy
+import numpy.testing as npt
+import pandas as pd
 
 from skbio.util import remove_files
-from skbio.parse.sequences import parse_fasta
+import skbio.io
 
 from distance_method import (preprocess_data,
                              parse_blast,
                              normalize_distances,
                              cluster_distances,
-                             detect_outlier_genes)
+                             detect_outlier_genes,
+                             launch_blast,
+                             launch_diamond,
+                             distance_method)
 
 
 class DistanceMethodTests(TestCase):
@@ -78,6 +83,55 @@ class DistanceMethodTests(TestCase):
         remove_files(self.files_to_remove)
         rmtree(self.working_dir)
 
+    def assert_frames_equal(self, actual, expected, use_close=False):
+        """
+        Custom assert_frames_equal() function for testing pandas DataFrame.
+
+        See
+        http://nbviewer.ipython.org/gist/jiffyclub/ac2e7506428d5e1d587b
+        for details.
+
+        Compare DataFrame items by index and column and
+        raise AssertionError if any item is not equal.
+
+        Ordering is unimportant, items are compared only by label.
+        NaN and infinite values are supported.
+
+        Parameters
+        ----------
+        actual : pandas.DataFrame
+        expected : pandas.DataFrame
+        use_close : bool, optional
+            If True, use numpy.testing.assert_allclose instead of
+            numpy.testing.assert_equal.
+
+        """
+        if use_close:
+            comp = npt.assert_allclose
+        else:
+            comp = npt.assert_equal
+
+        assert (isinstance(actual, pd.DataFrame) and
+                isinstance(expected, pd.DataFrame)), \
+            'Inputs must both be pandas DataFrames.'
+
+        for i, exp_row in expected.iterrows():
+            assert i in actual.index, 'Expected row {!r} not found.'.format(i)
+
+            act_row = actual.loc[i]
+
+            for j, exp_item in exp_row.iteritems():
+                assert j in act_row.index, \
+                    'Expected column {!r} not found.'.format(j)
+
+                act_item = act_row[j]
+
+                try:
+                    comp(act_item, exp_item)
+                except AssertionError as e:
+                    raise AssertionError(
+                        e.message + '\n\nColumn: {!r}\nRow: {!r}'.format(j, i))
+
     def test_preprocess_data(self):
         """ Test functionality of preprocess_data()
         """
@@ -105,18 +159,14 @@ class DistanceMethodTests(TestCase):
                         '0_4': 'G5_SE001', '1_4': 'G5_SE002',
                         '2_4': 'G5_SE003', '3_4': 'G5_SE004'}
         ref_db_exp = {}
-        with open(self.species_1_fp, 'U') as fh:
-            for label, seq in parse_fasta(fh):
-                ref_db_exp[label] = seq
-        with open(self.species_2_fp, 'U') as fh:
-            for label, seq in parse_fasta(fh):
-                ref_db_exp[label] = seq
-        with open(self.species_3_fp, 'U') as fh:
-            for label, seq in parse_fasta(fh):
-                ref_db_exp[label] = seq
-        with open(self.species_4_fp, 'U') as fh:
-            for label, seq in parse_fasta(fh):
-                ref_db_exp[label] = seq
+        for seq in skbio.io.read(self.species_1_fp, format='fasta'):
+            ref_db_exp[seq.metadata['id']] = seq
+        for seq in skbio.io.read(self.species_2_fp, format='fasta'):
+            ref_db_exp[seq.metadata['id']] = seq
+        for seq in skbio.io.read(self.species_3_fp, format='fasta'):
+            ref_db_exp[seq.metadata['id']] = seq
+        for seq in skbio.io.read(self.species_4_fp, format='fasta'):
+            ref_db_exp[seq.metadata['id']] = seq
         num_species_exp = 4
         self.assertDictEqual(gene_map, gene_map_exp)
         self.assertDictEqual(ref_db, ref_db_exp)
@@ -248,6 +298,208 @@ class DistanceMethodTests(TestCase):
             num_species=4,
             total_genes=5)
         self.assertSetEqual(outlier_genes, outlier_genes_exp)
+
+    def test_launch_blast(self):
+        """Test functionality of launch_blast()
+        """
+        align_exp = [{'qseqid': 'G1_SE001',
+                      'sseqid': 'G1_SE002',
+                      'pident': 60.92,
+                      'length': 888,
+                      'mismatch': 328,
+                      'gapopen': 5,
+                      'qstart': 1,
+                      'qend': 870,
+                      'sstart': 1,
+                      'send': 887,
+                      'evalue': 0.000000e+00,
+                      'bitscore': 1098,
+                      'qcovs': 100},
+                     {'qseqid': 'G2_SE001',
+                      'sseqid': 'G2_SE002',
+                      'pident': 53.64,
+                      'length': 494,
+                      'mismatch': 229,
+                      'gapopen': 0,
+                      'qstart': 1,
+                      'qend': 494,
+                      'sstart': 1,
+                      'send': 494,
+                      'evalue': 0.000000e+00,
+                      'bitscore': 566,
+                      'qcovs': 100},
+                     {'qseqid': 'G3_SE001',
+                      'sseqid': 'G3_SE002',
+                      'pident': 64.66,
+                      'length': 116,
+                      'mismatch': 40,
+                      'gapopen': 1,
+                      'qstart': 1,
+                      'qend': 115,
+                      'sstart': 1,
+                      'send': 116,
+                      'evalue': 2.9999999999999994e-56,
+                      'bitscore': 164,
+                      'qcovs': 100},
+                     {'qseqid': 'G4_SE001',
+                      'sseqid': 'G4_SE002',
+                      'pident': 48.29,
+                      'length': 292,
+                      'mismatch': 147,
+                      'gapopen': 1,
+                      'qstart': 1,
+                      'qend': 288,
+                      'sstart': 1,
+                      'send': 292,
+                      'evalue': 1.9999999999999996e-106,
+                      'bitscore': 305,
+                      'qcovs': 100},
+                     {'qseqid': 'G5_SE001',
+                      'sseqid': 'G5_SE002',
+                      'pident': 50.00,
+                      'length': 670,
+                      'mismatch': 320,
+                      'gapopen': 6,
+                      'qstart': 2,
+                      'qend': 663,
+                      'sstart': 1,
+                      'send': 663,
+                      'evalue': 0.000000e+00,
+                      'bitscore': 674,
+                      'qcovs': 99}]
+        df_exp = pd.DataFrame(align_exp,
+                              columns=['qseqid', 'sseqid', 'pident', 'length',
+                                       'mismatch', 'gapopen', 'qstart', 'qend',
+                                       'sstart', 'send', 'evalue', 'bitscore',
+                                       'qcovs'])
+        out_file_fp = launch_blast(self.species_1_fp,
+                                   self.species_2_fp,
+                                   self.working_dir)
+        df_act = skbio.io.read(out_file_fp, format='blast+6',
+                               into=pd.DataFrame,
+                               columns=['qseqid', 'sseqid', 'pident', 'length',
+                                        'mismatch', 'gapopen', 'qstart',
+                                        'qend', 'sstart', 'send', 'evalue',
+                                        'bitscore', 'qcovs'])
+        self.assert_frames_equal(df_exp, df_act)
+
+    def test_launch_diamond(self):
+        """Test functionality of launch_diamond()
+        """
+        align_exp = [{'qseqid': 'G1_SE001',
+                      'sseqid': 'G1_SE002',
+                      'pident': 60.9,
+                      'length': 888,
+                      'mismatch': 328,
+                      'gapopen': 5,
+                      'qstart': 1,
+                      'qend': 870,
+                      'sstart': 1,
+                      'send': 887,
+                      'evalue': 0.000000e+00,
+                      'bitscore': 1092.8},
+                     {'qseqid': 'G2_SE001',
+                      'sseqid': 'G2_SE002',
+                      'pident': 53.6,
+                      'length': 494,
+                      'mismatch': 229,
+                      'gapopen': 0,
+                      'qstart': 1,
+                      'qend': 494,
+                      'sstart': 1,
+                      'send': 494,
+                      'evalue': 3.1999999999999995e-160,
+                      'bitscore': 550.1},
+                     {'qseqid': 'G3_SE001',
+                      'sseqid': 'G3_SE002',
+                      'pident': 64.7,
+                      'length': 116,
+                      'mismatch': 40,
+                      'gapopen': 1,
+                      'qstart': 1,
+                      'qend': 115,
+                      'sstart': 1,
+                      'send': 116,
+                      'evalue': 2.2999999999999996e-45,
+                      'bitscore': 166.4},
+                     {'qseqid': 'G4_SE001',
+                      'sseqid': 'G4_SE002',
+                      'pident': 48.3,
+                      'length': 292,
+                      'mismatch': 147,
+                      'gapopen': 1,
+                      'qstart': 1,
+                      'qend': 288,
+                      'sstart': 1,
+                      'send': 292,
+                      'evalue': 4.799999999999999e-84,
+                      'bitscore': 296.2},
+                     {'qseqid': 'G5_SE001',
+                      'sseqid': 'G5_SE002',
+                      'pident': 50.1,
+                      'length': 669,
+                      'mismatch': 319,
+                      'gapopen': 6,
+                      'qstart': 2,
+                      'qend': 662,
+                      'sstart': 1,
+                      'send': 662,
+                      'evalue': 1.4999999999999994e-192,
+                      'bitscore': 657.9}]
+        df_exp = pd.DataFrame(align_exp,
+                              columns=['qseqid', 'sseqid', 'pident', 'length',
+                                       'mismatch', 'gapopen', 'qstart', 'qend',
+                                       'sstart', 'send', 'evalue', 'bitscore'])
+        out_file_fp = launch_diamond(self.species_1_fp,
+                                     self.species_2_fp,
+                                     self.working_dir,
+                                     tmp_dir=self.working_dir)
+        df_act = skbio.io.read(out_file_fp, format='blast+6',
+                               into=pd.DataFrame,
+                               columns=['qseqid', 'sseqid', 'pident',
+                                        'length', 'mismatch', 'gapopen',
+                                        'qstart', 'qend', 'sstart', 'send',
+                                        'evalue', 'bitscore'])
+        self.assert_frames_equal(df_exp, df_act)
+
+    def test_distance_method(self):
+        """ Test functionality of distance_method_main()
+        """
+        output_hgt_fp = join(self.working_dir, "hgt_result.txt")
+        distance_method(self.species_1_fp,
+                        self.target_proteomes_dir,
+                        self.working_dir,
+                        output_hgt_fp,
+                        'diamond')
+        hgt_exp = []
+        hgt_act = []
+        with open(output_hgt_fp, 'U') as output_hgt_f:
+            for line in output_hgt_f:
+                if line.startswith('#'):
+                    continue
+                if line not in ['\n', '\r\n']:
+                    hgt_act.append(line.strip().split()[0])
+        self.assertListEqual(hgt_exp, hgt_act)
+
+    def test_distance_method_pass_alignments(self):
+        """ Test functionality of distance_method_main() with alignments
+        """
+        output_hgt_fp = join(self.working_dir, "hgt_result.txt")
+        distance_method(self.species_1_fp,
+                        self.target_proteomes_dir,
+                        self.working_dir,
+                        output_hgt_fp,
+                        'diamond',
+                        tabular_alignments_fp=self.blast_fp)
+        hgt_exp = []
+        hgt_act = []
+        with open(output_hgt_fp, 'U') as output_hgt_f:
+            for line in output_hgt_f:
+                if line.startswith('#'):
+                    continue
+                if line not in ['\n', '\r\n']:
+                    hgt_act.append(line.strip().split()[0])
+        self.assertListEqual(hgt_exp, hgt_act)
 
 
 phylip_output = """    4

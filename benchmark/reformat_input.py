@@ -14,7 +14,7 @@ Reformat input files to format accepted by given HGT tool
 import click
 from string import replace
 
-from skbio import TreeNode, Alignment
+from skbio import TreeNode, TabularMSA, Protein
 
 
 def join_trees(gene_tree,
@@ -134,7 +134,10 @@ def remove_branch_lengths(tree):
 
 
 def id_mapper(ids):
-    return [_id.split('/')[0] for _id in ids]
+    mapping = {}
+    for _id in ids:
+        mapping[_id] = _id.split('/')[0]
+    return mapping
 
 
 def reformat_rangerdtl(gene_tree,
@@ -327,9 +330,11 @@ def reformat_treepuzzle(gene_tree,
                species_tree,
                output_tree_fp)
     # trim FASTA sequence labels to exclude '/GENENAME' (if exists)
-    msa_fa = Alignment.read(gene_msa_fa_fp, format='fasta')
-    msa_fa_update_ids, new_to_old_ids = msa_fa.update_ids(func=id_mapper)
-    msa_fa_update_ids.write(output_msa_phy_fp, format='phylip')
+    msa_fa = TabularMSA.read(gene_msa_fa_fp, constructor=Protein)
+    msa_fa.reassign_index(minter='id')
+    mapping = id_mapper(msa_fa.index)
+    msa_fa.reassign_index(mapping=mapping)
+    msa_fa.write(output_msa_phy_fp, format='phylip')
 
 
 @click.command()

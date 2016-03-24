@@ -28,9 +28,9 @@ hgt_parse_strs = {
     'trex': ('hgt : number of HGT(s) found = ',
              'hgt : number of HGT(s) found = ',
              ' '),
-    'jane': ('Host Switch: ',
-             'Host Switch: ',
-             ' '),
+    'jane4': ('Host Switch: ',
+              'Host Switch: ',
+              ' '),
     'riata-hgt': ('There are ',
                   'There are ',
                   ' component(s)')}
