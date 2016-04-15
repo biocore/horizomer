@@ -6,4 +6,5 @@ scipy>0.13.0
 flake8
 blast-plus
 diamond
+scikit-bio=0.4.2dev
 

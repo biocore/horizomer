@@ -12,12 +12,13 @@ from unittest import TestCase, main
 from shutil import rmtree
 from tempfile import mkdtemp
 from os import makedirs
-from os.path import join, exists, dirname, abspath
+from os.path import join, dirname, abspath
 import time
 import copy
 from operator import itemgetter
 
-from skbio import Sequence, SequenceCollection
+from skbio import Sequence
+import skbio.io
 
 from simulate_hgts import (extract_genbank,
                            launch_orthofinder,
@@ -25,8 +26,7 @@ from simulate_hgts import (extract_genbank,
                            simulate_orthologous_rep,
                            simulate_novel_acq,
                            write_results,
-                           simulate_genbank,
-                           simulate_azad_lawrence)
+                           simulate_genbank)
 
 
 class SimulateHGTsTests(TestCase):
@@ -54,32 +54,32 @@ class SimulateHGTsTests(TestCase):
         with open(self.seqs_prot_2_fp, 'w') as tmp:
             tmp.write(seqs_prot_2)
 
-        self.genes_donor = {
-                       'D_1': ['MEKEYSPKKIENYVQEFWKK', 30, 90, '+'],
-                       'D_2': ['MKKNIILNLIGLRCPEPIMI', 140, 200, '+'],
-                       'D_3': ['MNKILVIILFSLVSLTWGTTWIAMKIA', 220, 301, '-']}
+        self.genes_donor = {'D_1': ['MEKEYSPKKIENYVQEFWKK', 30, 90, '+'],
+                            'D_2': ['MKKNIILNLIGLRCPEPIMI', 140, 200, '+'],
+                            'D_3': ['MNKILVIILFSLVSLTWGTTWIAMKIA',
+                                    220, 301, '-']}
         self.seq_donor = Sequence(
-                      "TTACAGAATTTGTAGATCCATGTATTTTTGATGGAGAAGGAGTACAGCCCCAA"
-                      "GAAGATCGAGAACTACGTGCAGGAGTTCTGGAAGAAGTTTATATATCTTTTTT"
-                      "TATTAATAATTAATATAAAAAAATTTTCTATATTATGAAGAAGAACATCATCC"
-                      "TGAACCTGATCGGCCTGAGGTGCCCCGAGCCCATCATGATCCGTAGTCGTGAT"
-                      "GCTGATGTATGAACAAGATCCTGGTGATCATCCTGTTCAGCCTGGTGAGCCTG"
-                      "ACCTGGGGCACCACCTGGATCGCCATGAAGATCGCCTGTATATACCAGCAATT"
-                      "TCCCCAATTTTGCTTTTAAAATTTGAAATTGATTTTTTTATTTTAGAAAACGT"
-                      "TGGTTTTTGACCAGTAATATATTTTATTGA")
-        self.genes_recip = {
-                       'R_1': ['MNLEYNPKKIESFVQQYWRN', 45, 104, '+'],
-                       'R_2': ['MTELITLNLLGLRCPEPLMV', 120, 179, '+'],
-                       'R_3': ['MWGTTWIAMKIVITTIPPIFATGLRFL', 240, 320, '+']}
+            "TTACAGAATTTGTAGATCCATGTATTTTTGATGGAGAAGGAGTACAGCCCCAA"
+            "GAAGATCGAGAACTACGTGCAGGAGTTCTGGAAGAAGTTTATATATCTTTTTT"
+            "TATTAATAATTAATATAAAAAAATTTTCTATATTATGAAGAAGAACATCATCC"
+            "TGAACCTGATCGGCCTGAGGTGCCCCGAGCCCATCATGATCCGTAGTCGTGAT"
+            "GCTGATGTATGAACAAGATCCTGGTGATCATCCTGTTCAGCCTGGTGAGCCTG"
+            "ACCTGGGGCACCACCTGGATCGCCATGAAGATCGCCTGTATATACCAGCAATT"
+            "TCCCCAATTTTGCTTTTAAAATTTGAAATTGATTTTTTTATTTTAGAAAACGT"
+            "TGGTTTTTGACCAGTAATATATTTTATTGA")
+        self.genes_recip = {'R_1': ['MNLEYNPKKIESFVQQYWRN', 45, 104, '+'],
+                            'R_2': ['MTELITLNLLGLRCPEPLMV', 120, 179, '+'],
+                            'R_3': ['MWGTTWIAMKIVITTIPPIFATGLRFL',
+                                    240, 320, '+']}
         self.seq_recip = Sequence(
-                      "AATTAGCCTATTAAATTTATTAATTTTTATATTGCTTAATATATAATGAATTT"
-                      "GGAATATAATCCAAAAAAAATTGAATCTTTTGTTCAACAATATTGGAGAAATT"
-                      "TAATATTAATTTGAATGACTGAATTGATTACTTTGAATTTGTTGGGTTTGAGA"
-                      "TGTCCAGAACCATTGATGGTTTTTTTTTACTAATTTTTATTATTAACAAAAAA"
-                      "TTTAAAGATATTTTTAAAAAATTCAATAATGTGGGGTACTACTTGGATTGCTA"
-                      "TGAAAATTGTTATTACTACTATTCCACCAATTTTTGCTACTGGTTTGAGATTT"
-                      "TTGATTTTAGACTGGTATTTCAAGAACGATTACTTTTAAACTGGCGTTTAAAT"
-                      "ATCAACATCTCCCAGCTATCCTACACAAAAA")
+            "AATTAGCCTATTAAATTTATTAATTTTTATATTGCTTAATATATAATGAATTT"
+            "GGAATATAATCCAAAAAAAATTGAATCTTTTGTTCAACAATATTGGAGAAATT"
+            "TAATATTAATTTGAATGACTGAATTGATTACTTTGAATTTGTTGGGTTTGAGA"
+            "TGTCCAGAACCATTGATGGTTTTTTTTTACTAATTTTTATTATTAACAAAAAA"
+            "TTTAAAGATATTTTTAAAAAATTCAATAATGTGGGGTACTACTTGGATTGCTA"
+            "TGAAAATTGTTATTACTACTATTCCACCAATTTTTGCTACTGGTTTGAGATTT"
+            "TTGATTTTAGACTGGTATTTCAAGAACGATTACTTTTAAACTGGCGTTTAAAT"
+            "ATCAACATCTCCCAGCTATCCTACACAAAAA")
 
     def tearDown(self):
         rmtree(self.working_dir)
@@ -89,42 +89,42 @@ class SimulateHGTsTests(TestCase):
         """
         seq, genes = extract_genbank(
             join(self.root, "genbank_sample_record.gbk"))
-        genes_exp = {'AAA98665.1': ['SSIYNGISTSGLDLNNGTIADMRQLGIVESYKLKR'
-                                    'AVVSSASEAAEVLLRVDNIIRARPRTANRQHM', 0,
-                                    205, '+'],
-                     'AAA98667.1': ['MNRWVEKWLRVYLKCYINLILFYRNVYPPQSFDYT'
-                                    'TYQSFNLPQFVPINRHPALIDYIEELILDVLSKLT'
-                                    'HVYRFSICIINKKNDLCIEKYVLDFSELQHVDKDD'
-                                    'QIITETEVFDEFRSSLNSLIMHLEKLPKVNDDTIT'
-                                    'FEAVINAIELELGHKLDRNRRVDSLEEKAEIERDS'
-                                    'NWVKCQEDENLPDNNGFQPPKIKLTSLVGSDVGPL'
-                                    'IIHQFSEKLISGDDKILNGVYSQYEEGESIFGSLF',
-                                    3299, 4036, '-'],
-                     'AAA98666.1': ['MTQLQISLLLTATISLLHLVVATPYEAYPIGKQYP'
-                                    'PVARVNESFTFQISNDTYKSSVDKTAQITYNCFDL'
-                                    'PSWLSFDSSSRTFSGEPSSDLLSDANTTLYFNVIL'
-                                    'EGTDSADSTSLNNTYQFVVTNRPSISLSSDFNLLA'
-                                    'LLKNYGYTNGKNALKLDPNEVFNVTFDRSMFTNEE'
-                                    'SIVSYYGRSQLYNAPLPNWLFFDSGELKFTGTAPV'
-                                    'INSAIAPETSYSFVIIATDIEGFSAVEVEFELVIG'
-                                    'AHQLTTSIQNSLIINVTDTGNVSYDLPLNYVYLDD'
-                                    'DPISSDKLGSINLLDAPDWVALDNATISGSVPDEL'
-                                    'LGKNSNPANFSVSIYDTYGDVIYFNFEVVSTTDLF'
-                                    'AISSLPNINATRGEWFSYYFLPSQFTDYVNTNVSL'
-                                    'EFTNSSQDHDWVKFQSSNLTLAGEVPKNFDKLSLG'
-                                    'LKANQGSQSQELYFNIIGMDSKITHSNHSANATST'
-                                    'RSSHHSTSTSSYTSSTYTAKISSTSAAATSSAPAA'
-                                    'LPAANKTSSHNKKAVAIACGVAIPLGVILVALICF'
-                                    'LIFWRRRRENPDDENLPHAISGPDLNNPANKPNQE'
-                                    'NATPLNNPFDDDASSYDDTSIARRLAALNTLKLDN'
-                                    'HSATESDISSVDEKRDSLSGMNTYNDQFQSQSKEE'
-                                    'LLAKPPVQPPESPFFDPQNRSSSVYMDSEPAVNKS'
-                                    'WRYTGNLSPVSDIVRDSYGSQKTVDTEKLFDLEAP'
-                                    'EKEKRTSRDVTMSSLDPWNSNISPSPVRKSVTPSP'
-                                    'YNVTKHRNRHLQNIQDSQSGKNGITPTTMSTSSSD'
-                                    'DFVPVKDGENFCWVHSMEPDRRPSKKRLVDFSNKS'
-                                    'NVNVGQVKDIHGRIPEML',
-                                    686, 3157, '+']}
+        genes_exp = {u'AAA98665.1': [u'SSIYNGISTSGLDLNNGTIADMRQLGIVESYKLKR'
+                                     'AVVSSASEAAEVLLRVDNIIRARPRTANRQHM', 0,
+                                     206, '+'],
+                     u'AAA98667.1': [u'MNRWVEKWLRVYLKCYINLILFYRNVYPPQSFDYT'
+                                     'TYQSFNLPQFVPINRHPALIDYIEELILDVLSKLT'
+                                     'HVYRFSICIINKKNDLCIEKYVLDFSELQHVDKDD'
+                                     'QIITETEVFDEFRSSLNSLIMHLEKLPKVNDDTIT'
+                                     'FEAVINAIELELGHKLDRNRRVDSLEEKAEIERDS'
+                                     'NWVKCQEDENLPDNNGFQPPKIKLTSLVGSDVGPL'
+                                     'IIHQFSEKLISGDDKILNGVYSQYEEGESIFGSLF',
+                                     3299, 4037, '-'],
+                     u'AAA98666.1': [u'MTQLQISLLLTATISLLHLVVATPYEAYPIGKQYP'
+                                     'PVARVNESFTFQISNDTYKSSVDKTAQITYNCFDL'
+                                     'PSWLSFDSSSRTFSGEPSSDLLSDANTTLYFNVIL'
+                                     'EGTDSADSTSLNNTYQFVVTNRPSISLSSDFNLLA'
+                                     'LLKNYGYTNGKNALKLDPNEVFNVTFDRSMFTNEE'
+                                     'SIVSYYGRSQLYNAPLPNWLFFDSGELKFTGTAPV'
+                                     'INSAIAPETSYSFVIIATDIEGFSAVEVEFELVIG'
+                                     'AHQLTTSIQNSLIINVTDTGNVSYDLPLNYVYLDD'
+                                     'DPISSDKLGSINLLDAPDWVALDNATISGSVPDEL'
+                                     'LGKNSNPANFSVSIYDTYGDVIYFNFEVVSTTDLF'
+                                     'AISSLPNINATRGEWFSYYFLPSQFTDYVNTNVSL'
+                                     'EFTNSSQDHDWVKFQSSNLTLAGEVPKNFDKLSLG'
+                                     'LKANQGSQSQELYFNIIGMDSKITHSNHSANATST'
+                                     'RSSHHSTSTSSYTSSTYTAKISSTSAAATSSAPAA'
+                                     'LPAANKTSSHNKKAVAIACGVAIPLGVILVALICF'
+                                     'LIFWRRRRENPDDENLPHAISGPDLNNPANKPNQE'
+                                     'NATPLNNPFDDDASSYDDTSIARRLAALNTLKLDN'
+                                     'HSATESDISSVDEKRDSLSGMNTYNDQFQSQSKEE'
+                                     'LLAKPPVQPPESPFFDPQNRSSSVYMDSEPAVNKS'
+                                     'WRYTGNLSPVSDIVRDSYGSQKTVDTEKLFDLEAP'
+                                     'EKEKRTSRDVTMSSLDPWNSNISPSPVRKSVTPSP'
+                                     'YNVTKHRNRHLQNIQDSQSGKNGITPTTMSTSSSD'
+                                     'DFVPVKDGENFCWVHSMEPDRRPSKKRLVDFSNKS'
+                                     'NVNVGQVKDIHGRIPEML',
+                                     686, 3158, '+']}
         self.assertEqual(str(seq), sample_seq)
         self.assertDictEqual(genes, genes_exp)
 
@@ -211,36 +211,32 @@ class SimulateHGTsTests(TestCase):
         for hgt in hgts_sim:
             recip_label_replaced = hgt[4]
             self.assertTrue(recip_label_replaced not in self.genes_recip)
-            hgt_gene = hgt[5]
-            self.assertTrue(hgt_gene in self.genes_recip)
+            hgt_g = hgt[5]
+            self.assertTrue(hgt_g in self.genes_recip)
             donor_label = hgt[1]
             # protein sequences are equal for donor and recipient gene
             self.assertEqual(genes_donor_orig[donor_label][0],
-                             self.genes_recip[hgt_gene][0])
+                             self.genes_recip[hgt_g][0])
             recip_start = hgt[6]
             recip_end = hgt[7]
             # length of gene (nucleotide format) is consistent with the
             # gene start and end positions on the recipient genome
-            self.assertEqual(len(self.genes_recip[hgt_gene][0])*3,
+            self.assertEqual(len(self.genes_recip[hgt_g][0])*3,
                              int(recip_end)-int(recip_start))
             # genome subsequence representing HGT in recipient genome is
             # equal to the nucleotide format of the donor gene
             self.assertEqual(
                 str(seq_recip[
-                    self.genes_recip[hgt_gene][1]:self.genes_recip[hgt_gene][2]]),
-                    translated_nucl[donor_label])
+                    self.genes_recip[hgt_g][1]:self.genes_recip[hgt_g][2]]),
+                translated_nucl[donor_label])
 
     def test_simulate_novel_acq(self):
         """Test simulating novel gene acquisition HGTs.
         """
-               # genes_recip and seq_recip are modified within function
+        # genes_recip and seq_recip are modified within function
         # simulate_orthologous_rep, store their original copies for
         # downstream verification
         genes_donor_orig = copy.deepcopy(self.genes_donor)
-        genes_recip_orig = copy.deepcopy(self.genes_recip)
-        sequence_ids = {'0_0': 'D_1', '0_1': 'D_2', '0_2': 'D_3',
-                        '1_0': 'R_1', '1_1': 'R_2', '1_2': 'R_3'}
-        orthologous_groups = [['0_0', '1_0'], ['0_1', '1_1'], ['0_2', '1_2']]
         orthologous_rep_prob = 0.0
         percentage_hgts = 0.5
         log_fp = join(self.working_dir, "log.txt")
@@ -276,26 +272,25 @@ class SimulateHGTsTests(TestCase):
              else (self.genes_recip[g][1], self.genes_recip[g][2], False)
              for g in self.genes_recip]
         # verify HGTs
-        hgt_genes = {}
         for hgt in hgts_sim:
             donor_label = hgt[1]
-            hgt_label = hgt[4]
+            hgt_l = hgt[4]
             recip_start = int(hgt[5])
             recip_end = int(hgt[6])
-            self.assertTrue(hgt_label in self.genes_recip)
-            self.assertEqual(recip_start, self.genes_recip[hgt_label][1])
-            self.assertEqual(recip_end, self.genes_recip[hgt_label][2])
-            self.assertEqual(hgt[7], self.genes_recip[hgt_label][3])
+            self.assertTrue(hgt_l in self.genes_recip)
+            self.assertEqual(recip_start, self.genes_recip[hgt_l][1])
+            self.assertEqual(recip_end, self.genes_recip[hgt_l][2])
+            self.assertEqual(hgt[7], self.genes_recip[hgt_l][3])
             # length of gene (nucleotide format) is consistent with the
             # gene start and end positions on the recipient genome
-            self.assertEqual(len(self.genes_recip[hgt_label][0])*3,
+            self.assertEqual(len(self.genes_recip[hgt_l][0])*3,
                              int(recip_end)-int(recip_start))
             # genome subsequence representing HGT in recipient genome is
             # equal to the nucleotide format of the donor gene
             self.assertEqual(
                 str(seq_recip[
-                    self.genes_recip[hgt_label][1]:self.genes_recip[hgt_label][2]]),
-                    translated_nucl[donor_label])
+                    self.genes_recip[hgt_l][1]:self.genes_recip[hgt_l][2]]),
+                translated_nucl[donor_label])
         gene_positions_s = sorted(gene_positions, key=itemgetter(0))
         # verify none of the original genes overlap with HGTs
         for x in xrange(0, len(gene_positions_s)):
@@ -328,18 +323,28 @@ class SimulateHGTsTests(TestCase):
         recip_nucl = Sequence.read(rcp_g_nucl_fp, format='fasta')
         # test for correctness of recipient nucleotide genome sequence
         self.assertEqual(str(recip_nucl), str(self.seq_recip))
-        donor_aa = SequenceCollection.read(dnr_g_aa_fp, format='fasta')
         donor_aa_dict = {}
-        for seq in donor_aa:
+        for seq in skbio.io.read(dnr_g_aa_fp, format='fasta'):
             donor_aa_dict[seq.metadata['id']] = seq
         # test for correctness of donor protein coding sequences
-        self.assertItemsEqual(donor_aa_dict, self.genes_donor)
-        recip_aa = SequenceCollection.read(rcp_g_aa_fp, format='fasta')
         recip_aa_dict = {}
-        for seq in recip_aa:
+        self.assertItemsEqual(donor_aa_dict, self.genes_donor)
+        for seq in skbio.io.read(rcp_g_aa_fp, format='fasta'):
             recip_aa_dict[seq.metadata['id']] = seq
         # test for correctness of recipient protein coding sequences
         self.assertItemsEqual(recip_aa_dict, self.genes_recip)
+
+    def load_seqs(self, file_fp):
+        """Load FASTA file into dictionary
+        """
+        gene_dict = {}
+        for seq in skbio.io.read(file_fp, format='fasta'):
+            seq_id = seq.metadata['id']
+            if seq_id not in gene_dict:
+                gene_dict[seq_id] = seq
+            else:
+                raise ValueError("Duplicate gene %s" % seq_id)
+        return gene_dict
 
     def test_simulate_genbank(self):
         """Test simulating HGTs using input donor and recipient GenBank files.
@@ -349,7 +354,7 @@ class SimulateHGTsTests(TestCase):
         recip_genbank_fp = join(self.root, "genbank",
                                 "GCF_000441575.1_ASM44157v1_genomic.gbff")
         output_dir = self.simulated_dir
-        percentage_hgts = 0.2
+        percentage_hgts = 0.05
         orthologous_rep_prob = 0.5
         log_fp = join(self.working_dir, "log.txt")
         threads = 1
@@ -362,34 +367,46 @@ class SimulateHGTsTests(TestCase):
                                  orthologous_rep_prob,
                                  log_f,
                                  threads)
+        # load all simulated HGT information from log file
+        hgts_sim_ortho = {}
+        hgts_sim_replc = {}
         with open(log_fp, 'U') as log_f:
-            hgts_sim = [line.strip().split()[4] if line[0]=='n' else
-                        line.strip().split()[5]
-                        for line in log_f
-                        if not line.startswith('#')]
-        donor_aa = SequenceCollection.read(dnr_aa_fp, format='fasta')
-        rcp_aa = SequenceCollection.read(rcp_aa_fp, format='fasta')
-        rcp_hgts = [_id for _id in rcp_aa.ids() if 'hgt' in _id]
-        self.assertItemsEqual(rcp_hgts, hgts_sim)
+            for line in log_f:
+                if not line.startswith('#'):
+                    line = line.strip().split()
+                    hgt_type = line[0]
+                    donor = line[1]
+                    if hgt_type == 'o':
+                        hgts_sim = hgts_sim_ortho
+                    elif hgt_type == 'n':
+                        hgts_sim = hgts_sim_replc
+                    else:
+                        raise ValueError(
+                            "HGT type %s not supported" % hgt_type)
+                    if donor not in hgts_sim:
+                            hgts_sim[donor] = line[2:]
+                    else:
+                        raise ValueError(
+                            "Duplicate gene donor %s" % donor)
+        # load sequences from donor proteome
+        dnr_prot_genes = self.load_seqs(dnr_aa_fp)
+        # load sequences from simulated recipient proteome
+        rcp_prot_hgts = self.load_seqs(rcp_aa_fp)
+        # check HGTs in recipient proteome match sequences from the donor,
+        # and if HGT was by orthologous replacement, the replaced gene does
+        # not exist in recipient proteome
+        num_simulated_hgts = 0
+        for seq_id_recip in rcp_prot_hgts:
+            if "hgt" in seq_id_recip:
+                num_simulated_hgts += 1
+                seq_id_donor = seq_id_recip.split('_hgt_')[0]
+                self.assertEqual(
+                    str(rcp_prot_hgts[seq_id_recip]),
+                    str(dnr_prot_genes[seq_id_donor]))
+                if "hgt_o" in seq_id_recip:
+                    replaced_gene = hgts_sim_ortho[seq_id_donor][2]
+                    self.assertTrue(replaced_gene not in rcp_prot_hgts)
 
-    def test_simulate_azad_lawrence(test):
-        """Test simulating HGTs using artificial genomes by Azad et al., 2005.
-        """
-        donor_artificial_fp = join(self.root, "genbank",
-                                "GCF_000010365.1_ASM1036v1_genomic.gbff")
-        donor_artificial_annotation_fp = join(self.root, "genbank",
-                                "GCF_000441575.1_ASM44157v1_genomic.gbff")
-
-simulate_azad_lawrence(donor_artificial_fp,
-                           donor_artificial_annotation_fp,
-                           recip_artificial_fp,
-                           recip_artificial_annotation_fp,
-                           output_dir,
-                           percentage_hgts,
-                           orthologous_rep_prob,
-                           log_f,
-                           threads,
-                           verbose=False)
 
 sample_seq = """GATCCTCCATATACAACGGTATCTCCACCTCAGGTTTAGATCTCAACAACGGAACCATTGC\
 CGACATGAGACAGTTAGGTATCGTCGAGAGTTACAAGCTAAAACGAGCAGTAGTCAGCTCTGCATCTGAAGCCGCTG\
@@ -506,6 +523,3 @@ VFIIFPIVSLFLDRYMYMTKVSNFEYFFIMFLLFSVIITLFTSKKNICLIKKITKQRFNRKVA
 
 if __name__ == '__main__':
     main()
-
-
-
