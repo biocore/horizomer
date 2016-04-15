@@ -44,11 +44,10 @@ setup(name='wgshgt',
       package_data={},
       scripts=glob('benchmark/*py') + glob('distance-method/*py') +
       glob('benchmark/tests/*py'),
-      extras_require={'test': ["nose >= 0.10.1", "pep8"],
-                      'doc': ["Sphinx >= 1.2.2", "sphinx-bootstrap-theme"]},
-      install_requires=['click>=6.0',
-                        'numpy >= 1.7',
-                        'scipy > 0.13.0'],
+      extras_require={'test': ["nose", "pep8", "flake8"],
+                      'doc': ["Sphinx == 1.3.3"]},
+      install_requires=['click >= 6',
+                        'scikit-bio >= 0.4.0'],
       classifiers=classifiers
       )
 
