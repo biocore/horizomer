@@ -134,6 +134,7 @@ class SimulateHGTsTests(TestCase):
         print("self.proteomes_dir = %s\n" % self.proteomes_dir)
         print("dir contents = %s\n" % listdir(self.proteomes_dir))
         launch_orthofinder(self.proteomes_dir, 1, verbose=True)
+        print("dir contents = %s\n" % listdir(self.proteomes_dir))
         date = time.strftime("%c").split()
         results_dir = join(
             self.proteomes_dir, "Results_%s%s" % (date[1], date[2]))
