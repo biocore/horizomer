@@ -48,7 +48,10 @@ setup(name='wgshgt',
       extras_require={'test': ["nose", "pep8", "flake8"],
                       'doc': ["Sphinx == 1.3.3"]},
       install_requires=['click >= 6',
-                        'scikit-bio >= 0.4.0'],
+                        'scikit-bio >= 0.4.0',
+                        'OrthoFinder == 0.4.0-dev'],
+      dependency_links=[('https://github.com/ekopylova/OrthoFinder/archive/'
+                         'python3.zip#egg=OrthoFinder-0.4.0-dev')],
       classifiers=classifiers
       )
 

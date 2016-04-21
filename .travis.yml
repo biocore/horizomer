@@ -13,6 +13,11 @@ before_install:
   - conda config --add channels https://conda.anaconda.org/mortonjt
   - conda update -q conda
   - conda info -a
+  # Installing OrthoFinder
+  - wget https://github.com/ekopylova/OrthoFinder/archive/0.4.python3.tar.gz
+  - tar zxvf 0.4.python3.tar.gz
+  - chmod 744 OrthoFinder-0.4.python3/orthofinder.py
+  - export PATH=$PWD/OrthoFinder-0.4.python3/orthofinder.py:$PATH
   # Installing RANGER
   - wget http://compbio.mit.edu/ranger-dtl/ranger-dtl-linux.tar.gz
   - tar zxvf ranger-dtl-linux.tar.gz

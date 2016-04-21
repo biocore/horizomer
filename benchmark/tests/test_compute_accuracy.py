@@ -52,10 +52,10 @@ class ComputeAccuracyTests(TestCase):
                      ('2', '2286', '1', '4128'), ('3', '1481', '1', '4129'),
                      ('10', '4027', '2', '4160'), ('9', '4001', '10', '4161'),
                      ('3', '2409', '1', '4162')]
-        with open(self.alf_log_fp, 'U') as alf_f:
+        with open(self.alf_log_fp, 'r') as alf_f:
             observed_transfers = parse_expected_transfers(
                 ground_truth_f=alf_f)
-        self.assertItemsEqual(observed_transfers, exp_trans)
+        self.assertListEqual(observed_transfers, exp_trans)
 
     def test_parse_observed_transfers(self):
         """ Test functionality of parse_observed_transfers()
@@ -65,7 +65,7 @@ class ComputeAccuracyTests(TestCase):
                     'RIATA-HGT': ['1000', '1105'],
                     'RANGER-DTL': ['1000', '1105'],
                     'T-REX': ['1000', '1105']}
-        with open(self.hgt_sum_fp, 'U') as hgt_f:
+        with open(self.hgt_sum_fp, 'r') as hgt_f:
             obs_hgts = parse_observed_transfers(observed_hgts_f=hgt_f,
                                                 pvalue_cutoff=0.05)
         self.assertDictEqual(obs_hgts, exp_hgts)
