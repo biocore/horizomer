@@ -13,6 +13,16 @@ before_install:
   - conda config --add channels https://conda.anaconda.org/mortonjt
   - conda update -q conda
   - conda info -a
+  # Install MCL 
+  - wget http://micans.org/mcl/src/mcl-14-137.tar.gz
+  - tar zxvf mcl-14-137.tar.gz
+  - mkdir mcl-14-137-install
+  - export MCL_INSTALL_DIR=$PWD/mcl-14-137-install
+  - export PATH=$MCL_INSTALL_DIR:$PATH
+  - cd mcl-14-137
+  - ./configure --prefix=$MCL_INSTALL_DIR
+  - make
+  - make install
   # Installing RANGER
   - wget http://compbio.mit.edu/ranger-dtl/ranger-dtl-linux.tar.gz
   - tar zxvf ranger-dtl-linux.tar.gz
