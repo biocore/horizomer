@@ -141,6 +141,7 @@ class SimulateHGTsTests(TestCase):
         orthogroups_exp = [['YP_002468181.1', 'YP_004590122.1'],
                            ['YP_004590123.1', 'YP_002468184.1'],
                            ['YP_002468032.1', 'YP_004590028.1']]
+        print("dir contents results_dir = %s\n" % listdir(results_dir))
         orthogroups_act = []
         with open(join(results_dir, "OrthologousGroups.txt"), 'r') as o:
             orthogroups_act = [line.split()[1:] for line in o]
