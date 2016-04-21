@@ -11,7 +11,7 @@
 from unittest import TestCase, main
 from shutil import rmtree
 from tempfile import mkdtemp
-from os import makedirs
+from os import makedirs, listdir
 from os.path import join, dirname, abspath
 import time
 import copy
@@ -131,6 +131,8 @@ class SimulateHGTsTests(TestCase):
     def test_launch_orthofinder(self):
         """Test running OrthoFinder.
         """
+        print("self.proteomes_dir = %s\n" % self.proteomes_dir)
+        print("dir contents = %s\n" % listdir(self.proteomes_dir))
         launch_orthofinder(self.proteomes_dir, 1)
         date = time.strftime("%c").split()
         results_dir = join(
