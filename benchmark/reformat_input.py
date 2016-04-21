@@ -12,9 +12,9 @@ Reformat input files to format accepted by given HGT tool
 """
 
 import click
-from string import replace
 
 from skbio import TreeNode, TabularMSA, Protein
+from collections import OrderedDict
 
 
 def join_trees(gene_tree,
@@ -78,7 +78,7 @@ def species_gene_mapping(gene_tree,
 
     Returns
     -------
-    mapping_leaves: dictionary
+    mapping_leaves_t: list of tuples
         Mapping between the species tree leaves and the gene tree leaves;
         species tips are the keys and gene tips are the values
 
@@ -113,8 +113,8 @@ def species_gene_mapping(gene_tree,
         else:
             raise ValueError(
                 "Species %s does not exist in the species tree" % species)
-
-    return mapping_leaves
+    return OrderedDict(sorted(mapping_leaves.items(),
+                       key=lambda x:x[1], reverse=True))
 
 
 def remove_branch_lengths(tree):
@@ -237,8 +237,8 @@ END;
 """
     # trim gene tree leaves to exclude '_GENENAME' (if exists)
     trim_gene_tree_leaves(gene_tree)
-    p = replace(nexus_file, 'SPECIES_TREE', str(species_tree)[:-1])
-    p = replace(p, 'GENE_TREE', str(gene_tree)[:-1])
+    p = nexus_file.replace('SPECIES_TREE', str(species_tree)[:-1])
+    p = p.replace('GENE_TREE', str(gene_tree)[:-1])
     with open(output_tree_fp, 'w') as output_tree_f:
         output_tree_f.write(p)
 
@@ -285,10 +285,10 @@ endblock;
     mapping_str = ""
     for species in mapping_dict:
         for gene in mapping_dict[species]:
-            mapping_str = "%s%s:%s, " % (mapping_str, gene, species)
-    p = replace(nexus_file, 'SPECIES_TREE', str(species_tree))
-    p = replace(p, 'GENE_TREE', str(gene_tree))
-    p = replace(p, 'MAPPING', mapping_str[:-2])
+            mapping_str = "%s%s:%s, " % (mapping_str, gene, species)           
+    p = nexus_file.replace('SPECIES_TREE', str(species_tree))
+    p = p.replace('GENE_TREE', str(gene_tree))
+    p = p.replace('MAPPING', mapping_str[:-2])
     with open(output_tree_fp, 'w') as output_tree_f:
         output_tree_f.write(p)
 

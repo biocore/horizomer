@@ -253,13 +253,18 @@ class DistanceMethodTests(TestCase):
         """
         species_set_dict = {'IIIIIIII': 100, 'IIOOOIII': 50, 'IIIIIII0': 10,
                             'OIOIIIII': 5, 'IIIOOIII': 8, 'OOOOOIOO': 12}
-        gene_clusters_dict_exp = {'IIIIIIII': ['IIIIIIII', 'IIIIIII0',
-                                               'IIIOOIII', 'OIOIIIII'],
-                                  'IIOOOIII': ['IIOOOIII', 'OOOOOIOO']}
-        gene_clusters_dict = cluster_distances(
+        gene_clusters_list_exp = [('IIIIIIII', ['IIIIIIII', 'IIIIIII0',
+                                               'IIIOOIII', 'OIOIIIII']),
+                                  ('IIOOOIII', ['IIOOOIII', 'OOOOOIOO'])]
+        gene_clusters_list_act = cluster_distances(
             species_set_dict=species_set_dict, species_set_size=30,
             hamming_distance=2)
-        self.assertDictEqual(gene_clusters_dict, gene_clusters_dict_exp)
+        self.assertTrue(len(gene_clusters_list_exp),
+                        len(gene_clusters_list_act))
+        for core_cluster_exp in gene_clusters_list_exp:
+            self.assertTrue(core_cluster_exp in gene_clusters_list_act)
+        for core_cluster_act in gene_clusters_list_act:
+            self.assertTrue(core_cluster_act in gene_clusters_list_exp)
 
     def test_detect_outlier_genes(self):
         """ Test functionality of detect_outlier_genes()
@@ -473,7 +478,7 @@ class DistanceMethodTests(TestCase):
                         'diamond')
         hgt_exp = []
         hgt_act = []
-        with open(output_hgt_fp, 'U') as output_hgt_f:
+        with open(output_hgt_fp, 'r') as output_hgt_f:
             for line in output_hgt_f:
                 if line.startswith('#'):
                     continue
@@ -493,7 +498,7 @@ class DistanceMethodTests(TestCase):
                         tabular_alignments_fp=self.blast_fp)
         hgt_exp = []
         hgt_act = []
-        with open(output_hgt_fp, 'U') as output_hgt_f:
+        with open(output_hgt_fp, 'r') as output_hgt_f:
             for line in output_hgt_f:
                 if line.startswith('#'):
                     continue

@@ -50,7 +50,7 @@ import traceback
 import shlex
 from os.path import join, basename, isdir, exists, getsize
 from os import mkdir
-from itertools import imap
+
 from glob import glob
 
 import skbio.io
@@ -68,7 +68,7 @@ class Command(object):
     output, error = '', ''
 
     def __init__(self, command):
-        if isinstance(command, basestring):
+        if isinstance(command, str):
             command = shlex.split(command)
         self.command = command
 
@@ -108,7 +108,7 @@ def hamming(str1, str2):
         string
     """
     assert len(str1) == len(str2)
-    return sum(imap(operator.ne, str1, str2))
+    return sum(map(operator.ne, str1, str2))
 
 
 def preprocess_data(working_dir,
@@ -216,7 +216,7 @@ def launch_diamond(query_proteome_fp,
     proc.wait()
     stdout, stderr = proc.communicate()
     if (stderr and debug):
-        print "[DEBUG] %s\n" % stderr
+        print("[DEBUG] %s\n" % stderr)
 
     # launch DIAMOND
     out_file_fp = join(
@@ -237,7 +237,7 @@ def launch_diamond(query_proteome_fp,
     proc.wait()
     stdout, stderr = proc.communicate()
     if (stderr and debug):
-        print "[DEBUG] %s\n" % stderr
+        print("[DEBUG] %s\n" % stderr)
 
     # convert output to tab delimited file
     out_file_conv_fp = join(
@@ -254,7 +254,7 @@ def launch_diamond(query_proteome_fp,
     proc.wait()
     stdout, stderr = proc.communicate()
     if (stderr and debug):
-        print "[DEBUG] %s\n" % stderr
+        print("[DEBUG] %s\n" % stderr)
 
     return out_file_conv_fp
 
@@ -301,7 +301,7 @@ def launch_blast(query_proteome_fp,
     proc.wait()
     stdout, stderr = proc.communicate()
     if (stderr and debug):
-        print "[DEBUG] %s\n" % stderr
+        print("[DEBUG] %s\n" % stderr)
 
     # launch blast
     out_file_fp = join(
@@ -321,7 +321,7 @@ def launch_blast(query_proteome_fp,
     proc.wait()
     stdout, stderr = proc.communicate()
     if (stderr and debug):
-        print "[DEBUG] %s\n" % stderr
+        print("[DEBUG] %s\n" % stderr)
 
     return out_file_fp
 
@@ -351,7 +351,7 @@ def parse_blast(alignments_fp,
         sequences to which the query mapped with E-value cutoff score.
     """
     # read blastp results
-    with open(alignments_fp, 'U') as alignments_f:
+    with open(alignments_fp, 'r') as alignments_f:
         for line in alignments_f:
             if debug:
                 sys.stdout.write("[DEBUG] %s" % line)
@@ -401,7 +401,7 @@ def launch_msa(fasta_in_fp,
         for ref in hits[query]:
             in_f.write(">%s\n%s\n" % (gene_map[ref], ref_db[ref]))
 
-    with open(clustal_command_fp, 'U') as clustal_command_f:
+    with open(clustal_command_fp, 'r') as clustal_command_f:
         clustalw_command = Command("clustalw")
         status, output, error = clustalw_command.run(
             timeout=timeout,
@@ -428,7 +428,7 @@ def compute_distances(phylip_command_fp,
     -----
         Use PHYLIP's protdist function.
     """
-    with open(phylip_command_fp, 'U') as phylip_command_f:
+    with open(phylip_command_fp, 'r') as phylip_command_f:
         proc = subprocess.Popen("protdist",
                                 stdin=phylip_command_f,
                                 stdout=subprocess.PIPE,
@@ -437,7 +437,7 @@ def compute_distances(phylip_command_fp,
         proc.wait()
         stdout, stderr = proc.communicate()
         if stderr and warnings:
-            print stderr
+            print(stderr)
 
 
 def normalize_distances(phylip_fp,
@@ -517,7 +517,7 @@ def normalize_distances(phylip_fp,
     # scan through file and remove species that exist
     # from missing_species list
     if exists(phylip_fp) and getsize(phylip_fp) > 0:
-        with open(phylip_fp, 'U') as phylip_f:
+        with open(phylip_fp, 'r') as phylip_f:
             next(phylip_f)
             for line in phylip_f:
                 if not line.startswith(' '):
@@ -532,7 +532,7 @@ def normalize_distances(phylip_fp,
     p = numpy.empty(shape=(num_species, num_species))
     p.fill(numpy.nan)
     idx = 0
-    with open(phylip_fp, 'U') as phylip_f:
+    with open(phylip_fp, 'r') as phylip_f:
         alignment_list = []
         # skip first line containing number of lines in
         # the file
@@ -606,25 +606,23 @@ def cluster_distances(species_set_dict,
     Parameters
     ----------
     species_set_dict: dictionary
-      dictionary containing the binary indicator vectors as
-      keys and the number of genes with identical species
-      set represented by the binary vectors as values
+        dictionary containing the binary indicator vectors as
+        keys and the number of genes with identical species
+        set represented by the binary vectors as values
     species_set_size: integer
-      threshold number of genes in a species set to
-      allow it to form a core cluster
+        threshold number of genes in a species set to
+        allow it to form a core cluster
     hamming_distance: integer
-      maximum number of mismatches between two binary
-      indicator vectors (ex. IIII and I0II) for the
-      genes in a candidate vector to be merged into the
-      core cluster
+        maximum number of mismatches between two binary
+        indicator vectors (ex. IIII and I0II) for the
+        genes in a candidate vector to be merged into the
+        core cluster
 
     Returns
     -------
-    gene_clusters_dict: dictionary
-      dictionary containing core species sets as keys
-      and all belonging species sets as values
-      (determined by the Hamming distance clustering
-      algorithm)
+    gene_clusters_list: list of tuples
+        list of tuples containing core species sets and all belonging species
+        sets (determined by the Hamming distance clustering algorithm)
 
     Notes
     -----
@@ -648,49 +646,49 @@ def cluster_distances(species_set_dict,
         the core set threshold was 3, then there would be 1 core species set
         represented by IIIII.
     """
-    sorted_species_set = sorted(species_set_dict.items(),
+    sorted_species_set = sorted(list(species_set_dict.items()),
                                 key=operator.itemgetter(1), reverse=True)
-
     # determine core clusters (initial species sets with more than
     # species_set_size genes)
-    gene_clusters_dict = {}
+    gene_clusters_list = []
     # if the largest species set contains less than threshold
     # (species_set_size) elements, set the only core cluster to the largest
     # species set
     if sorted_species_set[0][1] < species_set_size:
-        gene_clusters_dict[sorted_species_set[0][0]] = []
+        cluster_core = (sorted_species_set[0][0], [])
+        gene_clusters_list = []
     for bitvector in sorted_species_set:
         if bitvector[1] >= species_set_size:
-            gene_clusters_dict[bitvector[0]] = []
-
+            cluster_core = (bitvector[0], [])
+            gene_clusters_list.append(cluster_core)
     # assign species sets with fewer than species_set_size species to core
     # clusters if the Hamming distance between the two bitvectors is less than
     # hamming_distance
     species_set_assigned = []
-    for cluster_core in gene_clusters_dict:
+    for idx, cluster_core in enumerate(gene_clusters_list):
         for bitvector in sorted_species_set:
             bv = bitvector[0]
             if (bv not in species_set_assigned and
-                    hamming(cluster_core, bv) <= hamming_distance):
-                gene_clusters_dict[cluster_core].append(bv)
+                    hamming(cluster_core[0], bv) <= hamming_distance):
+                gene_clusters_list[idx][1].append(bv)
                 species_set_assigned.append(bv)
-
     # assign the remaining species sets to the cluster with the closest core
     # Hamming distance
     for bitvector in sorted_species_set:
         bv = bitvector[0]
         if bv not in species_set_assigned:
-            min_hamming_cluster = ""
-            min_hamming_distance = sys.maxint
+            min_hamming_cluster = -1
+            min_hamming_distance = sys.maxsize
             # find cluster core with smallest Hamming distance to species set
-            for cluster_core in gene_clusters_dict:
-                dist = hamming(cluster_core, bv)
+            for idx, cluster_core in enumerate(gene_clusters_list):
+                dist = hamming(cluster_core[0], bv)
                 if dist < min_hamming_distance:
                     min_hamming_distance = dist
-                    min_hamming_cluster = cluster_core
-            gene_clusters_dict[min_hamming_cluster].append(bv)
+                    min_hamming_cluster = idx
+            if min_hamming_cluster >= 0:
+                gene_clusters_list[min_hamming_cluster][1].append(bv)
 
-    return gene_clusters_dict
+    return gene_clusters_list
 
 
 def detect_outlier_genes(species_set,
@@ -1019,8 +1017,8 @@ def distance_method(query_proteome_fp,
     gene_id = {}
     for i, query in enumerate(hits_min_num_homologs):
         if verbose:
-            print "Computing MSA and distances for gene %s .. (%s/%s)" % (
-                query, i+1, total_genes)
+            print("Computing MSA and distances for gene %s .. (%s/%s)" % (
+                query, i+1, total_genes))
         gene_id[i] = query
         # generate a multiple sequence alignment
         # for each orthologous gene family
@@ -1068,9 +1066,9 @@ def distance_method(query_proteome_fp,
                 total_genes=total_genes,
                 debug=debug)
 
-        if outlier_genes:
-            for gene in outlier_genes:
-                output_hgt_f("%s\n" % gene_id[gene])
+            if outlier_genes:
+                for gene in outlier_genes:
+                    output_hgt_f("%s\n" % gene_id[gene])
 
     # output_full_matrix(outlier_genes, num_species)
 

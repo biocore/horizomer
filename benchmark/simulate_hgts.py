@@ -67,7 +67,7 @@ def extract_genbank(genbank_fp, verbose=False):
     seq = Sequence.read(genbank_fp, format='genbank')
     if verbose:
         sys.stdout.write("\t\tDone.\n")
-    for feature in seq.interval_metadata.features.keys():
+    for feature in list(seq.interval_metadata.features.keys()):
         if feature['type_'] == 'CDS':
             protein_id = feature['protein_id']
             translation = feature['translation']
@@ -86,7 +86,7 @@ def extract_genbank(genbank_fp, verbose=False):
     return seq, genes
 
 
-def launch_orthofinder(proteomes_dir, threads):
+def launch_orthofinder(proteomes_dir, threads, verbose=False):
     """Launch OrthoFinder to report orthologous gene groups for two genomes.
 
     Parameters
@@ -95,7 +95,11 @@ def launch_orthofinder(proteomes_dir, threads):
         directory path storing FASTA coding sequences for complete genomes
     threads: integer
         number of threads to use
+    verbose: boolean
+        if True, run in verbose mode
     """
+    if verbose:
+        sys.stdout.write("\tLaunch OrthoFinder ..\n")
     orthofinder_command = ["orthofinder.py",
                            "-f", proteomes_dir,
                            "-t", str(threads)]
@@ -106,7 +110,9 @@ def launch_orthofinder(proteomes_dir, threads):
     proc.wait()
     stdout, stderr = proc.communicate()
     if stderr:
-        print stderr
+        print (stderr)
+    if verbose:
+        sys.stdout.write("\tDone\n")
 
 
 def parse_orthofinder(results_dir):
@@ -130,9 +136,9 @@ def parse_orthofinder(results_dir):
         glob.glob(
             join(
                 results_dir,
-                "clusters_OrthoFinder_*_id_pairs.txt"))[0], 'U') as id_pairs_f:
+                "clusters_OrthoFinder_*_id_pairs.txt"))[0], 'r') as id_pairs_f:
         # skip header lines
-        for _ in xrange(7):
+        for _ in range(7):
             next(id_pairs_f)
         # parse orthologous family groups
         for line in id_pairs_f:
@@ -140,11 +146,11 @@ def parse_orthofinder(results_dir):
             # include only families with at least 2 orthologs
             if len(line[1:-1]) > 1:
                 orthologous_groups.append(line[1:-1])
-    with open(join(results_dir, "SpeciesIDs.txt"), 'U') as species_ids_f:
+    with open(join(results_dir, "SpeciesIDs.txt"), 'r') as species_ids_f:
         for line in species_ids_f:
             line = line.strip().split()
             species_ids[line[0].split(':')[0]] = line[1]
-    with open(join(results_dir, "SequenceIDs.txt"), 'U') as sequence_ids_f:
+    with open(join(results_dir, "SequenceIDs.txt"), 'r') as sequence_ids_f:
         for line in sequence_ids_f:
             line = line.strip().split()
             sequence_ids[line[0].split(':')[0]] = line[1]
@@ -190,10 +196,10 @@ def simulate_orthologous_rep(genes_donor,
     if num_hgts < 1:
         num_hgts = 1
     num_orthogroups = len(orthologous_groups)
-    idx = random.sample(xrange(0, num_orthogroups), num_hgts)
+    idx = random.sample(list(range(0, num_orthogroups)), num_hgts)
     log_f.write("#type\tdonor\tstart\tend\trecipient\tnew label "
                 "recipient\tstart\tend\tstrand\n")
-    for x in xrange(0, num_hgts):
+    for x in range(0, num_hgts):
         orthogroup = orthologous_groups[idx[x]]
         substitute_genes = ['*', '*']
         # randomly select two orthologous genes from the same family
@@ -299,19 +305,19 @@ def simulate_novel_acq(genes_donor,
     # sort array for gene positions in ascending order
     gene_positions_s = sorted(gene_positions, key=itemgetter(0))
     # select a random list of positions where to insert the new gene
-    idx = random.sample(xrange(0, len(gene_positions_s)-1), num_hgts)
-    gene_donor_labels = random.sample(genes_donor.keys(), num_hgts)
+    idx = random.sample(list(range(0, len(gene_positions_s)-1)), num_hgts)
+    gene_donor_labels = random.sample(list(genes_donor.keys()), num_hgts)
     log_f.write("#type\tdonor\tstart\tend\trecipient\tstart\t"
                 "end\tstrand\n")
     # begin simulation
-    for x in xrange(0, num_hgts):
+    for x in range(0, num_hgts):
         # select random donor gene (for HGT)
         gene_donor_label = gene_donor_labels[x]
         idx_recip = gene_positions_s[idx[x]][1] + 1
         # beginning from valid position for inserting new gene, check whether
         # the length can fit without overlapping with existing gene, otherwise
         # search for next valid position
-        for y in xrange(idx[x], len(gene_positions_s)-1):
+        for y in range(idx[x], len(gene_positions_s)-1):
             if idx_recip + len(genes_donor[gene_donor_label][0])*3 <\
                     gene_positions_s[y+1][0]:
                 idx_end = idx_recip + len(genes_donor[gene_donor_label][0])*3
@@ -455,12 +461,14 @@ def simulate_hgts(seq_donor,
     with open(genes_recip_fp, 'w') as genes_recip_f:
         for gene in genes_recip:
             genes_recip_f.write(">%s\n%s\n" % (gene, genes_recip[gene][0]))
+    if verbose:
+        sys.stdout.write("\tDone.\n")
 
     # simulate orthologous replacement
     if orthologous_rep_prob > 0.0:
         if verbose:
-            sys.stdout.write("\tSimulate orthologous replacement HGTs ...")
-        launch_orthofinder(proteomes_dir, threads)
+            sys.stdout.write("\tSimulate orthologous replacement HGTs ...\n")
+        launch_orthofinder(proteomes_dir, threads, verbose=True)
         date = time.strftime("%c").split()
         day = date[2]
         if int(day) < 10:
@@ -543,7 +551,7 @@ def simulate_genbank(donor_genbank_fp,
     if verbose:
         sys.stdout.write("\tDone.\n")
     if verbose:
-        sys.stdout.write("Parsing recipient GenBank record ...\t")
+        sys.stdout.write("Parsing recipient GenBank record ...\n")
     seq_recip, genes_recip = extract_genbank(recipient_genbank_fp, verbose)
     if verbose:
         sys.stdout.write("\tDone.\n")

@@ -89,42 +89,42 @@ class SimulateHGTsTests(TestCase):
         """
         seq, genes = extract_genbank(
             join(self.root, "genbank_sample_record.gbk"))
-        genes_exp = {u'AAA98665.1': [u'SSIYNGISTSGLDLNNGTIADMRQLGIVESYKLKR'
-                                     'AVVSSASEAAEVLLRVDNIIRARPRTANRQHM', 0,
-                                     206, '+'],
-                     u'AAA98667.1': [u'MNRWVEKWLRVYLKCYINLILFYRNVYPPQSFDYT'
-                                     'TYQSFNLPQFVPINRHPALIDYIEELILDVLSKLT'
-                                     'HVYRFSICIINKKNDLCIEKYVLDFSELQHVDKDD'
-                                     'QIITETEVFDEFRSSLNSLIMHLEKLPKVNDDTIT'
-                                     'FEAVINAIELELGHKLDRNRRVDSLEEKAEIERDS'
-                                     'NWVKCQEDENLPDNNGFQPPKIKLTSLVGSDVGPL'
-                                     'IIHQFSEKLISGDDKILNGVYSQYEEGESIFGSLF',
-                                     3299, 4037, '-'],
-                     u'AAA98666.1': [u'MTQLQISLLLTATISLLHLVVATPYEAYPIGKQYP'
-                                     'PVARVNESFTFQISNDTYKSSVDKTAQITYNCFDL'
-                                     'PSWLSFDSSSRTFSGEPSSDLLSDANTTLYFNVIL'
-                                     'EGTDSADSTSLNNTYQFVVTNRPSISLSSDFNLLA'
-                                     'LLKNYGYTNGKNALKLDPNEVFNVTFDRSMFTNEE'
-                                     'SIVSYYGRSQLYNAPLPNWLFFDSGELKFTGTAPV'
-                                     'INSAIAPETSYSFVIIATDIEGFSAVEVEFELVIG'
-                                     'AHQLTTSIQNSLIINVTDTGNVSYDLPLNYVYLDD'
-                                     'DPISSDKLGSINLLDAPDWVALDNATISGSVPDEL'
-                                     'LGKNSNPANFSVSIYDTYGDVIYFNFEVVSTTDLF'
-                                     'AISSLPNINATRGEWFSYYFLPSQFTDYVNTNVSL'
-                                     'EFTNSSQDHDWVKFQSSNLTLAGEVPKNFDKLSLG'
-                                     'LKANQGSQSQELYFNIIGMDSKITHSNHSANATST'
-                                     'RSSHHSTSTSSYTSSTYTAKISSTSAAATSSAPAA'
-                                     'LPAANKTSSHNKKAVAIACGVAIPLGVILVALICF'
-                                     'LIFWRRRRENPDDENLPHAISGPDLNNPANKPNQE'
-                                     'NATPLNNPFDDDASSYDDTSIARRLAALNTLKLDN'
-                                     'HSATESDISSVDEKRDSLSGMNTYNDQFQSQSKEE'
-                                     'LLAKPPVQPPESPFFDPQNRSSSVYMDSEPAVNKS'
-                                     'WRYTGNLSPVSDIVRDSYGSQKTVDTEKLFDLEAP'
-                                     'EKEKRTSRDVTMSSLDPWNSNISPSPVRKSVTPSP'
-                                     'YNVTKHRNRHLQNIQDSQSGKNGITPTTMSTSSSD'
-                                     'DFVPVKDGENFCWVHSMEPDRRPSKKRLVDFSNKS'
-                                     'NVNVGQVKDIHGRIPEML',
-                                     686, 3158, '+']}
+        genes_exp = {'AAA98665.1': ['SSIYNGISTSGLDLNNGTIADMRQLGIVESYKLKR'
+                                    'AVVSSASEAAEVLLRVDNIIRARPRTANRQHM', 0,
+                                    206, '+'],
+                     'AAA98667.1': ['MNRWVEKWLRVYLKCYINLILFYRNVYPPQSFDYT'
+                                    'TYQSFNLPQFVPINRHPALIDYIEELILDVLSKLT'
+                                    'HVYRFSICIINKKNDLCIEKYVLDFSELQHVDKDD'
+                                    'QIITETEVFDEFRSSLNSLIMHLEKLPKVNDDTIT'
+                                    'FEAVINAIELELGHKLDRNRRVDSLEEKAEIERDS'
+                                    'NWVKCQEDENLPDNNGFQPPKIKLTSLVGSDVGPL'
+                                    'IIHQFSEKLISGDDKILNGVYSQYEEGESIFGSLF',
+                                    3299, 4037, '-'],
+                     'AAA98666.1': ['MTQLQISLLLTATISLLHLVVATPYEAYPIGKQYP'
+                                    'PVARVNESFTFQISNDTYKSSVDKTAQITYNCFDL'
+                                    'PSWLSFDSSSRTFSGEPSSDLLSDANTTLYFNVIL'
+                                    'EGTDSADSTSLNNTYQFVVTNRPSISLSSDFNLLA'
+                                    'LLKNYGYTNGKNALKLDPNEVFNVTFDRSMFTNEE'
+                                    'SIVSYYGRSQLYNAPLPNWLFFDSGELKFTGTAPV'
+                                    'INSAIAPETSYSFVIIATDIEGFSAVEVEFELVIG'
+                                    'AHQLTTSIQNSLIINVTDTGNVSYDLPLNYVYLDD'
+                                    'DPISSDKLGSINLLDAPDWVALDNATISGSVPDEL'
+                                    'LGKNSNPANFSVSIYDTYGDVIYFNFEVVSTTDLF'
+                                    'AISSLPNINATRGEWFSYYFLPSQFTDYVNTNVSL'
+                                    'EFTNSSQDHDWVKFQSSNLTLAGEVPKNFDKLSLG'
+                                    'LKANQGSQSQELYFNIIGMDSKITHSNHSANATST'
+                                    'RSSHHSTSTSSYTSSTYTAKISSTSAAATSSAPAA'
+                                    'LPAANKTSSHNKKAVAIACGVAIPLGVILVALICF'
+                                    'LIFWRRRRENPDDENLPHAISGPDLNNPANKPNQE'
+                                    'NATPLNNPFDDDASSYDDTSIARRLAALNTLKLDN'
+                                    'HSATESDISSVDEKRDSLSGMNTYNDQFQSQSKEE'
+                                    'LLAKPPVQPPESPFFDPQNRSSSVYMDSEPAVNKS'
+                                    'WRYTGNLSPVSDIVRDSYGSQKTVDTEKLFDLEAP'
+                                    'EKEKRTSRDVTMSSLDPWNSNISPSPVRKSVTPSP'
+                                    'YNVTKHRNRHLQNIQDSQSGKNGITPTTMSTSSSD'
+                                    'DFVPVKDGENFCWVHSMEPDRRPSKKRLVDFSNKS'
+                                    'NVNVGQVKDIHGRIPEML',
+                                    686, 3158, '+']}
         self.assertEqual(str(seq), sample_seq)
         self.assertDictEqual(genes, genes_exp)
 
@@ -139,10 +139,14 @@ class SimulateHGTsTests(TestCase):
                            ['YP_004590123.1', 'YP_002468184.1'],
                            ['YP_002468032.1', 'YP_004590028.1']]
         orthogroups_act = []
-        with open(join(results_dir, "OrthologousGroups.txt"), 'U') as o:
+        with open(join(results_dir, "OrthologousGroups.txt"), 'r') as o:
             orthogroups_act = [line.split()[1:] for line in o]
-
-        self.assertItemsEqual(orthogroups_act, orthogroups_exp)
+        orthogroups_act_sorted = [sorted(group) for group in orthogroups_act]
+        orthogroups_exp_sorted = [sorted(group) for group in orthogroups_exp]
+        orthogroups_act_sorted_2 = sorted(orthogroups_act_sorted)
+        orthogroups_exp_sorted_2 = sorted(orthogroups_exp_sorted)
+        self.assertListEqual(orthogroups_act_sorted_2,
+                             orthogroups_exp_sorted_2)
 
     def test_parse_orthofinder(self):
         """Test parsing OrthoFinder results.
@@ -152,7 +156,7 @@ class SimulateHGTsTests(TestCase):
         results_dir = join(
             self.proteomes_dir, "Results_%s%s" % (date[1], date[2]),
             "WorkingDirectory")
-        species_ids, sequence_ids, orthologous_groups =\
+        species_ids, sequence_ids, orthogroups_act =\
             parse_orthofinder(results_dir)
         species_ids_exp = {'1': 'seqs_prot_2.fasta', '0': 'seqs_prot_1.fasta'}
         seq_ids_exp = {'1_2': 'YP_004590028.1', '1_1': 'YP_004590123.1',
@@ -161,7 +165,12 @@ class SimulateHGTsTests(TestCase):
         orthogroups_exp = [['0_0', '1_0'], ['0_1', '1_1'], ['0_2', '1_2']]
         self.assertDictEqual(species_ids, species_ids_exp)
         self.assertDictEqual(sequence_ids, seq_ids_exp)
-        self.assertItemsEqual(orthologous_groups, orthogroups_exp)
+        orthogroups_act_sorted = [sorted(group) for group in orthogroups_act]
+        orthogroups_exp_sorted = [sorted(group) for group in orthogroups_exp]
+        orthogroups_act_sorted_2 = sorted(orthogroups_act_sorted)
+        orthogroups_exp_sorted_2 = sorted(orthogroups_exp_sorted)
+        self.assertListEqual(orthogroups_act_sorted_2,
+                             orthogroups_exp_sorted_2)
 
     def test_simulate_orthologous_rep(self):
         """Test simulating orthologous gene replacement HGTs.
@@ -190,7 +199,6 @@ class SimulateHGTsTests(TestCase):
         # number of genes in donor and recipient genome should remain the
         # same
         self.assertEqual(len(self.genes_recip), len(genes_recip_orig))
-        self.assertItemsEqual(self.genes_donor, genes_donor_orig)
         translated_nucl = {'D_1': "ATGGAGAAGGAGTACAGCCCCAAGAAGATCGAGAACTACGTG"
                                   "CAGGAGTTCTGGAAGAAG",
                            'D_2': "ATGAAGAAGAACATCATCCTGAACCTGATCGGCCTGAGGTGC"
@@ -203,7 +211,7 @@ class SimulateHGTsTests(TestCase):
                                   "CCAGAACCATTGATGGT",
                            'R_3': "ATGTGGGGTACTACTTGGATTGCTATGAAAATTGTTATTACT"
                                   "ACTATTCCACCAATTTTTGCTACTGGTTTGAGATTTTT"}
-        with open(log_fp, 'U') as log_f:
+        with open(log_fp, 'r') as log_f:
             hgts_sim = [line.strip().split()
                         for line in log_f
                         if not line.startswith('#')]
@@ -249,7 +257,7 @@ class SimulateHGTsTests(TestCase):
                                            percentage_hgts,
                                            log_f)
         # number of genes in donor genome should remain the same
-        self.assertItemsEqual(self.genes_donor, genes_donor_orig)
+        self.assertEqual(len(self.genes_donor), len(genes_donor_orig))
         translated_nucl = {'D_1': "ATGGAGAAGGAGTACAGCCCCAAGAAGATCGAGAACTACGTG"
                                   "CAGGAGTTCTGGAAGAAG",
                            'D_2': "ATGAAGAAGAACATCATCCTGAACCTGATCGGCCTGAGGTGC"
@@ -262,7 +270,7 @@ class SimulateHGTsTests(TestCase):
                                   "CCAGAACCATTGATGGT",
                            'R_3': "ATGTGGGGTACTACTTGGATTGCTATGAAAATTGTTATTACT"
                                   "ACTATTCCACCAATTTTTGCTACTGGTTTGAGATTTTT"}
-        with open(log_fp, 'U') as log_f:
+        with open(log_fp, 'r') as log_f:
             hgts_sim = [line.strip().split()
                         for line in log_f
                         if not line.startswith('#')]
@@ -293,7 +301,7 @@ class SimulateHGTsTests(TestCase):
                 translated_nucl[donor_label])
         gene_positions_s = sorted(gene_positions, key=itemgetter(0))
         # verify none of the original genes overlap with HGTs
-        for x in xrange(0, len(gene_positions_s)):
+        for x in range(0, len(gene_positions_s)):
             # HGT gene
             if gene_positions_s[x][2]:
                 if x < len(gene_positions_s)-1:
@@ -325,14 +333,20 @@ class SimulateHGTsTests(TestCase):
         self.assertEqual(str(recip_nucl), str(self.seq_recip))
         donor_aa_dict = {}
         for seq in skbio.io.read(dnr_g_aa_fp, format='fasta'):
-            donor_aa_dict[seq.metadata['id']] = seq
+            donor_aa_dict[seq.metadata['id']] = str(seq)
         # test for correctness of donor protein coding sequences
+        self.assertTrue(len(donor_aa_dict), len(self.genes_donor))
+        for gene in donor_aa_dict:
+            self.assertTrue(gene in self.genes_donor)
+            self.assertEqual(donor_aa_dict[gene], self.genes_donor[gene][0])
         recip_aa_dict = {}
-        self.assertItemsEqual(donor_aa_dict, self.genes_donor)
         for seq in skbio.io.read(rcp_g_aa_fp, format='fasta'):
-            recip_aa_dict[seq.metadata['id']] = seq
+            recip_aa_dict[seq.metadata['id']] = str(seq)
         # test for correctness of recipient protein coding sequences
-        self.assertItemsEqual(recip_aa_dict, self.genes_recip)
+        self.assertTrue(len(recip_aa_dict), len(self.genes_recip))
+        for gene in recip_aa_dict:
+            self.assertTrue(gene in self.genes_recip)
+            self.assertEqual(recip_aa_dict[gene], self.genes_recip[gene][0])
 
     def load_seqs(self, file_fp):
         """Load FASTA file into dictionary
@@ -366,11 +380,12 @@ class SimulateHGTsTests(TestCase):
                                  percentage_hgts,
                                  orthologous_rep_prob,
                                  log_f,
-                                 threads)
+                                 threads,
+                                 verbose=True)
         # load all simulated HGT information from log file
         hgts_sim_ortho = {}
         hgts_sim_replc = {}
-        with open(log_fp, 'U') as log_f:
+        with open(log_fp, 'r') as log_f:
             for line in log_f:
                 if not line.startswith('#'):
                     line = line.strip().split()

@@ -75,8 +75,8 @@ def parse_consel(input_f):
     pvalues = []
     # skip header lines
     skip_lines = 3
-    for s in xrange(skip_lines):
-        input_f.next()
+    for s in range(skip_lines):
+        next(input_f)
 
     for line in input_f:
         line = line.split()

@@ -63,28 +63,28 @@ class ParseOutputTests(TestCase):
     def test_parse_hgts_trex(self):
         """ Test functionality of parse_hgts() for TREX
         """
-        with open(self.trex_output_hgt_fp, 'U') as f:
+        with open(self.trex_output_hgt_fp, 'r') as f:
             output = parse_hgts(f, 'trex')
         self.assertEqual(int(output), 1)
 
     def test_parse_hgts_rangerdtl(self):
         """ Test functionality of parse_hgts() for RANGER-DTL-U
         """
-        with open(self.rangerdtl_output_hgt_fp, 'U') as f:
+        with open(self.rangerdtl_output_hgt_fp, 'r') as f:
             output = parse_hgts(f, 'ranger-dtl')
         self.assertEqual(int(output), 1)
 
     def test_parse_hgts_riatahgt(self):
         """ Test functionality of parse_hgts() for RIATA-HGT in PhyloNet
         """
-        with open(self.riatahgt_output_hgt_fp, 'U') as f:
+        with open(self.riatahgt_output_hgt_fp, 'r') as f:
             output = parse_hgts(f, 'riata-hgt')
         self.assertEqual(int(output), 1)
 
     def test_parse_hgts_jane4(self):
         """ Test functionality of parse_hgts() for Jane 4
         """
-        with open(self.jane4_output_hgt_fp, 'U') as f:
+        with open(self.jane4_output_hgt_fp, 'r') as f:
             output = parse_hgts(f, 'jane4')
         self.assertEqual(int(output), 1)
 
@@ -92,9 +92,9 @@ class ParseOutputTests(TestCase):
         """ Test functionality of parse_consel
         """
         output_exp = ['0.99', '0.01']
-        with open(self.consel_output_hgt_fp, 'U') as f:
+        with open(self.consel_output_hgt_fp, 'r') as f:
             output = parse_consel(input_f=f)
-        self.assertItemsEqual(output, output_exp)
+        self.assertListEqual(output, output_exp)
 
 
 trex_output_hgt = """

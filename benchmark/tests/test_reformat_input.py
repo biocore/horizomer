@@ -96,7 +96,7 @@ class workflowTests(TestCase):
         gene_tree_1 = TreeNode.read(self.gene_tree_1_fp, format='newick')
         species_tree = TreeNode.read(self.species_tree_fp, format='newick')
         join_trees(gene_tree_1, species_tree, self.output_file)
-        with open(self.output_file, 'U') as out_f:
+        with open(self.output_file, 'r') as out_f:
             species_gene_tree_1_obs = out_f.read()
         self.assertEqual(species_gene_tree_1_obs, species_gene_tree_1_exp)
 
@@ -107,10 +107,8 @@ class workflowTests(TestCase):
                       "SE007", "SE008", "SE009", "SE010"]
         gene_tree_2 = TreeNode.read(self.gene_tree_2_fp, format='newick')
         trim_gene_tree_leaves(gene_tree_2)
-        leaves_obs = []
-        for node in gene_tree_2.tips():
-            leaves_obs.append(node.name)
-        self.assertItemsEqual(leaves_obs, leaves_exp)
+        leaves_obs = sorted([node.name for node in gene_tree_2.tips()])
+        self.assertListEqual(leaves_obs, leaves_exp)
 
     def test_species_gene_mapping(self):
         """ Test finding the association between species and gene tree leaves
@@ -120,14 +118,14 @@ class workflowTests(TestCase):
         mapping_exp = {"SE001": ["SE001_01623", "SE001_04123"],
                        "SE002": ["SE002_01623"], "SE003": ["SE003_01623"],
                        "SE004": ["SE004_01623"],
-                       "SE005": ["SE005_04123", "SE005_01623"],
+                       "SE005": ["SE005_01623", "SE005_04123"],
                        "SE006": ["SE006_01623", "SE006_04123"],
                        "SE007": ["SE007_01623"],
                        "SE008": ["SE008_01623", "SE008_04123"],
                        "SE009": ["SE009_01623", "SE009_04123"],
-                       "SE010": ["SE010_04123", "SE010_01623"]}
+                       "SE010": ["SE010_01623", "SE010_04123"]}
         mapping_obs = species_gene_mapping(gene_tree_1, species_tree)
-        self.assertItemsEqual(mapping_obs, mapping_exp)
+        self.assertDictEqual(dict(mapping_obs), mapping_exp)
 
     def test_species_gene_mapping_check_species_labels(self):
         """ Test ValueError raised
@@ -183,7 +181,7 @@ class workflowTests(TestCase):
             "SE009_01623)),SE005_01623),SE004_01623),SE003_01623),"
             "((SE002_01623,SE007_01623),((((SE001_04123,SE010_04123),"
             "SE008_04123),(SE006_04123,SE009_04123)),SE005_04123)));\n"]
-        with open(output_tree_fp, 'U') as output_tree_f:
+        with open(output_tree_fp, 'r') as output_tree_f:
             joined_tree_act = output_tree_f.readlines()
         self.assertListEqual(joined_tree_exp, joined_tree_act)
 
@@ -212,7 +210,7 @@ class workflowTests(TestCase):
             "5.9256042):0.2102448,(SE006:5.2329068,SE009:"
             "5.2329068):0.9029422):0.2054233,SE005:6.3412723):"
             "0.1711239):1.174147):1.594016;\n"]
-        with open(output_tree_fp, 'U') as output_tree_f:
+        with open(output_tree_fp, 'r') as output_tree_f:
             reformat_tree_act = output_tree_f.readlines()
         self.assertListEqual(reformat_tree_exp, reformat_tree_act)
 
@@ -248,7 +246,7 @@ class workflowTests(TestCase):
             "BEGIN PHYLONET;\n",
             "RIATAHGT speciesTree {geneTree};\n",
             "END;\n"]
-        with open(output_tree_fp, 'U') as output_tree_f:
+        with open(output_tree_fp, 'r') as output_tree_f:
             reformat_tree_act = output_tree_f.readlines()
         self.assertListEqual(reformat_tree_exp, reformat_tree_act)
 
@@ -274,14 +272,14 @@ class workflowTests(TestCase):
             "SE008_04123),(SE006_04123,SE009_04123)),SE005_04123)));\n", "\n",
             "endblock;\n",
             "begin distribution;\n",
-            "Range SE001_01623:SE001, SE001_04123:SE001, SE010_01623:SE010, "
-            "SE010_04123:SE010, SE002_01623:SE002, SE005_01623:SE005, "
-            "SE005_04123:SE005, SE004_01623:SE004, SE007_01623:SE007, "
-            "SE006_01623:SE006, SE006_04123:SE006, SE009_01623:SE009, "
+            "Range SE010_01623:SE010, SE010_04123:SE010, SE009_01623:SE009, "
             "SE009_04123:SE009, SE008_01623:SE008, SE008_04123:SE008, "
-            "SE003_01623:SE003;\n",
+            "SE007_01623:SE007, SE006_01623:SE006, SE006_04123:SE006, "
+            "SE005_01623:SE005, SE005_04123:SE005, SE004_01623:SE004, "
+            "SE003_01623:SE003, SE002_01623:SE002, SE001_01623:SE001, "
+            "SE001_04123:SE001;\n",
             "endblock;\n"]
-        with open(output_tree_fp, 'U') as output_tree_f:
+        with open(output_tree_fp, 'r') as output_tree_f:
             reformat_tree_act = output_tree_f.readlines()
         self.assertListEqual(reformat_tree_exp, reformat_tree_act)
 
@@ -309,7 +307,7 @@ class workflowTests(TestCase):
             "SE005:6.3412723):0.3714563,SE004:6.7127286):"
             "0.7293362,SE003:7.4420648):0.2444784,SE002:"
             "7.6865432);\n"]
-        with open(output_tree_fp, 'U') as output_tree_f:
+        with open(output_tree_fp, 'r') as output_tree_f:
             reformat_tree_act = output_tree_f.readlines()
         self.assertListEqual(reformat_tree_exp, reformat_tree_act)
         msa_fa = TabularMSA.read(output_msa_phy_fp, constructor=Protein)
