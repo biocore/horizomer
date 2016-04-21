@@ -112,6 +112,7 @@ def launch_orthofinder(proteomes_dir, threads, verbose=False):
     if stderr:
         print (stderr)
     if verbose:
+        print (stdout)
         sys.stdout.write("\tDone\n")
 
 
