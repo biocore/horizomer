@@ -32,7 +32,7 @@ install:
   - conda create -n test_env python=$PYTHON_VERSION --file ci/conda_requirements.txt
   - source activate test_env
   - pip install -r ci/pip_requirements.txt
-  - pip install --process-dependency-links .
+  - pip install .
 script:
   - nosetests --with-doctest --with-coverage
   - flake8 benchmark/*.py benchmark/tests/*.py distance-method/*.py
