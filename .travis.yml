@@ -18,14 +18,12 @@ before_install:
   - tar zxvf mcl-14-137.tar.gz
   - mkdir mcl-14-137-install
   - export MCL_INSTALL_DIR=$PWD/mcl-14-137-install
-  - export PATH=$MCL_INSTALL_DIR:$PATH
   - cd mcl-14-137
   - ./configure --prefix=$MCL_INSTALL_DIR
   - make
   - make install
   - cd ..
-  - ls $MCL_INSTALL_DIR
-  - ls $MCL_INSTALL_DIR/bin
+  - export PATH=$MCL_INSTALL_DIR/bin:$PATH
   # Install RANGER
   - wget http://compbio.mit.edu/ranger-dtl/ranger-dtl-linux.tar.gz
   - tar zxvf ranger-dtl-linux.tar.gz
