@@ -114,7 +114,7 @@ def species_gene_mapping(gene_tree,
             raise ValueError(
                 "Species %s does not exist in the species tree" % species)
     return OrderedDict(sorted(mapping_leaves.items(),
-                       key=lambda x:x[1], reverse=True))
+                       key=lambda x: x[1], reverse=True))
 
 
 def remove_branch_lengths(tree):
@@ -285,7 +285,7 @@ endblock;
     mapping_str = ""
     for species in mapping_dict:
         for gene in mapping_dict[species]:
-            mapping_str = "%s%s:%s, " % (mapping_str, gene, species)           
+            mapping_str = "%s%s:%s, " % (mapping_str, gene, species)
     p = nexus_file.replace('SPECIES_TREE', str(species_tree))
     p = p.replace('GENE_TREE', str(gene_tree))
     p = p.replace('MAPPING', mapping_str[:-2])

@@ -110,9 +110,9 @@ def launch_orthofinder(proteomes_dir, threads, verbose=False):
     proc.wait()
     stdout, stderr = proc.communicate()
     if stderr:
-        print (stderr)
+        print(stderr)
     if verbose:
-        print (stdout)
+        print(stdout)
         sys.stdout.write("\tDone\n")
 
 

@@ -254,7 +254,7 @@ class DistanceMethodTests(TestCase):
         species_set_dict = {'IIIIIIII': 100, 'IIOOOIII': 50, 'IIIIIII0': 10,
                             'OIOIIIII': 5, 'IIIOOIII': 8, 'OOOOOIOO': 12}
         gene_clusters_list_exp = [('IIIIIIII', ['IIIIIIII', 'IIIIIII0',
-                                               'IIIOOIII', 'OIOIIIII']),
+                                                'IIIOOIII', 'OIOIIIII']),
                                   ('IIOOOIII', ['IIOOOIII', 'OOOOOIOO'])]
         gene_clusters_list_act = cluster_distances(
             species_set_dict=species_set_dict, species_set_size=30,
