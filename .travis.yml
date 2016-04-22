@@ -25,6 +25,7 @@ before_install:
   - make install
   - cd ..
   - ls $MCL_INSTALL_DIR
+  - ls $MCL_INSTALL_DIR/bin
   # Install RANGER
   - wget http://compbio.mit.edu/ranger-dtl/ranger-dtl-linux.tar.gz
   - tar zxvf ranger-dtl-linux.tar.gz
