@@ -17,7 +17,7 @@ before_install:
   - wget http://micans.org/mcl/src/mcl-14-137.tar.gz
   - tar zxvf mcl-14-137.tar.gz
   - mkdir mcl-14-137-install
-  - export MCL_INSTALL_DIR=$PWD/mcl-14-137-install
+  - export MCL_INSTALL_DIR=$PWD/mcl-14-137-install/bin
   - export PATH=$MCL_INSTALL_DIR:$PATH
   - cd mcl-14-137
   - ./configure --prefix=$MCL_INSTALL_DIR
