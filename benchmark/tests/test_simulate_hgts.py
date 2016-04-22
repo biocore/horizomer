@@ -11,7 +11,7 @@
 from unittest import TestCase, main
 from shutil import rmtree
 from tempfile import mkdtemp
-from os import makedirs, listdir
+from os import makedirs
 from os.path import join, dirname, abspath
 import time
 import copy
