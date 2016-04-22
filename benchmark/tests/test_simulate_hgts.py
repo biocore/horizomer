@@ -131,17 +131,13 @@ class SimulateHGTsTests(TestCase):
     def test_launch_orthofinder(self):
         """Test running OrthoFinder.
         """
-        print("self.proteomes_dir = %s\n" % self.proteomes_dir)
-        print("dir contents = %s\n" % listdir(self.proteomes_dir))
         launch_orthofinder(self.proteomes_dir, 1, verbose=True)
-        print("dir contents = %s\n" % listdir(self.proteomes_dir))
         date = time.strftime("%c").split()
         results_dir = join(
             self.proteomes_dir, "Results_%s%s" % (date[1], date[2]))
         orthogroups_exp = [['YP_002468181.1', 'YP_004590122.1'],
                            ['YP_004590123.1', 'YP_002468184.1'],
                            ['YP_002468032.1', 'YP_004590028.1']]
-        print("dir contents results_dir = %s\n" % listdir(results_dir))
         orthogroups_act = []
         with open(join(results_dir, "OrthologousGroups.txt"), 'r') as o:
             orthogroups_act = [line.split()[1:] for line in o]
