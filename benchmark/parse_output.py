@@ -88,6 +88,39 @@ def parse_consel(input_f):
             pvalues.append("%.2f" % float(pv_au))
     return pvalues
 
+def parse_output(hgt_results_fp, method):
+    """Call parse_hgts() based on HGT detection method used.
+
+    Parameters
+    ----------
+    hgt_results_fp: string
+        filepath to detected HGTs
+
+    method: string
+        tool used to detect HGTs
+
+    Returns
+    -------
+    output: string
+        number of HGTs detected
+    """
+    with open(hgt_results_fp, 'r') as input_f:
+        if (method == 'ranger-dtl' or
+                method == 'trex' or
+                method == 'jane4' or
+                method == 'riata-hgt'):
+            output = parse_hgts(input_f=input_f,
+                                method=method)
+        elif method == 'consel':
+            output = parse_consel(input_f=input_f)
+            if output is None:
+                output = "NaN"
+            else:
+                output = " ".join(output)
+        else:
+            raise ValueError("Method is not supported: %s" % method)
+        return output
+
 
 @click.command()
 @click.option('--hgt-results-fp', required=True,
@@ -106,22 +139,7 @@ def _main(hgt_results_fp,
           method):
     """ Parsing functions for various HGT detection tool outputs.
     """
-    with open(hgt_results_fp, 'U') as input_f:
-        if (method == 'ranger-dtl' or
-                method == 'trex' or
-                method == 'jane4' or
-                method == 'riata-hgt'):
-            output = parse_hgts(input_f=input_f,
-                                method=method)
-        elif method == 'consel':
-            output = parse_consel(input_f=input_f)
-            if output is None:
-                output = "NaN"
-            else:
-                output = " ".join(output)
-        else:
-            raise ValueError("Method is not supported: %s" % method)
-
+    output = parse_output(hgt_results_fp, method)
     sys.stdout.write(output)
 
 

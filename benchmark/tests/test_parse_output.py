@@ -14,7 +14,8 @@ from os.path import join
 from skbio.util import remove_files
 
 from benchmark.parse_output import (parse_hgts,
-                                    parse_consel)
+                                    parse_consel,
+                                    parse_output)
 
 
 class ParseOutputTests(TestCase):
@@ -95,6 +96,26 @@ class ParseOutputTests(TestCase):
         with open(self.consel_output_hgt_fp, 'r') as f:
             output = parse_consel(input_f=f)
         self.assertListEqual(output, output_exp)
+
+    def test_parse_output(self):
+        """Test functionality of parse_output
+        """
+        output_exp = "0.99 0.01"
+        output = parse_output(hgt_results_fp=self.consel_output_hgt_fp,
+                              method="consel")
+        self.assertEqual(output_exp, output)
+        output_exp = "1"
+        output = parse_output(hgt_results_fp=self.riatahgt_output_hgt_fp,
+                              method="riata-hgt")
+        self.assertEqual(output_exp, output)
+
+    def test_parse_output_error(self):
+        """Test functionality of parse_output passing unsupported method
+        """
+        self.assertRaises(ValueError,
+                          parse_output,
+                          hgt_results_fp=self.consel_output_hgt_fp,
+                          method="Consel")
 
 
 trex_output_hgt = """
