@@ -88,6 +88,7 @@ def parse_consel(input_f):
             pvalues.append("%.2f" % float(pv_au))
     return pvalues
 
+
 def parse_output(hgt_results_fp, method):
     """Call parse_hgts() based on HGT detection method used.
 
