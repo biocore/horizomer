@@ -6,8 +6,6 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-# dependencies: scikit-bio development
-
 from unittest import TestCase, main
 from shutil import rmtree
 from tempfile import mkdtemp
