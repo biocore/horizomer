@@ -100,7 +100,7 @@ class ParseOutputTests(TestCase):
     def test_parse_output(self):
         """Test functionality of parse_output
         """
-        output_exp = "0.99 0.01"
+        output_exp = ["0.99", "0.01"]
         output = parse_output(hgt_results_fp=self.consel_output_hgt_fp,
                               method="consel")
         self.assertEqual(output_exp, output)

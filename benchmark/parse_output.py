@@ -114,10 +114,6 @@ def parse_output(hgt_results_fp, method):
                                 method=method)
         elif method == 'consel':
             output = parse_consel(input_f=input_f)
-            if output is None:
-                output = "NaN"
-            else:
-                output = " ".join(output)
         else:
             raise ValueError("Method is not supported: %s" % method)
         return output
