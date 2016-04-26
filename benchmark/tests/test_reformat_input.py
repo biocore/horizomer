@@ -90,6 +90,7 @@ class workflowTests(TestCase):
         rmtree(self.working_dir)
 
     def test_join_trees(self):
+        print("test_join_trees")
         """ Test concatenate Newick trees into one file (species, gene)
         """
         self.output_file = join(self.working_dir, 'output_file.nwk')
