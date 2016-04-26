@@ -88,8 +88,8 @@ class SimulateHGTsTests(TestCase):
         """Test parsing sequence and gene information from a GenBank record.
         """
         seq, genes = extract_genbank(
-            join(genbank_fp=self.root, "genbank_sample_record.gbk"),
-                 verbose=True)
+            genbank_fp=join(self.root, "genbank_sample_record.gbk"),
+            verbose=True)
         genes_exp = {'AAA98665.1': ['SSIYNGISTSGLDLNNGTIADMRQLGIVESYKLKR'
                                     'AVVSSASEAAEVLLRVDNIIRARPRTANRQHM', 0,
                                     206, '+'],
