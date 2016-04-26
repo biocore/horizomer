@@ -87,6 +87,7 @@ class SimulateHGTsTests(TestCase):
     def test_extract_genbank(self):
         """Test parsing sequence and gene information from a GenBank record.
         """
+        print("test_extract_genbank")
         seq, genes = extract_genbank(
             genbank_fp=join(self.root, "genbank_sample_record.gbk"),
             verbose=True)
@@ -132,6 +133,7 @@ class SimulateHGTsTests(TestCase):
     def test_launch_orthofinder(self):
         """Test running OrthoFinder.
         """
+        print("test_launch_orthofinder")
         launch_orthofinder(self.proteomes_dir, 1, verbose=True)
         date = time.strftime("%c").split()
         results_dir = join(
@@ -152,6 +154,7 @@ class SimulateHGTsTests(TestCase):
     def test_parse_orthofinder(self):
         """Test parsing OrthoFinder results.
         """
+        print("test_parse_orthofinder")
         launch_orthofinder(self.proteomes_dir, 1)
         date = time.strftime("%c").split()
         results_dir = join(
@@ -176,6 +179,7 @@ class SimulateHGTsTests(TestCase):
     def test_simulate_orthologous_rep(self):
         """Test simulating orthologous gene replacement HGTs.
         """
+        print("test_simulate_orthologous_rep")
         # genes_recip and seq_recip are modified within function
         # simulate_orthologous_rep, store their original copies for
         # downstream verification
@@ -242,6 +246,7 @@ class SimulateHGTsTests(TestCase):
     def test_simulate_novel_acq(self):
         """Test simulating novel gene acquisition HGTs.
         """
+        print("test_simulate_novel_acq")
         # genes_recip and seq_recip are modified within function
         # simulate_orthologous_rep, store their original copies for
         # downstream verification
@@ -315,6 +320,7 @@ class SimulateHGTsTests(TestCase):
     def test_write_results(self):
         """Test writing HGT results to FASTA files.
         """
+        print("test_write_results")
         self.genes_recip['D_2_hgt_n'] = ['MKKNIILNLIGLRCPEPIMI', 321, 381, '+']
         donor_genbank_fp = join(self.proteomes_dir, "donor.fna")
         recipient_genbank_fp = join(self.proteomes_dir, "recip.fna")
@@ -352,6 +358,7 @@ class SimulateHGTsTests(TestCase):
     def load_seqs(self, file_fp):
         """Load FASTA file into dictionary
         """
+        print("load_seqs")
         gene_dict = {}
         for seq in skbio.io.read(file_fp, format='fasta'):
             seq_id = seq.metadata['id']
@@ -362,6 +369,7 @@ class SimulateHGTsTests(TestCase):
         return gene_dict
 
     def test_simulate_genbank(self):
+        print("test_simulate_genbank")
         """Test simulating HGTs using input donor and recipient GenBank files.
         """
         donor_genbank_fp = join(self.root, "genbank",
