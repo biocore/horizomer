@@ -40,7 +40,6 @@ import subprocess
 import time
 import glob
 import random
-from operator import itemgetter
 
 from skbio import Sequence
 
@@ -114,6 +113,7 @@ def launch_orthofinder(proteomes_dir, threads, verbose=False):
         print(stdout)
         sys.stdout.write("\tDone\n")
 
+
 def _parse_orthofinder_ids(ids_fp):
     """
     """
@@ -123,6 +123,7 @@ def _parse_orthofinder_ids(ids_fp):
             line = line.strip().split()
             ids[line[0].split(':')[0]] = line[1]
     return ids
+
 
 def parse_orthofinder(results_dir):
     """Parse the output files of OrthoFinder for orthologous genes.
@@ -179,7 +180,7 @@ def simulate_orthologous_rep(genes_donor,
     Parameters
     ----------
     genes_donor: dictionary
-        A dictionary of genes, key are protein IDs values 5-element lists     
+        A dictionary of genes, key are protein IDs values 5-element lists
     seq_donor: skbio.sequence.Sequence
         Sequence object for donor genome
     genes_recip: dictionary
@@ -233,7 +234,7 @@ def simulate_orthologous_rep(genes_donor,
         # while loop will continue until an index for two genes prefixed with
         # '0' and '1' is selected. At each iteration the chances the while
         # loop must continue reduce exponentially since the index is chosen
-        # randomly from the same set of options. 
+        # randomly from the same set of options.
         while '*' in substitute_genes:
             idx2 = random.randrange(0, len(orthogroup))
             gene = orthogroup[idx2]
