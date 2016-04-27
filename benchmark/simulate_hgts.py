@@ -47,6 +47,7 @@ from skbio import Sequence
 
 def extract_genbank(genbank_fp, verbose=False):
     """Extract protein coding sequences from GenBank record.
+
     Parameters
     ----------
     genbank_fp: string
@@ -67,13 +68,11 @@ def extract_genbank(genbank_fp, verbose=False):
     seq = Sequence.read(genbank_fp, format='genbank')
     if verbose:
         sys.stdout.write("\t\tDone.\n")
-    for feature in list(seq.interval_metadata.features.keys()):
+    for feature in seq.interval_metadata.features:
         if feature['type_'] == 'CDS':
             protein_id = feature['protein_id']
             translation = feature['translation']
-            strand = '+'
-            if feature['rc_']:
-                strand = '-'
+            strand = '-' if feature['rc_'] else '+'
             loc = seq.interval_metadata.features[feature]
             start_pos = loc[0][0]
             end_pos = loc[0][1]
@@ -115,6 +114,15 @@ def launch_orthofinder(proteomes_dir, threads, verbose=False):
         print(stdout)
         sys.stdout.write("\tDone\n")
 
+def _parse_orthofinder_ids(ids_fp):
+    """
+    """
+    ids = {}
+    with open(ids_fp, 'r') as ids_f:
+        for line in ids_f:
+            line = line.strip().split()
+            ids[line[0].split(':')[0]] = line[1]
+    return ids
 
 def parse_orthofinder(results_dir):
     """Parse the output files of OrthoFinder for orthologous genes.
@@ -127,11 +135,13 @@ def parse_orthofinder(results_dir):
     Returns
     -------
     species_ids: dictionary
+        Keys are integers and values are original species FASTA filenames
     sequence_ids: dictionary
+        Keys are in the form x_y (species_gene) and values are original
+        accessions
     orthologous_groups: list of lists
+        List of orthologous families between donor and recipient proteomes
     """
-    species_ids = {}
-    sequence_ids = {}
     orthologous_groups = []
     with open(
         glob.glob(
@@ -147,14 +157,10 @@ def parse_orthofinder(results_dir):
             # include only families with at least 2 orthologs
             if len(line[1:-1]) > 1:
                 orthologous_groups.append(line[1:-1])
-    with open(join(results_dir, "SpeciesIDs.txt"), 'r') as species_ids_f:
-        for line in species_ids_f:
-            line = line.strip().split()
-            species_ids[line[0].split(':')[0]] = line[1]
-    with open(join(results_dir, "SequenceIDs.txt"), 'r') as sequence_ids_f:
-        for line in sequence_ids_f:
-            line = line.strip().split()
-            sequence_ids[line[0].split(':')[0]] = line[1]
+    sequence_ids = _parse_orthofinder_ids(
+        join(results_dir, "SequenceIDs.txt"))
+    species_ids = _parse_orthofinder_ids(
+        join(results_dir, "SpeciesIDs.txt"))
 
     return species_ids, sequence_ids, orthologous_groups
 
@@ -170,41 +176,64 @@ def simulate_orthologous_rep(genes_donor,
                              log_f):
     """Simulate orthologous replacement HGT.
 
-    Notes
-    -----
-    Algorithm: Using list of orthologous genes between donor and recipient
-    genomes
-
     Parameters
     ----------
     genes_donor: dictionary
+        A dictionary of genes, key are protein IDs values 5-element lists     
     seq_donor: skbio.sequence.Sequence
+        Sequence object for donor genome
     genes_recip: dictionary
+        A dictionary of genes, key are protein IDs values 5-element lists
     seq_recip: skbio.sequence.Sequence
+        Sequence object for recipient genome
     sequence_ids: dictionary
+        Keys are in the form x_y (species_gene) and values are original
+        accessions
     orthologous_groups: list of lists
+        List of orthologous families between donor and recipient proteomes
     orthologous_rep_prob: float
+        Probably HGT will be orthologous replacement
     percentage_hgts: float
+        Percent of HGTs to simulate
     log_f: file descriptor
+        Log file descriptor
 
     Returns
     -------
     seq_recip: skbio.sequence.Sequence
         recipient genome sequence with HGTs
+
+    Notes
+    -----
+    Using list of orthologous genes between donor and recipient genomes,
+    randomly choose genes to exchange from donor to recipient and output
+    results to FASTA protein and nucleotide files.
+
+    Algorithm:
+        1. Choose randomly N orthogroups to be used for simulating HGTs
+        2. For each orthogroup, choose randomly a donor and recipient gene
+        3. Replace recipient gene with donor and output to FASTA protein
+           and nucleotide files.
     """
     # number of HGTs to simulate
     num_hgts = int(percentage_hgts*orthologous_rep_prob*len(genes_recip))
     if num_hgts < 1:
         num_hgts = 1
     num_orthogroups = len(orthologous_groups)
-    idx = random.sample(list(range(0, num_orthogroups)), num_hgts)
+    idx = random.sample(range(num_orthogroups), num_hgts)
     log_f.write("#type\tdonor\tstart\tend\trecipient\tnew label "
                 "recipient\tstart\tend\tstrand\n")
-    for x in range(0, num_hgts):
-        orthogroup = orthologous_groups[idx[x]]
+    for i in idx:
+        orthogroup = orthologous_groups[i]
         substitute_genes = ['*', '*']
-        # randomly select two orthologous genes from the same family
-        # representing the donor and recipient genomes
+        # Randomly select two orthologous genes from the same family
+        # representing the donor and recipient genomes. Each orthogroup is
+        # guranteed to have at least two genes, one from donor (prefixed with
+        # '0') and second from recipient (prefixed with '1'). The following
+        # while loop will continue until an index for two genes prefixed with
+        # '0' and '1' is selected. At each iteration the chances the while
+        # loop must continue reduce exponentially since the index is chosen
+        # randomly from the same set of options. 
         while '*' in substitute_genes:
             idx2 = random.randrange(0, len(orthogroup))
             gene = orthogroup[idx2]
@@ -231,7 +260,8 @@ def simulate_orthologous_rep(genes_donor,
         # replace recipient gene (translated sequence) with donor's
         genes_recip[hgt_gene][0] = genes_donor[gene_donor_label][0]
         # update end position of HGT gene (as it can be shorter/longer than
-        # the recipient gene replaced)
+        # the recipient gene replaced), multiply length of substituted gene
+        # by 3 to translate from codon to nucleotide length
         genes_recip[hgt_gene][2] =\
             genes_recip[hgt_gene][1] + len(genes_recip[hgt_gene][0])*3
         # replace recipient gene (nucleotide format) with donor's
@@ -269,12 +299,19 @@ def simulate_novel_acq(genes_donor,
     Parameters
     ----------
     genes_donor: dictionary
+        A dictionary of genes, key are protein IDs values 5-element lists
     seq_donor: skbio.sequence.Sequence
+        Sequence object for donor genome
     genes_recip: dictionary
+        A dictionary of genes, key are protein IDs values 5-element lists
     seq_recip: skbio.sequence.Sequence
+        Sequence object for recipient genome
     orthologous_rep_prob: float
+        Probably HGT will be orthologous replacement
     percentage_hgts: float
+        Percent of HGTs to simulate
     log_f: file descriptor
+        Log file descriptor
 
     Returns
     -------
@@ -285,7 +322,7 @@ def simulate_novel_acq(genes_donor,
     -----
     Algorithm:
         1. choose random location in recipient genome where to insert a gene
-           (randomly chosen from list of donor genes)
+           (chosen from list of donor genes)
         2. use gene (recipient) positioning array to locate an open region
            (that doesn't include an existing gene) near the random location
            to insert the new gene (we want to avoid gene overlap so that
@@ -293,26 +330,25 @@ def simulate_novel_acq(genes_donor,
            genes)
         3. insert new gene, record existance in gene positioning array
     """
+    # compute number of HGTs to simulate (novel acquisition)
     num_hgts = int(percentage_hgts*(1-orthologous_rep_prob)*len(genes_recip))
-    if num_hgts < 1:
-        num_hgts = 1
-    # create recipient genome gene positioning array
-    gene_positions =\
-        [(genes_recip[gene][1], genes_recip[gene][2]) for gene in genes_recip]
+    num_hgts = max(1, num_hgts)
     # add start and end positions of recipient genome to allow for HGTs
     # simulated before the first and after the last existing gene
-    gene_positions.append((0, 0))
-    gene_positions.append((len(seq_recip), len(seq_recip)))
+    gene_positions = [(0, 0), (len(seq_recip), len(seq_recip))]
+    # create recipient genome gene positioning array
+    for seq, start, stop, strand in genes_recip.values():
+        gene_positions.append((start, stop))
     # sort array for gene positions in ascending order
-    gene_positions_s = sorted(gene_positions, key=itemgetter(0))
+    gene_positions_s = sorted(gene_positions)
     # select a random list of positions where to insert the new gene
-    idx = random.sample(list(range(0, len(gene_positions_s)-1)), num_hgts)
-    gene_donor_labels = random.sample(list(genes_donor.keys()), num_hgts)
+    idx = random.sample(range(len(gene_positions_s)-1), num_hgts)
+    gene_donor_labels = random.sample(list(genes_donor), num_hgts)
     log_f.write("#type\tdonor\tstart\tend\trecipient\tstart\t"
                 "end\tstrand\n")
     # begin simulation
-    for x in range(0, num_hgts):
-        # select random donor gene (for HGT)
+    for x in range(num_hgts):
+        # select donor gene (for HGT)
         gene_donor_label = gene_donor_labels[x]
         idx_recip = gene_positions_s[idx[x]][1] + 1
         # beginning from valid position for inserting new gene, check whether
@@ -321,6 +357,7 @@ def simulate_novel_acq(genes_donor,
         for y in range(idx[x], len(gene_positions_s)-1):
             if idx_recip + len(genes_donor[gene_donor_label][0])*3 <\
                     gene_positions_s[y+1][0]:
+                # codon = sequence of 3 nucleotides (hence *3)
                 idx_end = idx_recip + len(genes_donor[gene_donor_label][0])*3
                 # insert gene (protein)
                 hgt_gene = "%s_hgt_n" % gene_donor_label
@@ -362,9 +399,11 @@ def write_results(genes_donor,
     Parameters
     ----------
     genes_donor: dictionary
+        A dictionary of genes, key are protein IDs values 5-element lists
     seq_donor: skbio.sequence.Sequence
         Sequence object for donor genome
     genes_recip: dictionary
+        A dictionary of genes, key are protein IDs values 5-element lists
     seq_recip: skbio.sequence.Sequence
         Sequence object for recipient genome
     """
@@ -436,7 +475,8 @@ def simulate_hgts(seq_donor,
         genome)
     orthologous_rep_prob: float
         rate of orthologous replacement HGTs
-    log_f: file handler
+    log_f: file descriptor
+        Log file descriptor
     threads: integer
         number of threads to use
 
@@ -542,7 +582,8 @@ def simulate_genbank(donor_genbank_fp,
         genome)
     orthologous_rep_prob: float
         rate of orthologous replacement HGTs
-    log_f: file handler
+    log_f: file descriptor
+        Log file descriptor
     threads: integer
         number of threads to use
     """

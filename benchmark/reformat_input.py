@@ -78,7 +78,7 @@ def species_gene_mapping(gene_tree,
 
     Returns
     -------
-    mapping_leaves_t: list of tuples
+    mapping_leaves_t: OrderedDict
         Mapping between the species tree leaves and the gene tree leaves;
         species tips are the keys and gene tips are the values
 
