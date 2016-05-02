@@ -137,7 +137,6 @@ class SimulateHGTsTests(TestCase):
             day = "0%s" % day
         results_dir = join(
             self.proteomes_dir, "Results_%s%s" % (date[1], day))
-        print(results_dir)
         orthogroups_exp = [['YP_002468181.1', 'YP_004590122.1'],
                            ['YP_004590123.1', 'YP_002468184.1'],
                            ['YP_002468032.1', 'YP_004590028.1']]
