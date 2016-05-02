@@ -46,7 +46,7 @@ install:
   - export PATH=$PWD/OrthoFinder-0.4.python3:$PATH
   - orthofinder.py --help
 script:
-  - nosetests --with-doctest --with-coverage -w benchmark/tests/
+  - nosetests --with-doctest --with-coverage
   - flake8 benchmark/*.py benchmark/tests/*.py distance-method/*.py
 after_success:
   - coveralls

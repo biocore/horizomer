@@ -121,7 +121,11 @@ def _parse_orthofinder_ids(ids_fp):
     with open(ids_fp, 'r') as ids_f:
         for line in ids_f:
             line = line.strip().split()
-            ids[line[0].split(':')[0]] = line[1]
+            id_c = line[0].split(':')[0]
+            if id_c not in ids:
+                ids[id_c] = line[1]
+            else:
+                raise ValueError("IDs are non-unique %s" % id_c)
     return ids
 
 
@@ -407,6 +411,17 @@ def write_results(genes_donor,
         A dictionary of genes, key are protein IDs values 5-element lists
     seq_recip: skbio.sequence.Sequence
         Sequence object for recipient genome
+
+    Returns
+    -------
+    donor_genome_nucl_fp: string
+        filepath to donor nucleotide sequence
+    donor_genome_aa_fp: string
+        filepath to donor protein sequences
+    recip_genome_nucl_fp: string
+        filepath to recipient nucleotide sequence (simulated)
+    recip_genome_aa_fp: string
+        filepath to recipient protein sequence
     """
     # output dir for simulated results
     simulated_dir = join(output_dir, "simulated")
@@ -451,39 +466,10 @@ def simulate_hgts(seq_donor,
 
     Parameters
     ----------
-    seq_donor: skbio.sequence.Sequence
-        Sequence object for donor genome
-    genes_donor: dictionary
-        a dictionary of genes (CDS) and their info, with the key being the
-        protein IDs and the value being a 5-element list including the
-        translated sequence, the raw nucleotide sequence, the start and end
-        positions in the donor genome
-    seq_recip: skbio.sequence.Sequence
-        Sequence object for recipient genome
-    genes_recip: dictionary
-        a dictionary of genes (CDS) and their info, with the key being the
-        protein IDs and the value being a 5-element list including the
-        translated sequence, the raw nucleotide sequence, the start and end
-        positions in the recipient genome
-    donor_genome_fp: string
-        file path to donor genome
-    recip_genome_fp: string
-        file path to recipient genome
-    output_dir: string
-        path to output directory
-    percentage_hgts: float
-        percentage of HGT genes to simulate (of total genes in recipient
-        genome)
-    orthologous_rep_prob: float
-        rate of orthologous replacement HGTs
     log_f: file descriptor
         Log file descriptor
     threads: integer
         number of threads to use
-
-    Returns
-    -------
-
     """
     # output dir for OrthoFinder results
     proteomes_dir = join(output_dir, "proteomes")
@@ -600,6 +586,8 @@ def simulate_genbank(donor_genbank_fp,
         sys.stdout.write("\tDone.\n")
 
     return simulate_hgts(
+        threads=threads,
+        verbose=verbose,
         seq_donor=seq_donor,
         genes_donor=genes_donor,
         seq_recip=seq_recip,
@@ -609,9 +597,7 @@ def simulate_genbank(donor_genbank_fp,
         output_dir=output_dir,
         percentage_hgts=percentage_hgts,
         orthologous_rep_prob=orthologous_rep_prob,
-        log_f=log_f,
-        threads=threads,
-        verbose=verbose)
+        log_f=log_f)
 
 
 @click.command()

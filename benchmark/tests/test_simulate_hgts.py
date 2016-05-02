@@ -132,8 +132,12 @@ class SimulateHGTsTests(TestCase):
         """
         launch_orthofinder(self.proteomes_dir, 1, verbose=True)
         date = time.strftime("%c").split()
+        day = date[2]
+        if int(day) < 10:
+            day = "0%s" % day
         results_dir = join(
-            self.proteomes_dir, "Results_%s%s" % (date[1], date[2]))
+            self.proteomes_dir, "Results_%s%s" % (date[1], day))
+        print(results_dir)
         orthogroups_exp = [['YP_002468181.1', 'YP_004590122.1'],
                            ['YP_004590123.1', 'YP_002468184.1'],
                            ['YP_002468032.1', 'YP_004590028.1']]
@@ -152,8 +156,11 @@ class SimulateHGTsTests(TestCase):
         """
         launch_orthofinder(self.proteomes_dir, 1)
         date = time.strftime("%c").split()
+        day = date[2]
+        if int(day) < 10:
+            day = "0%s" % day
         results_dir = join(
-            self.proteomes_dir, "Results_%s%s" % (date[1], date[2]),
+            self.proteomes_dir, "Results_%s%s" % (date[1], day),
             "WorkingDirectory")
         species_ids, sequence_ids, orthogroups_act =\
             parse_orthofinder(results_dir)
