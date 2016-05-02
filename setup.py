@@ -21,7 +21,8 @@ classes = """
     Topic :: Software Development :: Libraries :: Application Frameworks
     Topic :: Software Development :: Libraries :: Python Modules
     Programming Language :: Python
-    Programming Language :: Python :: 2.7
+    Programming Language :: Python :: 3.4
+    Programming Language :: Python :: 3.5
     Programming Language :: Python :: Implementation :: CPython
     Operating System :: POSIX :: Linux
     Operating System :: MacOS :: MacOS X
@@ -44,15 +45,10 @@ setup(name='wgshgt',
       package_data={},
       scripts=glob('benchmark/*py') + glob('distance-method/*py') +
       glob('benchmark/tests/*py'),
-      extras_require={'test': ["nose >= 0.10.1", "pep8"],
-                      'doc': ["Sphinx >= 1.2.2", "sphinx-bootstrap-theme"]},
-      install_requires=['click>=6.0',
-                        'numpy >= 1.7',
-                        'scipy > 0.13.0',
-                        'scikit-bio == 0.4.1-dev'],
-      # using RNAer's development branch with GenBank support
-      dependency_links=[('https://github.com/RNAer/scikit-bio/archive/micronota.zip'
-                         '#egg=scikit-bio-0.4.1-dev')],
+      extras_require={'test': ["nose", "pep8", "flake8"],
+                      'doc': ["Sphinx == 1.3.3"]},
+      install_requires=['click >= 6',
+                        'scikit-bio >= 0.4.0'],
       classifiers=classifiers
       )
 

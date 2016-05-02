@@ -1,7 +1,8 @@
 language: python
 sudo: false
 env:
-  - PYTHON_VERSION=2.7
+  - PYTHON_VERSION="3.4"
+  - PYTHON_VERSION="3.5"
 before_install:
   - wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
@@ -9,15 +10,27 @@ before_install:
   - export PATH="$HOME/miniconda/bin:$PATH"
   - conda config --set always_yes yes --set changeps1 no
   - conda config --add channels https://conda.anaconda.org/biocore
+  - conda config --add channels https://conda.anaconda.org/mortonjt
   - conda update -q conda
   - conda info -a
-  # Installing RANGER
+  # Install MCL 
+  - wget http://micans.org/mcl/src/mcl-14-137.tar.gz
+  - tar zxvf mcl-14-137.tar.gz
+  - mkdir mcl-14-137-install
+  - export MCL_INSTALL_DIR=$PWD/mcl-14-137-install
+  - cd mcl-14-137
+  - ./configure --prefix=$MCL_INSTALL_DIR
+  - make
+  - make install
+  - cd ..
+  - export PATH=$MCL_INSTALL_DIR/bin:$PATH
+  # Install RANGER
   - wget http://compbio.mit.edu/ranger-dtl/ranger-dtl-linux.tar.gz
   - tar zxvf ranger-dtl-linux.tar.gz
   - export PATH=$PWD/ranger-dtl-linux:$PATH
-  # Installing Java goodies
+  # Install Java goodies
   - mkdir java-files
-  # Installing PhyloNet
+  # Install PhyloNet
   - wget http://bioinfo.cs.rice.edu/sites/g/files/bxs266/f/kcfinder/files/PhyloNet_3.5.7.jar -O java-files/PhyloNet_3.5.7.jar
 install:
   # install a few of the dependencies that pip would otherwise try to install
@@ -25,7 +38,13 @@ install:
   - conda create -n test_env python=$PYTHON_VERSION --file ci/conda_requirements.txt
   - source activate test_env
   - pip install -r ci/pip_requirements.txt
-  - pip install --process-dependency-links .
+  - pip install .
+  # Install OrthoFinder (python 3 script, requires before_install dependencies)
+  - wget https://github.com/ekopylova/OrthoFinder/archive/0.4.python3.tar.gz
+  - tar zxvf 0.4.python3.tar.gz
+  - chmod 744 OrthoFinder-0.4.python3/orthofinder.py
+  - export PATH=$PWD/OrthoFinder-0.4.python3:$PATH
+  - orthofinder.py --help
 script:
   - nosetests --with-doctest --with-coverage
   - flake8 benchmark/*.py benchmark/tests/*.py distance-method/*.py
