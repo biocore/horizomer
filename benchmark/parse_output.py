@@ -117,7 +117,6 @@ def parse_darkhorse(input_f, low_lpi=0.0, high_lpi=0.6, return_genomes=False):
     pass
 
 
-
 def parse_output(hgt_results_fp, method):
     """Call parse_hgts() based on HGT detection method used.
 

@@ -44,7 +44,8 @@ then
     echo "parse_hgts = ${parse_hgts}"
 fi
 
-## Default LPI upper bound
+## Default LPI upper bound (used by DarkHorse)
+## See http://darkhorse.ucsd.edu/tutorial.html
 if [ "${lpi_upper}" == "None" ]
 then
     lpi_upper="0.6"
