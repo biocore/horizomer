@@ -120,7 +120,9 @@ class ParseOutputTests(TestCase):
     def test_parse_darkhorse(self):
         """Test functionality of parse_darkhorse
         """
-        pass
+        input_f = "none.txt"
+        rt = parse_darkhorse(input_f)
+        self.assertTrue(rt, None)
 
 
 trex_output_hgt = """
