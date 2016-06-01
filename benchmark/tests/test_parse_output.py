@@ -15,7 +15,8 @@ from skbio.util import remove_files
 
 from benchmark.parse_output import (parse_hgts,
                                     parse_consel,
-                                    parse_output)
+                                    parse_output,
+                                    parse_darkhorse)
 
 
 class ParseOutputTests(TestCase):
