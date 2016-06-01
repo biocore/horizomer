@@ -117,6 +117,11 @@ class ParseOutputTests(TestCase):
                           hgt_results_fp=self.consel_output_hgt_fp,
                           method="Consel")
 
+    def test_parse_darkhorse(self):
+        """Test functionality of parse_darkhorse
+        """
+        pass
+
 
 trex_output_hgt = """
 hgt : reading options
