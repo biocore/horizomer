@@ -116,10 +116,10 @@ class ParseOutputTests(TestCase):
                               method="riata-hgt")
         self.assertEqual(output_exp, output)
 
-    def test_parse_output(self):
-        """Test functionality of parse_output
+    def test_parse_output_empty(self):
+        """Test functionality of parse_output with empty file
         """
-        output_exp = 'NaN'       
+        output_exp = 'NaN'
         output = parse_output(hgt_results_fp=self.empty_output_hgt_fp,
                               method="riata-hgt")
         self.assertEqual(output_exp, output)
