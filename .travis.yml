@@ -31,14 +31,14 @@ before_install:
   - wget http://www.tcoffee.org/Packages/Stable/Latest/linux/T-COFFEE_installer_Version_11.00.8cbe486_linux_x64.tar.gz
   - tar zxvf T-COFFEE_installer_Version_11.00.8cbe486_linux_x64.tar.gz
   - export PATH=$PWD/T-COFFEE_installer_Version_11.00.8cbe486_linux_x64/bin:$PATH
-  # INSTALL TRIMAL
+  # Install TRIMAL
   - wget https://github.com/scapella/trimal/archive/v1.4.1.tar.gz
   - tar zxvf v1.4.1.tar.gz
   - cd trimal-1.4.1/source
   - make
   - export PATH=$PWD:$PATH
   - cd ../..
-  # INSTALL PHYML
+  # Install PHYML
   - wget http://www.atgc-montpellier.fr/download/binaries/phyml/PhyML-3.1.zip
   - unzip PhyML-3.1.zip
   - mv ./PhyML-3.1/PhyML-3.1_linux64 ./PhyML-3.1/phyml
