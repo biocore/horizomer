@@ -123,7 +123,7 @@ class ParseOutputTests(TestCase):
         """
         input_f = "none.txt"
         rt = parse_darkhorse(input_f)
-        self.assertTrue(rt, None)
+        self.assertEqual(rt, None)
 
 
 trex_output_hgt = """

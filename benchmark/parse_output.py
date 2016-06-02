@@ -114,7 +114,7 @@ def parse_darkhorse(input_f, low_lpi=0.0, high_lpi=0.6, return_genomes=False):
     species tree and a tab-separated file of putative HGTs using the LPI
     bounds.
     """
-    pass
+    return None
 
 
 def parse_output(hgt_results_fp, method):
