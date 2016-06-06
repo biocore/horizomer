@@ -89,6 +89,34 @@ def parse_consel(input_f):
     return pvalues
 
 
+def parse_darkhorse(input_f, low_lpi=0.0, high_lpi=0.6, return_genomes=False):
+    """ TODO: Parse output of DarkHorse (smry file).
+
+    Paramters
+    ---------
+    input_f: string
+        file descriptor for Consel output results
+    low_lpi: float
+        lower LPI (lineage probability index) score bound
+    high_lpi: float
+        upper LPI score bound
+    return_genomes: boolean
+        if True, return genome tax_id
+
+    Returns
+    -------
+    number_of_hgts: string
+        number of HGTs reported by a tool, or NaN if an entry was not found
+
+    Notes
+    -----
+    Parse output of DarkHorse to return tax_ids of candidate genomes for
+    species tree and a tab-separated file of putative HGTs using the LPI
+    bounds.
+    """
+    return None
+
+
 def parse_output(hgt_results_fp, method):
     """Call parse_hgts() based on HGT detection method used.
 
@@ -114,6 +142,8 @@ def parse_output(hgt_results_fp, method):
                                 method=method)
         elif method == 'consel':
             output = parse_consel(input_f=input_f)
+        elif method == 'darkhorse':
+            output = parse_darkhorse(input_f=input_f)
         else:
             raise ValueError("Method is not supported: %s" % method)
         return output
@@ -124,6 +154,11 @@ def parse_output(hgt_results_fp, method):
               type=click.Path(resolve_path=True, readable=True, exists=True,
                               file_okay=True),
               help='Output file containing HGT information')
+@click.option('--ncbi-nr', required=False,
+              type=click.Path(resolve_path=True, readable=True, exists=True,
+                              file_okay=True),
+              help='NCBI nr database in FASTA format to link'
+                   'taxon ids with accession numbers for DarkHorse output')
 @click.option('--method', required=True,
               type=click.Choice(['trex', 'ranger-dtl',
                                  'riata-hgt', 'consel',

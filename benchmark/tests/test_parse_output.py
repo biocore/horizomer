@@ -15,7 +15,8 @@ from skbio.util import remove_files
 
 from benchmark.parse_output import (parse_hgts,
                                     parse_consel,
-                                    parse_output)
+                                    parse_output,
+                                    parse_darkhorse)
 
 
 class ParseOutputTests(TestCase):
@@ -50,12 +51,18 @@ class ParseOutputTests(TestCase):
             self.working_dir, "consel_output_hgt.txt")
         with open(self.consel_output_hgt_fp, 'w') as tmp:
             tmp.write(consel_output_hgt)
+        # empty output
+        self.empty_output_hgt_fp = join(
+            self.working_dir, "empty_output_hgt.txt")
+        with open(self.empty_output_hgt_fp, 'w') as tmp:
+            tmp.write(empty_output_hgt)
         # list of files to remove
         self.files_to_remove = [self.trex_output_hgt_fp,
                                 self.rangerdtl_output_hgt_fp,
                                 self.riatahgt_output_hgt_fp,
                                 self.jane4_output_hgt_fp,
-                                self.consel_output_hgt_fp]
+                                self.consel_output_hgt_fp,
+                                self.empty_output_hgt_fp]
 
     def tearDown(self):
         remove_files(self.files_to_remove)
@@ -109,6 +116,14 @@ class ParseOutputTests(TestCase):
                               method="riata-hgt")
         self.assertEqual(output_exp, output)
 
+    def test_parse_output_empty(self):
+        """Test functionality of parse_output with empty file
+        """
+        output_exp = 'NaN'
+        output = parse_output(hgt_results_fp=self.empty_output_hgt_fp,
+                              method="riata-hgt")
+        self.assertEqual(output_exp, output)
+
     def test_parse_output_error(self):
         """Test functionality of parse_output passing unsupported method
         """
@@ -117,6 +132,16 @@ class ParseOutputTests(TestCase):
                           hgt_results_fp=self.consel_output_hgt_fp,
                           method="Consel")
 
+    def test_parse_darkhorse(self):
+        """Test functionality of parse_darkhorse
+        """
+        input_f = "none.txt"
+        rt = parse_darkhorse(input_f)
+        self.assertEqual(rt, None)
+
+
+empty_output_hgt = """
+"""
 
 trex_output_hgt = """
 hgt : reading options

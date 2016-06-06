@@ -38,7 +38,7 @@ gene_tree_dir=$8
 # gene multiple sequence alignment dir
 gene_msa_dir=$9
 # DIAMOND alignments for query genome
-diamond_tabular_query=${10}
+diamond_tabular_query_fp=${10}
 # PhyloNet install dir
 phylonet_install_dir=${11}
 # Jane 4 install dir
@@ -73,6 +73,8 @@ hgtector_install_dp=${25}
 # GI-to-TaxID translation table
 # ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/gi_taxid_prot.zip
 gi_to_taxid_fp=${26}
+# Parse HGTs for DarkHorse
+parse_hgts=${27}
 # qsub params
 qsub="-q route -m abe -M jenya.kopylov@gmail.com -l nodes=1:ppn=${threads} -l walltime=230:00:00 -l pmem=10gb -l mem=20gb"
 
@@ -130,18 +132,8 @@ then
     init_command="sleep 1"
 fi
 
-# launch job
-function submit_job {
-  cmd=$1
-  tool=$2
-  if [ "${qsub_env}" == "true" ]
-  then
-      echo "source ${bash_config}; \
-            ${cmd}" | qsub $qsub -N run_$tool; sleep 2
-  else
-      echo "${cmd}"
-  fi
-}
+# load submit_job function
+. $scripts_dir/utils.sh
 
 ## run T-REX
 cmd="${init_command}; \
@@ -227,19 +219,24 @@ submit_job "${cmd}" genemark
 cmd="${init_command}; \
       bash ${scripts_dir}/run_darkhorse.sh ${nr_fp} \
                                            ${diamond_db_nr} \
-                                           ${diamond_tabular_query} \
+                                           ${diamond_tabular_query_fp} \
                                            ${darkhorse_config_fp} \
                                            ${darkhorse_install_dp} \
                                            ${query_species_coding_seqs_fp} \
                                            ${working_dir} \
-                                           ${threads}"
+                                           ${threads} \
+                                           ${verbose} \
+                                           ${lpi_upper} \
+                                           ${lpi_lower} \
+                                           ${scripts_dir} \
+                                           ${hgt_summary}.darkhorse.txt"
 submit_job "${cmd}" darkhorse
 
 ## run HGTector
 cmd="${init_command}; \
       bash ${scripts_dir}/run_hgtector.sh ${nr_fp} \
                                           ${diamond_db_nr} \
-                                          ${diamond_tabular_query} \
+                                          ${diamond_tabular_query_fp} \
                                           ${hgtector_config_fp} \
                                           ${hgtector_install_dp} \
                                           ${query_species_coding_seqs_fp} \
