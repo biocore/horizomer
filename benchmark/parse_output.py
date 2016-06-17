@@ -117,6 +117,7 @@ def parse_darkhorse(input_f, low_lpi=0.0, high_lpi=0.6, return_genomes=False):
     """
     return None
 
+
 def parse_hgtector(input_f):
     """ Parse output of HGTector version 0.2.1.
 
@@ -136,14 +137,14 @@ def parse_hgtector(input_f):
     working_dp = input_f.readlines()[-1].rstrip('\r\n')
     if not os.path.isdir(working_dp):
         return 'NaN'
-    
+
     hgt_fp = os.path.join(working_dp, 'result', 'HGT', 'id.txt')
     if not os.path.isfile(hgt_fp):
         return 'NaN'
     hgts = []
     with open(hgt_fp) as f:
         hgts = f.read().splitlines()
-    
+
     detail_fp = os.path.join(working_dp, 'result', 'detail', 'id.txt')
     if not os.path.isfile(detail_fp):
         return 'NaN'
@@ -153,19 +154,23 @@ def parse_hgtector(input_f):
     fin = open(detail_fp, 'r')
     for line in fin:
         line = line.rstrip('\r\n')
-        if not line: continue
+        if not line:
+            continue
         l = line.split('\t')
-        if l[0] == 'Query': continue
-        if not l[0] in hgts: continue
-        if not '|' in l[-1]: continue
+        if l[0] == 'Query':
+            continue
+        if not l[0] in hgts:
+            continue
+        if '|' not in l[-1]:
+            continue
         m = l[-1].split('|')
-        hgt_list[l[0]] = [m[4], m[2], m[3]] # donor_tax_id, pct_id, pct_coverage
+        hgt_list[l[0]] = [m[4], m[2], m[3]]
         if not m[4] in donor_2_lineage:
             donor_2_lineage[m[4]] = []
         if not m[4] in donor_2_species:
             donor_2_species[m[4]] = 'NA'
     fin.close()
-    
+
     taxadb_fp = os.path.join(working_dp, 'taxonomy', 'taxa.db')
     if not os.path.isfile(taxadb_fp):
         return 'NaN'
@@ -173,9 +178,11 @@ def parse_hgtector(input_f):
     fin = open(taxadb_fp, 'r')
     for line in fin:
         line = line.rstrip('\r\n')
-        if not line: continue
+        if not line:
+            continue
         l = line.split('\t')
-        if not l[0] in donor_2_lineage: continue
+        if not l[0] in donor_2_lineage:
+            continue
         if l[3]:
             if l[0] in donor_2_species:
                 if donor_2_species[l[0]] == 'NA':
@@ -198,7 +205,8 @@ def parse_hgtector(input_f):
     fin = open(ranksdb_fp, 'r')
     for line in fin:
         line = line.rstrip('\r\n')
-        if not line: continue
+        if not line:
+            continue
         l = line.split('\t')
         if l[0] in taxid_2_name:
             taxid_2_name[l[0]] = l[1]
@@ -211,12 +219,15 @@ def parse_hgtector(input_f):
 
     for i in donor_2_lineage:
         lineage = []
-    	for j in donor_2_lineage[i]:
+        for j in donor_2_lineage[i]:
             lineage.append(taxid_2_name[j])
         donor_2_lineage[i] = lineage
 
     for i in hgt_list:
-        hgt_list[i] = [hgt_list[i][0], donor_2_species[hgt_list[i][0]], ';'.join(donor_2_lineage[hgt_list[i][0]]), hgt_list[i][1], hgt_list[i][2]]
+        hgt_list[i] = [hgt_list[i][0], donor_2_species[hgt_list[i][0]],
+                       ';'.join(donor_2_lineage[hgt_list[i][0]]),
+                       hgt_list[i][1],
+                       hgt_list[i][2]]
 
     output = ''
     for i in hgts:
