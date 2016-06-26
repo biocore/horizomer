@@ -58,7 +58,8 @@ mkdir -p ${working_dir}/hgtector
 mkdir -p ${working_dir}/hgtector/input
 cp $query_species_coding_seqs_fp ${working_dir}/hgtector/input/id.faa
 mkdir -p ${working_dir}/hgtector/presearch
-ln -s ${diamond_tabular_query} ${working_dir}/hgtector/presearch/id.m8
+ln -s $(readlink -f ${diamond_tabular_query}) \
+   ${working_dir}/hgtector/presearch/id.m8
 
 ## create config.txt (if wasn't passed)
 if [ "${hgtector_config_file}" == "None" ]
@@ -79,14 +80,24 @@ then
     ignoreSubspecies=1\n\
     graphFp=1\n\
     exOutlier=2\n" > "$hgtector_config_file"
-    if [ "${tax_id}" != "None" ]
+    if [ "$taxid" != "None" ]
     then
         echo "selfTax=id:$taxid" >> "$hgtector_config_file"
+    fi
+    if [ "$threads" != "None" ]
+    then
+        echo "threads=$threads" >> "$hgtector_config_file"
     fi
 else
     cp -f $hgtector_config_file ${working_dir}/hgtector/config.txt
 fi
 
 perl ${hgtector_install_dir}/HGTector.pl ${working_dir}/hgtector
-## print the working directory path
-readlink -f ${working_dir}/hgtector
+
+## print predicted HGTs
+echo ""
+echo Putatively HGT-derived genes:
+# query donor_taxid donor_species donor_lineage identity coverage
+awk -F '\t' -v OFS='\t' \
+    '{if ($8 == "1") print $1, $9, $13, $14, $15, $11, $12;}' \
+    ${working_dir}/hgtector/result/detail/id.txt
