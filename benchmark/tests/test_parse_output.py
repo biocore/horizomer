@@ -16,7 +16,8 @@ from skbio.util import remove_files
 from benchmark.parse_output import (parse_hgts,
                                     parse_consel,
                                     parse_output,
-                                    parse_darkhorse)
+                                    parse_darkhorse,
+                                    parse_hgtector)
 
 
 class ParseOutputTests(TestCase):
@@ -51,6 +52,11 @@ class ParseOutputTests(TestCase):
             self.working_dir, "consel_output_hgt.txt")
         with open(self.consel_output_hgt_fp, 'w') as tmp:
             tmp.write(consel_output_hgt)
+        # HGTector output
+        self.hgtector_output_hgt_fp = join(
+            self.working_dir, "hgtector_output_hgt.txt")
+        with open(self.hgtector_output_hgt_fp, 'w') as tmp:
+            tmp.write(hgtector_output_hgt)
         # empty output
         self.empty_output_hgt_fp = join(
             self.working_dir, "empty_output_hgt.txt")
@@ -62,6 +68,7 @@ class ParseOutputTests(TestCase):
                                 self.riatahgt_output_hgt_fp,
                                 self.jane4_output_hgt_fp,
                                 self.consel_output_hgt_fp,
+                                self.hgtector_output_hgt_fp,
                                 self.empty_output_hgt_fp]
 
     def tearDown(self):
@@ -138,6 +145,15 @@ class ParseOutputTests(TestCase):
         input_f = "none.txt"
         rt = parse_darkhorse(input_f)
         self.assertEqual(rt, None)
+
+    def test_parse_hgtector(self):
+        """Test functionality of parse_hgtector
+        """
+        n = 0
+        with open(self.hgtector_output_hgt_fp, 'r') as f:
+            output = parse_hgtector(input_f=f)
+            n = len(output.split('\n'))
+        self.assertEqual(n, 3)
 
 
 empty_output_hgt = """
@@ -508,6 +524,94 @@ ect_hgts/input_tree.nwk_puzzle.pv
 #    1    2  -12.2  0.988  0.957 |  0.955  1.000  0.927  0.927  0.927  0.927 |
 #    2    1   12.2  0.012  0.043 |  0.045  5e-06  0.073  0.073  0.073  0.073 |
 
+"""
+
+hgtector_output_hgt = """
+|---------------------|
+|   HGTector v0.2.1   |
+|---------------------|
+
+Validating task...
+Done.
+
+Step 1: Searcher - batch protein sequence homology search.
+
+-> Searcher: Batch sequence homology searching and filtering. <-
+Reading input data...
+  id: 175 proteins.
+Done. 175 proteins from 1 set(s) to query.
+Pre-computed search results are found for 1 protein set(s).
+Reading taxonomy database... done. 1365685 records read.
+Reading protein-to-TaxID dictionary... done. 29249763 records read.
+Taxonomy of input protein sets:
+  id: Candidatus Carsonella ruddii PV (387662)
+Batch homology search of id (175 queries) started.
+  Importing pre-computed search results of id... done.
+Batch homology search of id (175 queries) completed.
+Batch homology search completed. searcher.pl exits.
+You may re-run searcher.pl to validate the results and finish incomplete searches.
+Or you may proceed with HGT prediction by running analyzer.pl.
+
+
+Step 2: Analyzer - predict HGT based on hit distribution statistics.
+
+-> Analyzer: Identify putative HGT-derived genes based on search results. <-
+Reading taxonomic information... done.
+Analyzing taxonomic information... done.
+  All input genomes belong to species Candidatus Carsonella ruddii (TaxID: 114186).
+  Choose one of the following parental taxonomic ranks as the close group:
+    genus Candidatus Carsonella (TaxID: 114185) (2 members).
+    family Halomonadaceae (TaxID: 28256) (51 members).
+    order Oceanospirillales (TaxID: 135619) (97 members).
+    class Gammaproteobacteria (TaxID: 1236) (1627 members).
+    phylum Proteobacteria (TaxID: 1224) (2933 members).
+  The program intelligently chose family Halomonadaceae.
+Analysis will work on the following taxonomic ranks:
+  Self: species Candidatus Carsonella ruddii (TaxID: 114186) (2 members),
+  Close: family Halomonadaceae (TaxID: 28256) (51 members),
+  Distal: all other organisms.
+Reading protein sets...done. 1 sets detected.
+Analyzing search results...
+0-------------25-------------50------------75------------100%
+id has 175 proteins. Analyzing...
+.............................................................
+ done.
+Raw data are saved in result/statistics/rawdata.txt.
+You may conduct further analyses on these data.
+
+Graphing fingerprints with R... done.
+Graphs are saved in result/statistics/.
+
+Computing statistics...
+  All protein sets:
+    Self group:
+      Skipped.
+    Close group:
+      Global cutoff (0.25) = 0.240.
+      Performing kernel density estimation... done.
+      N = 90, bandwidth = 2.918.
+      Kernel density estimation identified a cutoff 14.445 which is too large. Use global cutoff 0.240 instead.
+    Distal group:
+      Global cutoff (0.25) = 4.984.
+      Performing kernel density estimation... done.
+      N = 90, bandwidth = 37.830.
+      Cutoff is 48.374 (determined by kernel density estimation).
+ done.
+Result is saved in result/statistics/fingerprint.txt.
+Predicting... done.
+Prediction results are saved in result/detail/.
+
+Step 3: Reporter - generate report for prediction results.
+
+-> Reporter: Generate reports of HGT prediction results. <-
+Report by donor organism generated.
+
+All steps completed.
+
+Putatively HGT-derived genes:
+WP_011672248.1	WP_011672421	372461	Buchnera aphidicola	Proteobacteria;Gammaproteobacteria;Enterobacteriales;Enterobacteriaceae;Buchnera;Buchnera aphidicola	37.5	99.14
+WP_045117937.1	WP_012995888	580331	Thermoanaerobacter italicus	Firmicutes;Clostridia;Thermoanaerobacterales;Thermoanaerobacteraceae;Thermoanaerobacter;Thermoanaerobacter italicus	42.6	93.84
+WP_045117933.1	WP_031565503	1122170	Legionella wadsworthii	Proteobacteria;Gammaproteobacteria;Legionellales;Legionellaceae;Legionella;Legionella wadsworthii	50.0	98.83
 """
 
 if __name__ == '__main__':
