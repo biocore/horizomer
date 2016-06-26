@@ -136,10 +136,13 @@ def parse_hgtector(input_f):
     reading = 0
     output = []
     for line in input_f:
-        if line.startswith('Putatively HGT-derived genes:'):
+        line = line.rstrip('\r\n')
+        if not line:
+            continue
+        elif line.startswith('Putatively HGT-derived genes:'):
             reading = 1
         elif reading:
-            output.append(line.rstrip('\r\n'))
+            output.append(line)
     return '\n'.join(output)
 
 
