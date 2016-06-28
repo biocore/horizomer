@@ -12,7 +12,6 @@
 
 import click
 import sys
-import os
 
 
 # T-REX version 3.6
