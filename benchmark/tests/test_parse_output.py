@@ -549,7 +549,8 @@ Batch homology search of id (175 queries) started.
   Importing pre-computed search results of id... done.
 Batch homology search of id (175 queries) completed.
 Batch homology search completed. searcher.pl exits.
-You may re-run searcher.pl to validate the results and finish incomplete searches.
+You may re-run searcher.pl to validate the results and finish incomplete sear\
+ches.
 Or you may proceed with HGT prediction by running analyzer.pl.
 
 
@@ -558,7 +559,8 @@ Step 2: Analyzer - predict HGT based on hit distribution statistics.
 -> Analyzer: Identify putative HGT-derived genes based on search results. <-
 Reading taxonomic information... done.
 Analyzing taxonomic information... done.
-  All input genomes belong to species Candidatus Carsonella ruddii (TaxID: 114186).
+  All input genomes belong to species Candidatus Carsonella ruddii (TaxID: 11\
+4186).
   Choose one of the following parental taxonomic ranks as the close group:
     genus Candidatus Carsonella (TaxID: 114185) (2 members).
     family Halomonadaceae (TaxID: 28256) (51 members).
@@ -590,7 +592,8 @@ Computing statistics...
       Global cutoff (0.25) = 0.240.
       Performing kernel density estimation... done.
       N = 90, bandwidth = 2.918.
-      Kernel density estimation identified a cutoff 14.445 which is too large. Use global cutoff 0.240 instead.
+      Kernel density estimation identified a cutoff 14.445 which is too large\
+. Use global cutoff 0.240 instead.
     Distal group:
       Global cutoff (0.25) = 4.984.
       Performing kernel density estimation... done.
@@ -609,9 +612,15 @@ Report by donor organism generated.
 All steps completed.
 
 Putatively HGT-derived genes:
-WP_011672248.1	WP_011672421	372461	Buchnera aphidicola	Proteobacteria;Gammaproteobacteria;Enterobacteriales;Enterobacteriaceae;Buchnera;Buchnera aphidicola	37.5	99.14
-WP_045117937.1	WP_012995888	580331	Thermoanaerobacter italicus	Firmicutes;Clostridia;Thermoanaerobacterales;Thermoanaerobacteraceae;Thermoanaerobacter;Thermoanaerobacter italicus	42.6	93.84
-WP_045117933.1	WP_031565503	1122170	Legionella wadsworthii	Proteobacteria;Gammaproteobacteria;Legionellales;Legionellaceae;Legionella;Legionella wadsworthii	50.0	98.83
+WP_011672248.1	WP_011672421	372461	Buchnera aphidicola	Proteobacteria;Ga\
+mmaproteobacteria;Enterobacteriales;Enterobacteriaceae;Buchnera;Buchnera aphi\
+dicola	37.5	99.14
+WP_045117937.1	WP_012995888	580331	Thermoanaerobacter italicus	Firmicute\
+s;Clostridia;Thermoanaerobacterales;Thermoanaerobacteraceae;Thermoanaerobacte\
+r;Thermoanaerobacter italicus	42.6	93.84
+WP_045117933.1	WP_031565503	1122170	Legionella wadsworthii	Proteobacteri\
+a;Gammaproteobacteria;Legionellales;Legionellaceae;Legionella;Legionella wads\
+worthii	50.0	98.83
 """
 
 if __name__ == '__main__':
