@@ -5,7 +5,6 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
-# chmod 644
 
 from unittest import TestCase, main
 from shutil import rmtree
