@@ -151,7 +151,7 @@ class ParseOutputTests(TestCase):
         """
         with open(self.hgtector_output_hgt_fp, 'r') as f:
             output = parse_hgtector(f)
-        self.assertEqual(len(output.split('\n')), 3)
+        self.assertEqual(len(output.split('\n')), 4)
 
 
 empty_output_hgt = """
