@@ -149,11 +149,9 @@ class ParseOutputTests(TestCase):
     def test_parse_hgtector(self):
         """Test functionality of parse_hgtector
         """
-        n = 0
         with open(self.hgtector_output_hgt_fp, 'r') as f:
-            output = parse_hgtector(input_f=f)
-            n = len(output.split('\n'))
-        self.assertEqual(n, 3)
+            output = parse_hgtector(f)
+        self.assertEqual(len(output.split('\n'), 3)
 
 
 empty_output_hgt = """
