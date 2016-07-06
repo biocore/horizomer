@@ -128,9 +128,7 @@ def parse_hgtector(input_f):
     Returns
     -------
     output: list
-        list of putative HGTs in tab-separated format
-        columns: query_id, donor_tax_id, donor_species, donor_lineage,
-        pct_id, pct_coverage
+        list of putative HGTs
     """
     reading = 0
     output = []
@@ -141,8 +139,8 @@ def parse_hgtector(input_f):
         elif line.startswith('Putatively HGT-derived genes:'):
             reading = 1
         elif reading:
-            output.append(line)
-    return '\n'.join(output)
+            output.append(line.split('\t')[0])
+    return output
 
 
 def parse_output(hgt_results_fp, method):
