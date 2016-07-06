@@ -139,19 +139,19 @@ class ParseOutputTests(TestCase):
                           hgt_results_fp=self.consel_output_hgt_fp,
                           method="Consel")
 
+    def test_parse_hgtector(self):
+        """Test functionality of parse_hgtector
+        """
+        with open(self.hgtector_output_hgt_fp, 'r') as f:
+            output = parse_hgtector(f)
+        self.assertEqual(len(output), 3)
+
     def test_parse_darkhorse(self):
         """Test functionality of parse_darkhorse
         """
         input_f = "none.txt"
         rt = parse_darkhorse(input_f)
         self.assertEqual(rt, None)
-
-    def test_parse_hgtector(self):
-        """Test functionality of parse_hgtector
-        """
-        with open(self.hgtector_output_hgt_fp, 'r') as f:
-            output = parse_hgtector(f)
-        self.assertEqual(len(output.split('\n')), 4)
 
 
 empty_output_hgt = """
