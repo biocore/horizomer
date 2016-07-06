@@ -140,11 +140,12 @@ class ParseOutputTests(TestCase):
                           method="Consel")
 
     def test_parse_hgtector(self):
-        """Test functionality of parse_hgtector
+        """ Test functionality of parse_hgtector
         """
+        output_exp = ['WP_011672248.1', 'WP_045117937.1', 'WP_045117933.1']
         with open(self.hgtector_output_hgt_fp, 'r') as f:
-            output = parse_hgtector(f)
-        self.assertEqual(len(output), 3)
+            output = parse_hgtector(input_f=f)
+        self.assertListEqual(output, output_exp)
 
     def test_parse_darkhorse(self):
         """Test functionality of parse_darkhorse
