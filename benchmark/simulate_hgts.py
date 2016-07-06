@@ -31,6 +31,7 @@
 #      in whole genome comparisons dramatically improves orthogroup inference
 #      accuracy, GenomeBiology, 16:157
 #
+# chmod 644
 
 import sys
 import click
