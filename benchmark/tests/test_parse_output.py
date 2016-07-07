@@ -122,6 +122,14 @@ class ParseOutputTests(TestCase):
         output = parse_output(hgt_results_fp=self.riatahgt_output_hgt_fp,
                               method="riata-hgt")
         self.assertEqual(output_exp, output)
+        output_exp = ["WP_011672248.1", "WP_045117937.1", "WP_045117933.1"]
+        output = parse_output(hgt_results_fp=self.hgtector_output_hgt_fp,
+                              method="hgtector")
+        self.assertEqual(output_exp, output)
+        output_exp = None
+        output = parse_output(hgt_results_fp=self.empty_output_hgt_fp,
+                              method="darkhorse")
+        self.assertEqual(output_exp, output)
 
     def test_parse_output_empty(self):
         """Test functionality of parse_output with empty file
