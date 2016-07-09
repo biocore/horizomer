@@ -556,12 +556,12 @@ hia glossinidia
 WP_011672274.1	530		502	1.87	34.33	316.29		WP_035473704	2.5e-\
 208	67.7	99.81	1492922	Gammaproteobacteria bacterium MFB021	Proteobac\
 teria;Gammaproteobacteria;Gammaproteobacteria bacterium MFB021
-WP_011672320.1	97		1	1.00	0.00	0.00		
+WP_011672320.1	97		1	1.00	0.00	0.00\t\t
 WP_011672350.1	554		502	1.64	16.08	159.98		WP_028305369	6.7e-\
 119	42.3	96.57	1122617	Oceanospirillum maris	Proteobacteria;Gammaprote\
 obacteria;Oceanospirillales;Oceanospirillaceae;Oceanospirillum;Oceanospirillu\
 m maris
-WP_011672309.1	178		2	1.62	0.00	0.00		
+WP_011672309.1	178		2	1.62	0.00	0.00\t\t
 WP_011672248.1	700		487	1.50	0.00	118.70	1	WP_011672421	4.1e-\
 113	37.5	99.14	372461	Buchnera aphidicola	Proteobacteria;Gammaproteobac\
 teria;Enterobacteriales;Enterobacteriaceae;Buchnera;Buchnera aphidicola
@@ -575,8 +575,8 @@ WP_045117937.1	146		247	1.63	0.00	91.28	1	WP_012995888	1.9e-\
 25	42.6	93.84	580331	Thermoanaerobacter italicus	Firmicutes;Clostridia\
 ;Thermoanaerobacterales;Thermoanaerobacteraceae;Thermoanaerobacter;Thermoanae\
 robacter italicus
-WP_011672284.1	151		2	1.59	0.00	0.00		
-WP_011672324.1	332		2	1.40	0.00	0.00		
+WP_011672284.1	151		2	1.59	0.00	0.00\t\t
+WP_011672324.1	332		2	1.40	0.00	0.00\t\t
 WP_011672384.1	1292		502	1.60	10.70	141.55		WP_011672422	1\
 .9e-233	37.4	98.84	372461	Buchnera aphidicola	Proteobacteria;Gammaprote\
 obacteria;Enterobacteriales;Enterobacteriaceae;Buchnera;Buchnera aphidicola
@@ -584,11 +584,11 @@ WP_045117931.1	337		502	1.78	14.57	234.72		WP_012674255	2.3e-\
 93	51.6	100.00	204536	Sulfurihydrogenibium azorense	Aquificae;Aquific\
 ae;Aquificales;Hydrogenothermaceae;Sulfurihydrogenibium;Sulfurihydrogenibium \
 azorense
-WP_011672391.1	171		3	1.74	0.32	0.00		
+WP_011672391.1	171		3	1.74	0.32	0.00\t\t
 WP_011672351.1	204		11	1.55	0.26	2.12		WP_053469245	1.5e-\
 23	36.4	95.59	1560217	Clostridium sp. L74	Firmicutes;Clostridia;Clostri\
 diales;Clostridiaceae;Clostridium;Clostridium sp. L74
-WP_011672228.1	151		2	1.39	0.00	0.00		
+WP_011672228.1	151		2	1.39	0.00	0.00\t\t
 WP_045117927.1	223		502	1.66	6.42	207.82		WP_041063045	7.0e-\
 51	49.1	98.65	1410383	Candidatus Tachikawaea gelatinosa	Proteobacteri\
 a;Gammaproteobacteria;Enterobacteriales;Enterobacteriaceae;Candidatus Tachika\
@@ -596,7 +596,7 @@ waea;Candidatus Tachikawaea gelatinosa
 WP_011672400.1	398		266	1.61	0.27	66.29		WP_014953873	2.4e-\
 65	40.7	97.99	859653	alpha proteobacterium HIMB5	Proteobacteria;Alphap\
 roteobacteria;Pelagibacterales;Pelagibacteraceae;alpha proteobacterium HIMB5
-WP_011672275.1	97		2	1.60	0.00	0.00		
+WP_011672275.1	97		2	1.60	0.00	0.00\t\t
 """
 
 if __name__ == '__main__':
