@@ -122,7 +122,13 @@ class ParseOutputTests(TestCase):
         output = parse_output(hgt_results_fp=self.riatahgt_output_hgt_fp,
                               method="riata-hgt")
         self.assertEqual(output_exp, output)
-        output_exp = ["WP_011672248.1", "WP_045117937.1", "WP_045117933.1"]
+        output_exp = ("WP_011672248.1\t372461\tBuchnera aphidicola\tProteobac"
+                      "teria;Gammaproteobacteria;Enterobacteriales;Enterobact"
+                      "eriaceae;Buchnera;Buchnera aphidicola\t37.5\t99.14\nWP"
+                      "_045117937.1\t580331\tThermoanaerobacter italicus\tFir"
+                      "micutes;Clostridia;Thermoanaerobacterales;Thermoanaero"
+                      "bacteraceae;Thermoanaerobacter;Thermoanaerobacter ital"
+                      "icus\t42.6\t93.84")
         output = parse_output(hgt_results_fp=self.hgtector_output_hgt_fp,
                               method="hgtector")
         self.assertEqual(output_exp, output)
@@ -150,10 +156,16 @@ class ParseOutputTests(TestCase):
     def test_parse_hgtector(self):
         """ Test functionality of parse_hgtector
         """
-        output_exp = ['WP_011672248.1', 'WP_045117937.1', 'WP_045117933.1']
+        output_exp = ("WP_011672248.1\t372461\tBuchnera aphidicola\tProteobac"
+                      "teria;Gammaproteobacteria;Enterobacteriales;Enterobact"
+                      "eriaceae;Buchnera;Buchnera aphidicola\t37.5\t99.14\nWP"
+                      "_045117937.1\t580331\tThermoanaerobacter italicus\tFir"
+                      "micutes;Clostridia;Thermoanaerobacterales;Thermoanaero"
+                      "bacteraceae;Thermoanaerobacter;Thermoanaerobacter ital"
+                      "icus\t42.6\t93.84")
         with open(self.hgtector_output_hgt_fp, 'r') as f:
             output = parse_hgtector(input_f=f)
-        self.assertListEqual(output, output_exp)
+        self.assertEqual(output, output_exp)
 
     def test_parse_darkhorse(self):
         """Test functionality of parse_darkhorse
@@ -534,100 +546,57 @@ ect_hgts/input_tree.nwk_puzzle.pv
 """
 
 hgtector_output_hgt = """
-|---------------------|
-|   HGTector v0.2.1   |
-|---------------------|
-
-Validating task...
-Done.
-
-Step 1: Searcher - batch protein sequence homology search.
-
--> Searcher: Batch sequence homology searching and filtering. <-
-Reading input data...
-  id: 175 proteins.
-Done. 175 proteins from 1 set(s) to query.
-Pre-computed search results are found for 1 protein set(s).
-Reading taxonomy database... done. 1365685 records read.
-Reading protein-to-TaxID dictionary... done. 29249763 records read.
-Taxonomy of input protein sets:
-  id: Candidatus Carsonella ruddii PV (387662)
-Batch homology search of id (175 queries) started.
-  Importing pre-computed search results of id... done.
-Batch homology search of id (175 queries) completed.
-Batch homology search completed. searcher.pl exits.
-You may re-run searcher.pl to validate the results and finish incomplete sear\
-ches.
-Or you may proceed with HGT prediction by running analyzer.pl.
-
-
-Step 2: Analyzer - predict HGT based on hit distribution statistics.
-
--> Analyzer: Identify putative HGT-derived genes based on search results. <-
-Reading taxonomic information... done.
-Analyzing taxonomic information... done.
-  All input genomes belong to species Candidatus Carsonella ruddii (TaxID: 11\
-4186).
-  Choose one of the following parental taxonomic ranks as the close group:
-    genus Candidatus Carsonella (TaxID: 114185) (2 members).
-    family Halomonadaceae (TaxID: 28256) (51 members).
-    order Oceanospirillales (TaxID: 135619) (97 members).
-    class Gammaproteobacteria (TaxID: 1236) (1627 members).
-    phylum Proteobacteria (TaxID: 1224) (2933 members).
-  The program intelligently chose family Halomonadaceae.
-Analysis will work on the following taxonomic ranks:
-  Self: species Candidatus Carsonella ruddii (TaxID: 114186) (2 members),
-  Close: family Halomonadaceae (TaxID: 28256) (51 members),
-  Distal: all other organisms.
-Reading protein sets...done. 1 sets detected.
-Analyzing search results...
-0-------------25-------------50------------75------------100%
-id has 175 proteins. Analyzing...
-.............................................................
- done.
-Raw data are saved in result/statistics/rawdata.txt.
-You may conduct further analyses on these data.
-
-Graphing fingerprints with R... done.
-Graphs are saved in result/statistics/.
-
-Computing statistics...
-  All protein sets:
-    Self group:
-      Skipped.
-    Close group:
-      Global cutoff (0.25) = 0.240.
-      Performing kernel density estimation... done.
-      N = 90, bandwidth = 2.918.
-      Kernel density estimation identified a cutoff 14.445 which is too large\
-. Use global cutoff 0.240 instead.
-    Distal group:
-      Global cutoff (0.25) = 4.984.
-      Performing kernel density estimation... done.
-      N = 90, bandwidth = 37.830.
-      Cutoff is 48.374 (determined by kernel density estimation).
- done.
-Result is saved in result/statistics/fingerprint.txt.
-Predicting... done.
-Prediction results are saved in result/detail/.
-
-Step 3: Reporter - generate report for prediction results.
-
--> Reporter: Generate reports of HGT prediction results. <-
-Report by donor organism generated.
-
-All steps completed.
-
-Putatively HGT-derived genes:
-WP_011672248.1	WP_011672421	372461	Buchnera aphidicola	Proteobacteria;Ga\
-mmaproteobacteria;Enterobacteriales;Enterobacteriaceae;Buchnera;Buchnera aphi\
-dicola	37.5	99.14
-WP_045117937.1	WP_012995888	580331	Thermoanaerobacter italicus	Firmicute\
-s;Clostridia;Thermoanaerobacterales;Thermoanaerobacteraceae;Thermoanaerobacte\
-r;Thermoanaerobacter italicus	42.6	93.84
-WP_045117933.1	WP_031565503	1122170	Legionella wadsworthii	Proteobacteri\
-a;Gammaproteobacteria;Legionellales;Legionellaceae;Legionella;Legionella wads\
-worthii	50.0	98.83
+HGTector result of id
+Query	Length	Product	Hits	Self	Close	Distal	HGT	Hit	E-value	Ident\
+ity	Coverage	TaxID	Organism	Lineage
+WP_011672393.1	252		414	1.52	0.53	108.57		WP_011069951	7.7e-\
+38	36.5	98.02	36870	Wigglesworthia glossinidia	Proteobacteria;Gammap\
+roteobacteria;Enterobacteriales;Enterobacteriaceae;Wigglesworthia;Wiggleswort\
+hia glossinidia
+WP_011672274.1	530		502	1.87	34.33	316.29		WP_035473704	2.5e-\
+208	67.7	99.81	1492922	Gammaproteobacteria bacterium MFB021	Proteobac\
+teria;Gammaproteobacteria;Gammaproteobacteria bacterium MFB021
+WP_011672320.1	97		1	1.00	0.00	0.00		
+WP_011672350.1	554		502	1.64	16.08	159.98		WP_028305369	6.7e-\
+119	42.3	96.57	1122617	Oceanospirillum maris	Proteobacteria;Gammaprote\
+obacteria;Oceanospirillales;Oceanospirillaceae;Oceanospirillum;Oceanospirillu\
+m maris
+WP_011672309.1	178		2	1.62	0.00	0.00		
+WP_011672248.1	700		487	1.50	0.00	118.70	1	WP_011672421	4.1e-\
+113	37.5	99.14	372461	Buchnera aphidicola	Proteobacteria;Gammaproteobac\
+teria;Enterobacteriales;Enterobacteriaceae;Buchnera;Buchnera aphidicola
+WP_045117922.1	455		502	1.75	0.41	198.03		WP_025368665	1.4e-\
+109	45.2	99.34	1009858	Buchnera aphidicola	Proteobacteria;Gammaproteobac\
+teria;Enterobacteriales;Enterobacteriaceae;Buchnera;Buchnera aphidicola
+WP_011672298.1	425		3	1.55	0.00	0.14		WP_011672587	1.5e-\
+22	31.5	82.35	372461	Buchnera aphidicola	Proteobacteria;Gammaproteobac\
+teria;Enterobacteriales;Enterobacteriaceae;Buchnera;Buchnera aphidicola
+WP_045117937.1	146		247	1.63	0.00	91.28	1	WP_012995888	1.9e-\
+25	42.6	93.84	580331	Thermoanaerobacter italicus	Firmicutes;Clostridia\
+;Thermoanaerobacterales;Thermoanaerobacteraceae;Thermoanaerobacter;Thermoanae\
+robacter italicus
+WP_011672284.1	151		2	1.59	0.00	0.00		
+WP_011672324.1	332		2	1.40	0.00	0.00		
+WP_011672384.1	1292		502	1.60	10.70	141.55		WP_011672422	1\
+.9e-233	37.4	98.84	372461	Buchnera aphidicola	Proteobacteria;Gammaprote\
+obacteria;Enterobacteriales;Enterobacteriaceae;Buchnera;Buchnera aphidicola
+WP_045117931.1	337		502	1.78	14.57	234.72		WP_012674255	2.3e-\
+93	51.6	100.00	204536	Sulfurihydrogenibium azorense	Aquificae;Aquific\
+ae;Aquificales;Hydrogenothermaceae;Sulfurihydrogenibium;Sulfurihydrogenibium \
+azorense
+WP_011672391.1	171		3	1.74	0.32	0.00		
+WP_011672351.1	204		11	1.55	0.26	2.12		WP_053469245	1.5e-\
+23	36.4	95.59	1560217	Clostridium sp. L74	Firmicutes;Clostridia;Clostri\
+diales;Clostridiaceae;Clostridium;Clostridium sp. L74
+WP_011672228.1	151		2	1.39	0.00	0.00		
+WP_045117927.1	223		502	1.66	6.42	207.82		WP_041063045	7.0e-\
+51	49.1	98.65	1410383	Candidatus Tachikawaea gelatinosa	Proteobacteri\
+a;Gammaproteobacteria;Enterobacteriales;Enterobacteriaceae;Candidatus Tachika\
+waea;Candidatus Tachikawaea gelatinosa
+WP_011672400.1	398		266	1.61	0.27	66.29		WP_014953873	2.4e-\
+65	40.7	97.99	859653	alpha proteobacterium HIMB5	Proteobacteria;Alphap\
+roteobacteria;Pelagibacterales;Pelagibacteraceae;alpha proteobacterium HIMB5
+WP_011672275.1	97		2	1.60	0.00	0.00		
 """
 
 if __name__ == '__main__':

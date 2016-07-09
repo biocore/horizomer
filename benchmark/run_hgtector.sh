@@ -20,6 +20,8 @@ threads=$8
 taxid=$9
 taxdump_dp=${10}
 gi_to_taxid_fp=${11}
+scripts_dir=${12}
+output_fp=${13}
 
 mkdir -p "${working_dir}/diamond"
 
@@ -94,10 +96,5 @@ fi
 
 perl ${hgtector_install_dir}/HGTector.pl ${working_dir}/hgtector
 
-## print predicted HGTs
-echo ""
-echo Putatively HGT-derived genes:
-# query donor_taxid donor_species donor_lineage identity coverage
-awk -F '\t' -v OFS='\t' \
-    '{if ($8 == "1") print $1, $9, $13, $14, $15, $11, $12;}' \
-    ${working_dir}/hgtector/result/detail/id.txt
+output_file=${working_dir}/hgtector/result/detail/id.txt
+python ${scripts_dir}/parse_output.py --hgt-results-fp ${output_file} --method 'hgtector' >> $output_fp

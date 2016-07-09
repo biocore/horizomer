@@ -244,7 +244,9 @@ cmd="${init_command}; \
                                           ${threads} \
                                           ${tax_id} \
                                           ${nr_tax_dp} \
-                                          ${gi_to_taxid_fp}"
+                                          ${gi_to_taxid_fp} \
+                                          ${scripts_dir} \
+                                          ${hgt_summary}.hgtector.txt"
 submit_job "${cmd}" hgtector
 
 ## run the Distance Method
