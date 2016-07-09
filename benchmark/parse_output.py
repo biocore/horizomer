@@ -135,7 +135,7 @@ def parse_hgtector(input_f):
     hgts = []
     for line in input_f:
         l = line.strip('\r\n').split('\t')
-        if (len(l) > 8) and (l[7] == '1'):
+        if (len(l) == 15) and (l[7] == '1'):
             hgt = '\t'.join((l[0], l[12], l[13], l[14], l[10], l[11]))
             hgts.append(hgt)
     return '\n'.join(hgts)
