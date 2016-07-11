@@ -14,13 +14,6 @@ before_install:
   - conda update -q conda
   - conda info -a
   # Install KALIGN
-  - mkdir kalign; cd kalign
-  - wget http://msa.sbc.su.se/downloads/kalign/current.tar.gz
-  - tar zxvf current.tar.gz
-  - ./configure
-  - make
-  - export PATH=$PWD/kalign:$PATH
-  - cd ..
   # Install MUSCLE
   - wget http://www.drive5.com/muscle/downloads3.8.31/muscle3.8.31_i86linux64.tar.gz
   - tar zxvf muscle3.8.31_i86linux64.tar.gz
