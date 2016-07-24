@@ -117,6 +117,30 @@ def parse_darkhorse(input_f, low_lpi=0.0, high_lpi=0.6, return_genomes=False):
     return None
 
 
+def parse_hgtector(input_f):
+    """ Parse output of HGTector version 0.2.1.
+
+    Parameters
+    ----------
+    input_f: string
+        HGTector working directory path
+
+    Returns
+    -------
+    output: string
+        one putative HGT-derived gene per line
+        columns: query_id, donor_taxid, donor_species, donor_lineage, pct_id,
+        pct_coverage
+    """
+    hgts = []
+    for line in input_f:
+        l = line.strip('\r\n').split('\t')
+        if (len(l) == 15) and (l[7] == '1'):
+            hgt = '\t'.join((l[0], l[12], l[13], l[14], l[10], l[11]))
+            hgts.append(hgt)
+    return '\n'.join(hgts)
+
+
 def parse_output(hgt_results_fp, method):
     """Call parse_hgts() based on HGT detection method used.
 
@@ -144,6 +168,8 @@ def parse_output(hgt_results_fp, method):
             output = parse_consel(input_f=input_f)
         elif method == 'darkhorse':
             output = parse_darkhorse(input_f=input_f)
+        elif method == 'hgtector':
+            output = parse_hgtector(input_f=input_f)
         else:
             raise ValueError("Method is not supported: %s" % method)
         return output
@@ -168,7 +194,8 @@ def parse_output(hgt_results_fp, method):
                                  'tree-puzzle']),
               help='The method used for HGT detection')
 def _main(hgt_results_fp,
-          method):
+          method,
+          ncbi_nr):
     """ Parsing functions for various HGT detection tool outputs.
     """
     output = parse_output(hgt_results_fp, method)

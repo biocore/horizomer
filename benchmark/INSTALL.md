@@ -18,6 +18,7 @@ The following software is required:
 	* [Jane 4](https://www.cs.hmc.edu/~hadas/jane/index.html)
 	* [TREE-PUZZLE 5.3.rc16](http://www.tree-puzzle.de/tree-puzzle-5.3.rc16-linux.tar.gz)
 	* [CONSEL 1.20](http://www.sigmath.es.osaka-u.ac.jp/shimo-lab/prog/consel/pub/cnsls020.tgz)
+	* [HGTector 0.2.1](https://github.com/DittmarLab/HGTector/archive/wgshgt.zip)
 
 ## Orthologous gene detection and tree construction
 
