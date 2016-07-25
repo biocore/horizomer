@@ -108,7 +108,7 @@ def reformat_egid(genbank_fp,
         gb.interval_metadata.features.append(feature)
         gene_id += 1
     tmp_fp = os.path.join(output_dir, 'id.tmp')
-    DNA.write(gb, tmp_fp, format='genbank')
+    Sequence.write(gb, tmp_fp, format='genbank')
     # Colombo cannot parse scikit-bio-generated GenBank format.
     # Therefore some modifications are necessary.
     output_f['gbk'] = open(os.path.join(output_dir, 'id.gbk'), 'w')
