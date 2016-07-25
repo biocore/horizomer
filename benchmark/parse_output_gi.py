@@ -35,16 +35,13 @@ def parse_output_gi(genbank_fp,
     gb = Sequence.read(genbank_fp, format='genbank')
     for feature in gb.interval_metadata.features:
         if feature['type_'] == 'CDS':
-            if 'protein_id' not in feature:
-                continue
-            protein_id = feature['protein_id'].replace('\"', '')
-            loc = gb.interval_metadata.features[feature]
-            start = loc[0][0] + 1
-            end = loc[0][1]
-            if protein_id not in genes:
-                genes[protein_id] = [start, end]
-            else:
-                raise KeyError("Duplicate protein ID: %s" % protein_id)
+            if 'protein_id' in feature:
+                protein_id = feature['protein_id'].replace('\"', '')
+                loc = gb.interval_metadata.features[feature]
+                start = loc[0][0] + 1
+                end = loc[0][1]
+                if protein_id not in genes:
+                    genes[protein_id] = [start, end]
     genes_in_gi = {}
     with open(gi_fp, 'r') as input_f:
         for line in input_f:
