@@ -9,9 +9,8 @@
 from unittest import TestCase, main
 from shutil import rmtree
 from tempfile import mkdtemp
+from os import remove
 from os.path import join
-
-from skbio.util import remove_files
 
 from benchmark.compute_accuracy import (parse_expected_transfers,
                                         parse_observed_transfers,
@@ -40,7 +39,8 @@ class ComputeAccuracyTests(TestCase):
                                 self.hgt_sum_fp]
 
     def tearDown(self):
-        remove_files(self.files_to_remove)
+        for file in self.files_to_remove:
+            remove(file)
         rmtree(self.working_dir)
 
     def test_parse_expected_transfers(self):
