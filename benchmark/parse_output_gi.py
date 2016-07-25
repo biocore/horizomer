@@ -47,7 +47,7 @@ def parse_output_gi(genbank_fp,
             else:
                 raise KeyError("Duplicate protein ID: %s" % protein_id)
     genes_in_gi = {}
-    with open (gi_fp, 'r') as input_f:
+    with open(gi_fp, 'r') as input_f:
         for line in input_f:
             l = line.strip().split()
             if len(l) < 2:
