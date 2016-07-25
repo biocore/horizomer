@@ -6,7 +6,7 @@ The following libraries are required:
 
 	* Python 3.4 or later
 	* numpy >= 1.9.0
-	* scikit-bio == 0.4.2-dev
+	* scikit-bio >= 0.5.0
 
 The following software is required:
 
