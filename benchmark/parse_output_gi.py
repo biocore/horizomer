@@ -33,7 +33,7 @@ def parse_output_gi(genbank_fp,
     """
     genes = {}
     gb = Sequence.read(genbank_fp, format='genbank')
-    for feature in gb.metadata['FEATURES']:
+    for feature in gb.interval_metadata.features:
         if feature['type_'] == 'CDS':
             if 'protein_id' not in feature:
                 continue
