@@ -19,6 +19,7 @@ The following software is required:
 	* [TREE-PUZZLE 5.3.rc16](http://www.tree-puzzle.de/tree-puzzle-5.3.rc16-linux.tar.gz)
 	* [CONSEL 1.20](http://www.sigmath.es.osaka-u.ac.jp/shimo-lab/prog/consel/pub/cnsls020.tgz)
 	* [HGTector 0.2.1](https://github.com/DittmarLab/HGTector/archive/wgshgt.zip)
+	* [EGID 1.0](http://www5.esu.edu/cpsc/bioinfo/software/EGID/EGID_1.0.tar.gz)
 
 ## Orthologous gene detection and tree construction
 
