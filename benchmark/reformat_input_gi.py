@@ -60,7 +60,7 @@ def reformat_egid(genbank_fp,
                     .replace('\"', '')
                 strand = '-' if feature['rc_'] else '+'
                 loc = gb.interval_metadata.features[feature]
-                start = loc[0][0] + 1 + abs_pos
+                start = loc[0][0] + abs_pos + 1
                 end = loc[0][1] + abs_pos
                 if protein_id not in genes:
                     genes[protein_id] = [translation, start, end, strand]
@@ -68,25 +68,29 @@ def reformat_egid(genbank_fp,
                     raise KeyError("Duplicate protein ID: %s" % protein_id)
         abs_pos += int(size)
     output_f = {}
-    for x in ('fna', 'faa', 'ffn', 'ptt'):
+    for x in ('fna', 'faa', 'ffn', 'ptt', 'gbk'):
         output_f[x] = open(join(output_dir, 'id.' + x), 'w')
     gb = DNA(nucl_seq)
     gb.metadata['LOCUS'] = {'locus_name': 'locus001', 'size': len(nucl_seq),
                             'unit': 'bp', 'shape': 'circular',
                             'division': 'CON', 'mol_type': 'DNA',
                             'date': '01-JAN-1900'}
-    # gb.interval_metadata.features = []
+    tmp_fp = join(output_dir, 'id.tmp')
+    DNA.write(gb, tmp_fp, format='genbank')
+    with open(tmp_fp, 'r') as input_f:
+        output_f['gbk'].write(input_f.readline())
+    output_f['gbk'].write('FEATURES             Location/Qualifiers\n')
     output_f['ptt'].write('locus001\n' + str(len(genes)) + ' proteins\n')
     fields = ('Location', 'Strand', 'Length', 'PID', 'Gene', 'Synonym',
               'Code', 'COG', 'Product')
     output_f['ptt'].write('\t'.join(fields) + '\n')
     output_f['fna'].write('>locus001\n' + nucl_seq + '\n')
-    gene_id = 1
+    gid = 1
     for (gene, l) in sorted(genes.items(), key=lambda x: x[1][1]):
         output_f['faa'].write('>' + gene + '\n' + l[0] + '\n')
         output_f['ptt'].write(str(l[1]) + '..' + str(l[2]) + '\t' +
                               l[3] + '\t' + str(len(l[0])) + '\t' +
-                              str(gene_id) + '\t-\tgene' + str(gene_id) +
+                              str(gid) + '\t-\tgene' + str(gid) +
                               '\t-\t-\t-\n')
         if l[3] == '+':
             output_f['ffn'].write('>locus001:' + str(l[1]) + '-' +
@@ -99,30 +103,20 @@ def reformat_egid(genbank_fp,
         location = str(l[1]) + '..' + str(l[2])
         if l[3] == '-':
             location = 'complement(' + location + ')'
-        feature = Feature({'type_': 'gene',
-                           'locus_tag': 'gene' + str(gene_id),
-                           'location': location})
-        gb.interval_metadata.features[feature] = ([l[1], l[2]])
-        feature = Feature({'type_': 'CDS',
-                           'locus_tag': 'gene' + str(gene_id),
-                           'location': location,
-                           'protein_id': gene,
-                           'translation': l[0]})
-        gb.interval_metadata.features[feature] = [(l[1], l[2])]
-        gene_id += 1
-    tmp_fp = join(output_dir, 'id.tmp')
-    DNA.write(gb, tmp_fp, format='genbank')
-    # Colombo cannot parse scikit-bio-generated GenBank format.
-    # Therefore some modifications are necessary.
-    output_f['gbk'] = open(join(output_dir, 'id.gbk'), 'w')
+        lines = []
+        lines.append('     gene            ' + location)
+        lines.append('                     /locus_tag=gene' + str(gid))
+        lines.append('     CDS             ' + location)
+        lines.append('                     /locus_tag=gene' + str(gid))
+        lines.append('                     /protein_id=' + gene)
+        lines.append('                     /translation=' + l[0])
+        for line in lines:
+            output_f['gbk'].write(line + '\n')
+        gid += 1
     with open(tmp_fp, 'r') as input_f:
+        next(input_f)
         for line in input_f:
-            if line.startswith('         gene        '):
-                output_f['gbk'].write('     gene            ' + line[21:])
-            elif line.startswith('          CDS        '):
-                output_f['gbk'].write('     CDS             ' + line[21:])
-            else:
-                output_f['gbk'].write(line)
+            output_f['gbk'].write(line)
     for x in output_f:
         output_f[x].close()
     remove(tmp_fp)
