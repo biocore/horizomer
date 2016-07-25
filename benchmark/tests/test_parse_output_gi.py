@@ -42,7 +42,7 @@ class ParseOutputTests(TestCase):
         rmtree(self.working_dir)
 
     def test_parse_output_gi(self):
-        """ Test functionality of parse_hgts() for TREX
+        """ Test functionality of parse_output_gi()
         """
         output_exp = "AAA98667.1"
         output = parse_output_gi(self.genbank_input_fp,
