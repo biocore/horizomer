@@ -38,7 +38,8 @@ class ParseOutputTests(TestCase):
                                 self.gi_output_fp]
 
     def tearDown(self):
-        remove_files(self.files_to_remove)
+        for file in self.files_to_remove:
+            os.remove(file)
         rmtree(self.working_dir)
 
     def test_parse_output_gi(self):
