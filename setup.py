@@ -48,7 +48,7 @@ setup(name='wgshgt',
       extras_require={'test': ["nose", "pep8", "flake8"],
                       'doc': ["Sphinx == 1.3.3"]},
       install_requires=['click >= 6',
-                        'scikit-bio == 0.4.2-dev'],
+                        'scikit-bio == 0.4.2'],
       classifiers=classifiers
       )
 
