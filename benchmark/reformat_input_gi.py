@@ -59,13 +59,13 @@ def reformat_egid(genbank_fp,
                 loc = feature['location']
                 if loc.startswith('complement'):
                     loc = loc[11:-1]
-                (start, end) = (int(x.strip('<>')) + abs_pos \
+                (start, end) = (int(x.strip('<>')) + abs_pos
                     for x in loc.split('..'))
                 if protein_id not in genes:
                     genes[protein_id] = [translation, start, end, strand]
                 else:
                     raise KeyError("Duplicate protein ID: %s" % protein_id)
-        abs_pos += int(size)    
+        abs_pos += int(size)
     output_f = {}
     for x in ('fna', 'faa', 'ffn', 'ptt'):
         output_f[x] = open(os.path.join(output_dir, 'id.' + x), 'w')
@@ -83,24 +83,24 @@ def reformat_egid(genbank_fp,
     gene_id = 1
     for (gene, l) in sorted(genes.items(), key=lambda x: x[1][1]):
         output_f['faa'].write('>' + gene + '\n' + l[0] + '\n')
-        output_f['ptt'].write(str(l[1]) + '..' + str(l[2]) + '\t' + l[3] + \
-            '\t' + str(len(l[0])) + '\t' + str(gene_id) + '\t-\tgene' + \
-            str(gene_id) + '\t-\t-\t-\n')
+        output_f['ptt'].write(str(l[1]) + '..' + str(l[2]) + '\t' + l[3]
+            + '\t' + str(len(l[0])) + '\t' + str(gene_id) + '\t-\tgene'
+            + str(gene_id) + '\t-\t-\t-\n')
         if l[3] == '+':
-            output_f['ffn'].write('>locus001:' + str(l[1]) + '-' + str(l[2]) \
+            output_f['ffn'].write('>locus001:' + str(l[1]) + '-' + str(l[2])
                 + '\n' + nucl_seq[l[1]-1:l[2]] + '\n')
         else:
-            output_f['ffn'].write('>locus001:c' + str(l[2]) + '-' + str(l[1])\
-                + '\n' + str(DNA(nucl_seq[l[1]-1:l[2]]).reverse_complement())\
+            output_f['ffn'].write('>locus001:c' + str(l[2]) + '-' + str(l[1])
+                + '\n' + str(DNA(nucl_seq[l[1]-1:l[2]]).reverse_complement())
                 + '\n')
         location = str(l[1]) + '..' + str(l[2])
         if l[3] == '-':
             location = 'complement(' + location + ')'
         feature = {'type_': 'gene', 'locus_tag': 'gene' + str(gene_id),
-                   'location' : location}
+                   'location': location}
         gb.metadata['FEATURES'].append(feature)
         feature = {'type_': 'CDS', 'locus_tag': 'gene' + str(gene_id),
-                   'location' : location, 'protein_id': gene,
+                   'location': location, 'protein_id': gene,
                    'translation': l[0]}
         gb.metadata['FEATURES'].append(feature)
         gene_id += 1
