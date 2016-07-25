@@ -48,7 +48,7 @@ def reformat_egid(genbank_fp,
         size = gb.metadata['LOCUS']['size']
         loci.append([locus_name, size])
         nucl_seq += str(gb)
-        for feature in gb.interval_metadata.features:
+        for feature in gb.metadata['FEATURES']:
             if feature['type_'] == 'CDS':
                 if 'protein_id' not in feature:
                     continue
@@ -75,7 +75,7 @@ def reformat_egid(genbank_fp,
                             'unit': 'bp', 'shape': 'circular',
                             'division': 'CON', 'mol_type': 'DNA',
                             'date': '01-JAN-1900'}
-    gb.interval_metadata.features = []
+    gb.metadata['FEATURES'] = []
     output_f['ptt'].write('locus001\n' + str(len(genes)) + ' proteins\n')
     fields = ('Location', 'Strand', 'Length', 'PID', 'Gene', 'Synonym',
               'Code', 'COG', 'Product')
@@ -101,14 +101,14 @@ def reformat_egid(genbank_fp,
             location = 'complement(' + location + ')'
         feature = {'type_': 'gene', 'locus_tag': 'gene' + str(gene_id),
                    'location': location}
-        gb.interval_metadata.features.append(feature)
+        gb.metadata['FEATURES'].append(feature)
         feature = {'type_': 'CDS', 'locus_tag': 'gene' + str(gene_id),
                    'location': location, 'protein_id': gene,
                    'translation': l[0]}
-        gb.interval_metadata.features.append(feature)
+        gb.metadata['FEATURES'].append(feature)
         gene_id += 1
     tmp_fp = os.path.join(output_dir, 'id.tmp')
-    Sequence.write(gb, tmp_fp, format='genbank')
+    DNA.write(gb, tmp_fp, format='genbank')
     # Colombo cannot parse scikit-bio-generated GenBank format.
     # Therefore some modifications are necessary.
     output_f['gbk'] = open(os.path.join(output_dir, 'id.gbk'), 'w')
@@ -130,19 +130,6 @@ def reformat_egid(genbank_fp,
               type=click.Path(resolve_path=True, readable=True, exists=True,
                               file_okay=True),
               help='Genome in GenBank format')
-@click.option('--fna-fp', required=False,
-              type=click.Path(resolve_path=True, readable=True, exists=True,
-                              file_okay=True),
-              help='Nucleotide sequence(s) of a genome in FASTA format')
-@click.option('--faa-fp', required=False,
-              type=click.Path(resolve_path=True, readable=True, exists=True,
-                              file_okay=True),
-              help='Amino acid sequences of a proteome in FASTA format')
-@click.option('--ffn-fp', required=False,
-              type=click.Path(resolve_path=True, readable=True, exists=True,
-                              file_okay=True),
-              help='Nucleotide sequences of protein-coding regions \
-                    in a genome in FASTA format')
 @click.option('--output-dir', required=True,
               type=click.Path(resolve_path=True, readable=True, exists=False),
               help='Output directory path')
@@ -150,9 +137,6 @@ def reformat_egid(genbank_fp,
               type=click.Choice(['egid', 'genemark']),
               help='The method to be used for GI detection')
 def _main(genbank_fp,
-          fna_fp,
-          faa_fp,
-          ffn_fp,
           output_dir,
           method):
     """ Reformat genome files
@@ -161,8 +145,6 @@ def _main(genbank_fp,
         reformat_egid(
             genbank_fp=genbank_fp,
             output_dir=output_dir)
-    # elif method == 'genemark':
-        # reformat_genemark()
 
 
 if __name__ == "__main__":
