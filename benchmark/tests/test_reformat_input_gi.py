@@ -9,10 +9,8 @@
 from unittest import TestCase, main
 from shutil import rmtree
 from tempfile import mkstemp, mkdtemp
-from os import close
+from os import close, remove
 from os.path import join
-
-from skbio.util import remove_files
 
 from benchmark.reformat_input_gi import (reformat_egid)
 
@@ -36,7 +34,8 @@ class workflowTests(TestCase):
         self.files_to_remove = [self.species_genome_fp]
 
     def tearDown(self):
-        remove_files(self.files_to_remove)
+        for file in self.files_to_remove:
+            remove(file)
         rmtree(self.working_dir)
 
     def test_reformat_egid(self):
