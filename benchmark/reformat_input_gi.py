@@ -48,7 +48,7 @@ def reformat_egid(genbank_fp,
         size = gb.metadata['LOCUS']['size']
         loci.append([locus_name, size])
         nucl_seq += str(gb)
-        for feature in gb.metadata['FEATURES']:
+        for feature in gb.interval_metadata.features:
             if feature['type_'] == 'CDS':
                 if 'protein_id' not in feature:
                     continue
@@ -74,7 +74,7 @@ def reformat_egid(genbank_fp,
                             'unit': 'bp', 'shape': 'circular',
                             'division': 'CON', 'mol_type': 'DNA',
                             'date': '01-JAN-1900'}
-    gb.metadata['FEATURES'] = []
+    gb.interval_metadata.features = []
     output_f['ptt'].write('locus001\n' + str(len(genes)) + ' proteins\n')
     fields = ('Location', 'Strand', 'Length', 'PID', 'Gene', 'Synonym',
               'Code', 'COG', 'Product')
@@ -100,11 +100,11 @@ def reformat_egid(genbank_fp,
             location = 'complement(' + location + ')'
         feature = {'type_': 'gene', 'locus_tag': 'gene' + str(gene_id),
                    'location': location}
-        gb.metadata['FEATURES'].append(feature)
+        gb.interval_metadata.features.append(feature)
         feature = {'type_': 'CDS', 'locus_tag': 'gene' + str(gene_id),
                    'location': location, 'protein_id': gene,
                    'translation': l[0]}
-        gb.metadata['FEATURES'].append(feature)
+        gb.interval_metadata.features.append(feature)
         gene_id += 1
     tmp_fp = os.path.join(output_dir, 'id.tmp')
     DNA.write(gb, tmp_fp, format='genbank')
