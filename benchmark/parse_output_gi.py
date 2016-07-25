@@ -39,7 +39,7 @@ def parse_output_gi(genbank_fp,
                 continue
             protein_id = feature['protein_id'].replace('\"', '')
             loc = gb.interval_metadata.features[feature]
-            start = loc[0][0]
+            start = loc[0][0] + 1
             end = loc[0][1]
             if protein_id not in genes:
                 genes[protein_id] = [start, end]
