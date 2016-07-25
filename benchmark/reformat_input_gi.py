@@ -60,7 +60,7 @@ def reformat_egid(genbank_fp,
                 if loc.startswith('complement'):
                     loc = loc[11:-1]
                 (start, end) = (int(x.strip('<>')) + abs_pos
-                    for x in loc.split('..'))
+                               for x in loc.split('..'))
                 if protein_id not in genes:
                     genes[protein_id] = [translation, start, end, strand]
                 else:
@@ -83,16 +83,18 @@ def reformat_egid(genbank_fp,
     gene_id = 1
     for (gene, l) in sorted(genes.items(), key=lambda x: x[1][1]):
         output_f['faa'].write('>' + gene + '\n' + l[0] + '\n')
-        output_f['ptt'].write(str(l[1]) + '..' + str(l[2]) + '\t' + l[3]
-            + '\t' + str(len(l[0])) + '\t' + str(gene_id) + '\t-\tgene'
-            + str(gene_id) + '\t-\t-\t-\n')
+        output_f['ptt'].write(str(l[1]) + '..' + str(l[2]) + '\t' +
+                              l[3] + '\t' + str(len(l[0])) + '\t' +
+                              str(gene_id) + '\t-\tgene' + str(gene_id) +
+                              '\t-\t-\t-\n')
         if l[3] == '+':
-            output_f['ffn'].write('>locus001:' + str(l[1]) + '-' + str(l[2])
-                + '\n' + nucl_seq[l[1]-1:l[2]] + '\n')
+            output_f['ffn'].write('>locus001:' + str(l[1]) + '-' +
+                                  str(l[2]) + '\n' +
+                                  nucl_seq[l[1]-1:l[2]] + '\n')
         else:
-            output_f['ffn'].write('>locus001:c' + str(l[2]) + '-' + str(l[1])
-                + '\n' + str(DNA(nucl_seq[l[1]-1:l[2]]).reverse_complement())
-                + '\n')
+            rc_seq = str(DNA(nucl_seq[l[1]-1:l[2]]).reverse_complement())
+            output_f['ffn'].write('>locus001:c' + str(l[2]) + '-' +
+                                  str(l[1]) + '\n' + rc_seq + '\n')
         location = str(l[1]) + '..' + str(l[2])
         if l[3] == '-':
             location = 'complement(' + location + ')'
