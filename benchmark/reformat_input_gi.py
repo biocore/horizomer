@@ -63,8 +63,6 @@ def reformat_egid(genbank_fp,
                 end = loc[0][1] + abs_pos
                 if protein_id not in genes:
                     genes[protein_id] = [translation, start, end, strand]
-                else:
-                    raise KeyError("Duplicate protein ID: %s" % protein_id)
         abs_pos += int(size)
     output_f = {}
     for x in ('fna', 'faa', 'ffn', 'ptt', 'gbk'):
