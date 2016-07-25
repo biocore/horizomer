@@ -67,22 +67,18 @@ def extract_genbank(genbank_fp, verbose=False):
     seq = Sequence.read(genbank_fp, format='genbank')
     if verbose:
         sys.stdout.write("\t\tDone.\n")
-    for feature in seq.metadata['FEATURES']:
+    for feature in seq.interval_metadata.features:
         if feature['type_'] == 'CDS':
             protein_id = feature['protein_id']
             translation = feature['translation']
             strand = '-' if feature['rc_'] else '+'
-            # loc = seq.interval_metadata.features[feature]
-            # start_pos = loc[0][0]
-            # end_pos = loc[0][1]
-            loc = feature['location']
-            if loc.startswith('complement'):
-                loc = loc[11:-1]
-            (start, end) = (int(x.strip('<>')) for x in loc.split('..'))
+            loc = seq.interval_metadata.features[feature]
+            start_pos = loc[0][0]
+            end_pos = loc[0][1]
             if protein_id not in genes:
                 genes[protein_id.replace("\"", "")] = [
                     translation.replace(" ", "").replace("\"", ""),
-                    start, end, strand]
+                    start_pos, end_pos, strand]
             else:
                 raise KeyError("%s already exists in dictionary" % protein_id)
     return seq, genes

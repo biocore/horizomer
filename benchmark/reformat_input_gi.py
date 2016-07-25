@@ -17,6 +17,7 @@ from os import remove
 from os.path import join
 
 from skbio import Sequence, DNA
+from skbio.metadata._feature import Feature
 
 
 def reformat_egid(genbank_fp,
@@ -50,7 +51,7 @@ def reformat_egid(genbank_fp,
         size = gb.metadata['LOCUS']['size']
         loci.append([locus_name, size])
         nucl_seq += str(gb)
-        for feature in gb.metadata['FEATURES']:
+        for feature in gb.interval_metadata.features:
             if feature['type_'] == 'CDS':
                 if 'protein_id' not in feature:
                     continue
@@ -58,12 +59,9 @@ def reformat_egid(genbank_fp,
                 translation = feature['translation'].replace(' ', '') \
                     .replace('\"', '')
                 strand = '-' if feature['rc_'] else '+'
-                loc = feature['location']
-                if loc.startswith('complement'):
-                    loc = loc[11:-1]
-                l = loc.split('..')
-                start = int(l[0].strip('<>')) + abs_pos
-                end = int(l[1].strip('<>')) + abs_pos
+                loc = gb.interval_metadata.features[feature]
+                start = loc[0][0] + abs_pos
+                end = loc[0][1] + abs_pos
                 if protein_id not in genes:
                     genes[protein_id] = [translation, start, end, strand]
                 else:
@@ -77,7 +75,7 @@ def reformat_egid(genbank_fp,
                             'unit': 'bp', 'shape': 'circular',
                             'division': 'CON', 'mol_type': 'DNA',
                             'date': '01-JAN-1900'}
-    gb.metadata['FEATURES'] = []
+    # gb.interval_metadata.features = []
     output_f['ptt'].write('locus001\n' + str(len(genes)) + ' proteins\n')
     fields = ('Location', 'Strand', 'Length', 'PID', 'Gene', 'Synonym',
               'Code', 'COG', 'Product')
@@ -101,13 +99,16 @@ def reformat_egid(genbank_fp,
         location = str(l[1]) + '..' + str(l[2])
         if l[3] == '-':
             location = 'complement(' + location + ')'
-        feature = {'type_': 'gene', 'locus_tag': 'gene' + str(gene_id),
-                   'location': location}
-        gb.metadata['FEATURES'].append(feature)
-        feature = {'type_': 'CDS', 'locus_tag': 'gene' + str(gene_id),
-                   'location': location, 'protein_id': gene,
-                   'translation': l[0]}
-        gb.metadata['FEATURES'].append(feature)
+        feature = Feature({'type_': 'gene',
+                           'locus_tag': 'gene' + str(gene_id),
+                           'location': location})
+        gb.interval_metadata.features[feature] = ([l[1], l[2]])
+        feature = Feature({'type_': 'CDS',
+                           'locus_tag': 'gene' + str(gene_id),
+                           'location': location,
+                           'protein_id': gene,
+                           'translation': l[0]})
+        gb.interval_metadata.features[feature] = [(l[1], l[2])]
         gene_id += 1
     tmp_fp = join(output_dir, 'id.tmp')
     DNA.write(gb, tmp_fp, format='genbank')
