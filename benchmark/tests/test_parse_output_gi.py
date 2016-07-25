@@ -9,9 +9,8 @@
 from unittest import TestCase, main
 from shutil import rmtree
 from tempfile import mkdtemp
+from os import remove
 from os.path import join
-
-from skbio.util import remove_files
 
 from benchmark.parse_output_gi import (parse_output_gi)
 
@@ -39,7 +38,7 @@ class ParseOutputTests(TestCase):
 
     def tearDown(self):
         for file in self.files_to_remove:
-            os.remove(file)
+            remove(file)
         rmtree(self.working_dir)
 
     def test_parse_output_gi(self):
