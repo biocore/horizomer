@@ -13,7 +13,9 @@ GI tool
 """
 
 import click
-import os
+from os import remove
+from os.path import join
+
 from skbio import Sequence, DNA
 
 
@@ -69,7 +71,7 @@ def reformat_egid(genbank_fp,
         abs_pos += int(size)
     output_f = {}
     for x in ('fna', 'faa', 'ffn', 'ptt'):
-        output_f[x] = open(os.path.join(output_dir, 'id.' + x), 'w')
+        output_f[x] = open(join(output_dir, 'id.' + x), 'w')
     gb = DNA(nucl_seq)
     gb.metadata['LOCUS'] = {'locus_name': 'locus001', 'size': len(nucl_seq),
                             'unit': 'bp', 'shape': 'circular',
@@ -107,11 +109,11 @@ def reformat_egid(genbank_fp,
                    'translation': l[0]}
         gb.metadata['FEATURES'].append(feature)
         gene_id += 1
-    tmp_fp = os.path.join(output_dir, 'id.tmp')
+    tmp_fp = join(output_dir, 'id.tmp')
     DNA.write(gb, tmp_fp, format='genbank')
     # Colombo cannot parse scikit-bio-generated GenBank format.
     # Therefore some modifications are necessary.
-    output_f['gbk'] = open(os.path.join(output_dir, 'id.gbk'), 'w')
+    output_f['gbk'] = open(join(output_dir, 'id.gbk'), 'w')
     with open(tmp_fp, 'r') as input_f:
         for line in input_f:
             if line.startswith('         gene        '):
@@ -122,7 +124,7 @@ def reformat_egid(genbank_fp,
                 output_f['gbk'].write(line)
     for x in output_f:
         output_f[x].close()
-    os.remove(tmp_fp)
+    remove(tmp_fp)
 
 
 @click.command()
