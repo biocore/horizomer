@@ -60,7 +60,7 @@ def reformat_egid(genbank_fp,
                     .replace('\"', '')
                 strand = '-' if feature['rc_'] else '+'
                 loc = gb.interval_metadata.features[feature]
-                start = loc[0][0] + abs_pos
+                start = loc[0][0] + 1 + abs_pos
                 end = loc[0][1] + abs_pos
                 if protein_id not in genes:
                     genes[protein_id] = [translation, start, end, strand]
