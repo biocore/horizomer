@@ -17,7 +17,6 @@ from os import remove
 from os.path import join
 
 from skbio import Sequence, DNA
-from skbio.metadata._feature import Feature
 
 
 def reformat_egid(genbank_fp,
