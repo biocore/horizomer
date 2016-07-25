@@ -5,6 +5,6 @@ flake8
 blast-plus
 blast-legacy
 diamond
-scikit-bio=0.4.2dev
+scikit-bio=0.4.2
 mafft
 
