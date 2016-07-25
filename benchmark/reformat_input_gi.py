@@ -59,8 +59,8 @@ def reformat_egid(genbank_fp,
                 loc = feature['location']
                 if loc.startswith('complement'):
                     loc = loc[11:-1]
-                (start, end) = (int(x.strip('<>')) + abs_pos
-                               for x in loc.split('..'))
+                l = (int(x.strip('<>')) + abs_pos for x in loc.split('..'))
+                (start, end) = (l[0], l[1])
                 if protein_id not in genes:
                     genes[protein_id] = [translation, start, end, strand]
                 else:
