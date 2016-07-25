@@ -38,11 +38,11 @@ def parse_output_gi(genbank_fp,
             if 'protein_id' not in feature:
                 continue
             protein_id = feature['protein_id'].replace('\"', '')
-            loc = seq.interval_metadata.features[feature]
-            start_pos = loc[0][0]
-            end_pos = loc[0][1]
+            loc = gb.interval_metadata.features[feature]
+            start = loc[0][0]
+            end = loc[0][1]
             if protein_id not in genes:
-                genes[protein_id] = [start_pos, end_pos]
+                genes[protein_id] = [start, end]
             else:
                 raise KeyError("Duplicate protein ID: %s" % protein_id)
     genes_in_gi = {}
