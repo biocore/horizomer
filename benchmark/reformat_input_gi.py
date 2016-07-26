@@ -51,9 +51,7 @@ def reformat_egid(genbank_fp,
         loci.append([locus_name, size])
         nucl_seq += str(gb)
         for feature in gb.interval_metadata.features:
-            if feature['type_'] == 'CDS':
-                if 'protein_id' not in feature:
-                    continue
+            if feature['type_'] == 'CDS' and 'protein_id' in feature:
                 protein_id = feature['protein_id'].replace('\"', '')
                 translation = feature['translation'].replace(' ', '') \
                     .replace('\"', '')
