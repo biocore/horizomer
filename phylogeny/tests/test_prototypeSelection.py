@@ -13,6 +13,7 @@ class prototypeSelection(TestCase):
     def setUp(self):
         self.dm_nonNull = get_data_path('distMatrix_nonNull.txt')
         self.dm_repIDs = get_data_path('distMatrix_repIDs.txt')
+        self.dm_asym = get_data_path('distMatrix_asym.txt')
         # this file must not exists!
         self.dm_noFile = get_data_path('noFile.txt')
         # any file that is present, but not a DistanceMatrix
@@ -94,7 +95,7 @@ class prototypeSelection(TestCase):
             DistanceMatrixError,
             "Data must be symmetric and cannot contain NaNs.",
             DistanceMatrix.read,
-            'tests/data/distMatrix_asym.txt')
+            self.dm_asym)
 
         # tests if matrices are rejected that are hollow, i.e. have non zero
         # entries in their main diagonal
