@@ -1,0 +1,22 @@
+from unittest import TestCase, main
+from phylogeny.prototypeSelection import (prototypeSelection_exhaustive,
+                                          distanceSum)
+from skbio.stats.distance import DistanceMatrix
+from skbio.stats.distance._base import (DistanceMatrixError,
+                                        DissimilarityMatrixError,
+                                        MissingIDError)
+from skbio.util import get_data_path
+from skbio.io._exception import UnrecognizedFormatError
+
+
+class prototypeSelection(TestCase):
+    def setUp(self):
+        self.dm_nonNull = get_data_path('distMatrix_nonNull.txt')
+        self.dm_repIDs = get_data_path('distMatrix_repIDs.txt')
+        # this file must not exists!
+        self.dm_noFile = get_data_path('noFile.txt')
+        # any file that is present, but not a DistanceMatrix
+        self.dm_wrongFormat = get_data_path('test_prototypeSelection.py')
+
+        self.dm100 = DistanceMatrix.read(get_data_path('distMatrix_100.txt'))
+        self.dm20 = DistanceMatrix.read(get_data_path('distMatrix_20_f5.txt'))

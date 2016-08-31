@@ -5,20 +5,21 @@ from skbio.stats.distance import DistanceMatrix
 from skbio.stats.distance._base import (DistanceMatrixError,
                                         DissimilarityMatrixError,
                                         MissingIDError)
+from skbio.util import get_data_path
 from skbio.io._exception import UnrecognizedFormatError
 
 
 class prototypeSelection(TestCase):
     def setUp(self):
-        self.dm_nonNull = 'tests/data/distMatrix_nonNull.txt'
-        self.dm_repIDs = 'tests/data/distMatrix_repIDs.txt'
+        self.dm_nonNull = get_data_path('distMatrix_nonNull.txt')
+        self.dm_repIDs = get_data_path('distMatrix_repIDs.txt')
         # this file must not exists!
-        self.dm_noFile = 'tests/data/noFile.txt'
+        self.dm_noFile = get_data_path('noFile.txt')
         # any file that is present, but not a DistanceMatrix
-        self.dm_wrongFormat = 'tests/test_prototypeSelection.py'
+        self.dm_wrongFormat = get_data_path('wrongFileformat.txt')
 
-        self.dm100 = DistanceMatrix.read('tests/data/distMatrix_100.txt')
-        self.dm20 = DistanceMatrix.read('tests/data/distMatrix_20_f5.txt')
+        self.dm100 = DistanceMatrix.read(get_data_path('distMatrix_100.txt'))
+        self.dm20 = DistanceMatrix.read(get_data_path('distMatrix_20_f5.txt'))
 
     def test_distanceSum(self):
         # test that no missing IDs can be used
