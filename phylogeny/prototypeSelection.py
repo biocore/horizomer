@@ -70,6 +70,9 @@ def prototypeSelection_exhaustive(distanceMatrix: DistanceMatrix,
         Number of prototypes to select for dissimilarity matrix.
         Must be >= 2, since a single prototype is useless.
         Must be <= |distanceMatrix|, otherwise no reduction is neccessary.
+    maxCombinationsToTest: int
+        The maximal number of combinations to test. If exceeding, the function
+        declines execution.
 
     Returns
     -------
