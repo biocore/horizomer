@@ -101,7 +101,7 @@ class prototypeSelection(TestCase):
         # tests if matrices are rejected that are not symmetric
         self.assertRaisesRegex(
             DistanceMatrixError,
-            "Data must be symmetric and cannot contain NaNs.",
+            "Data must be symmetric",
             DistanceMatrix.read,
             self.dm_asym)
 
