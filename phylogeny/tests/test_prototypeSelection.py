@@ -71,23 +71,31 @@ class prototypeSelection(TestCase):
             5,
             maxCombinationsToTest=1000)
 
-        self.assertCountEqual(
-            ('A', 'P', 'Q'),
-            prototypeSelection_exhaustive(self.dm20, 3))
-        self.assertCountEqual(
-            ('A', 'J', 'P', 'T'),
-            prototypeSelection_exhaustive(self.dm20, 4))
-        self.assertCountEqual(
-            ('A', 'C', 'O', 'P', 'T'),
-            prototypeSelection_exhaustive(self.dm20, 5))
+        res = prototypeSelection_exhaustive(self.dm20, 3)
+        self.assertCountEqual(('A', 'P', 'Q'), res)
+        self.assertAlmostEqual(1.841, distanceSum(res, self.dm20))
+
+        res = prototypeSelection_exhaustive(self.dm20, 4)
+        self.assertCountEqual(('A', 'J', 'P', 'T'), res)
+        self.assertAlmostEqual(3.4347, distanceSum(res, self.dm20))
+
+        res = prototypeSelection_exhaustive(self.dm20, 5)
+        self.assertCountEqual(('A', 'C', 'O', 'P', 'T'), res)
+        self.assertAlmostEqual(5.4494, distanceSum(res, self.dm20))
+
+        res = prototypeSelection_exhaustive(self.dm20, 18)
         self.assertCountEqual(
             ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'I', 'J', 'K', 'L', 'M', 'N',
              'O', 'P', 'Q', 'R', 'T'),
-            prototypeSelection_exhaustive(self.dm20, 18))
+            res)
+        self.assertAlmostEqual(66.94, distanceSum(res, self.dm20))
+
+        res = prototypeSelection_exhaustive(self.dm20, 19)
         self.assertCountEqual(
             ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'I', 'J', 'K', 'L', 'M', 'N',
              'O', 'P', 'Q', 'R', 'S', 'T'),
-            prototypeSelection_exhaustive(self.dm20, 19))
+            res)
+        self.assertAlmostEqual(74.1234, distanceSum(res, self.dm20))
 
     def test_wellformedDistanceMatrix(self):
         # tests if matrices are rejected that are not symmetric
