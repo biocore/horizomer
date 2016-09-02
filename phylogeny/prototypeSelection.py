@@ -13,7 +13,7 @@ In the future, this module will implement several heuristics, whose quality can
 be measured by the objective function for each problem instance, since there is
 no global winner.
 For completeness, the exact but exponential algorithm is implemented, too.
-  "prototypeSelection_exhaustive"
+  "prototype_selection_exhaustive"
 
 [1] Gamez, J. Esteban, François Modave, and Olga Kosheleva.
     "Selecting the most representative sample is NP-hard:
@@ -21,14 +21,16 @@ For completeness, the exact but exponential algorithm is implemented, too.
     Fuzzy Systems, 2008. FUZZ-IEEE 2008.
 """
 
-from skbio.stats.distance import DistanceMatrix
-import itertools
+from typing import Sequence, Tuple
+from itertools import combinations
+# import itertools
+
 import numpy as np
 import scipy as sp
-from typing import Sequence, Tuple
+from skbio.stats.distance import DistanceMatrix
 
 
-def distanceSum(elements: Sequence[str], dm: DistanceMatrix) -> float:
+def distance_sum(elements: Sequence[str], dm: DistanceMatrix) -> float:
     '''Compute the sum of pairwise distances for the given elements according to
     the given distance matrix.
 
@@ -48,22 +50,22 @@ def distanceSum(elements: Sequence[str], dm: DistanceMatrix) -> float:
     return np.tril(dm.filter(elements).data).sum()
 
 
-def prototypeSelection_exhaustive(
-      distanceMatrix: DistanceMatrix,
-      numPrototypes: int, maxCombinationsToTest: int=200000) -> Sequence[str]:
+def prototype_selection_exhaustive(
+  dm: DistanceMatrix,
+  num_prototypes: int, max_combinations_to_test: int=200000) -> Sequence[str]:
     '''Select k prototypes for given distance matrix
 
     Parameters
     ----------
-    distanceMatrix: skbio.stats.distance.DistanceMatrix
+    dm: skbio.stats.distance.DistanceMatrix
         pairwise distances for all elements in the full set S.
         Must be symmetric and non-hollow.
-    numPrototypes: int
+    num_prototypes: int
         Number of prototypes to select for distance matrix.
         Must be >= 2, since a single prototype is useless.
         Must be smaller than the number of elements in the distance matrix,
         otherwise no reduction is necessary.
-    maxCombinationsToTest: int
+    max_combinations_to_test: int
         The maximal number of combinations to test. If exceeding, the function
         declines execution.
 
@@ -73,27 +75,45 @@ def prototypeSelection_exhaustive(
         A sequence holding selected prototypes, i.e. a sub-set of the
         elements in the distance matrix.
 
+    Raises
+    ------
+    RuntimeError
+        Combinatorics explode even for small instances. To save the user from
+        waiting (almost) forever, this function declines execution if the
+        number of combinations to test are too high,
+        i.e. > max_combinations_to_test
+    ValueError
+        The number of prototypes to be found should be at least 2 and at most
+        one element smaller than elements in the distance matrix. Otherwise, a
+        ValueError is raised.
+
     Notes
     -----
     This is the reference implementation for an exact algorithm for the
     prototype selection problem. It has an exponential runtime and will only
-    operate on small instances (< maxCombinationsToTest).
+    operate on small instances (< max_combinations_to_test).
     Idea: test all (n over k) combinations of selecting k elements from n with-
           out replacement. Compute the objective for each such combination and
           report the combination with maximal value.
     '''
-    assert(numPrototypes >= 2)
-    assert(numPrototypes < len(distanceMatrix.ids))
-    combinations = sp.special.binom(len(distanceMatrix.ids), numPrototypes)
-    if combinations >= maxCombinationsToTest:
-        raise Exception("Cowardly refuse to test %i combinations. Use a \
-                        heuristic implementation for instances with more than \
-                        %i combinations instead!"
-                        % (combinations, maxCombinationsToTest))
+    if num_prototypes < 2:
+        raise ValueError(("'num_prototypes' must be >= 2, since a single "
+                          "prototype is useless."))
+    if num_prototypes >= len(dm.ids):
+        raise ValueError(("'num_prototypes' must be smaller than the number of"
+                          " elements in the distance matrix, otherwise no "
+                          "reduction is necessary."))
 
-    maxDist, maxSet = -1 * np.infty, None
-    for s in set(itertools.combinations(distanceMatrix.ids, numPrototypes)):
-        d = distanceSum(s, distanceMatrix)
-        if d > maxDist:
-            maxDist, maxSet = d, s
-    return maxSet
+    num_combinations = sp.special.binom(len(dm.ids), num_prototypes)
+    if num_combinations >= max_combinations_to_test:
+        raise RuntimeError(("Cowardly refuse to test %i combinations. Use a "
+                            "heuristic implementation for instances with more "
+                            "than %i combinations instead!")
+                           % (num_combinations, max_combinations_to_test))
+
+    max_dist, max_set = -1 * np.infty, None
+    for s in set(combinations(dm.ids, num_prototypes)):
+        d = distance_sum(s, dm)
+        if d > max_dist:
+            max_dist, max_set = d, s
+    return max_set
