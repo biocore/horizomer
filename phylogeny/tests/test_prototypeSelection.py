@@ -40,18 +40,12 @@ class prototypeSelection(TestCase):
             self.dm20)
 
         # test that list of IDs holds at least 1 element
-        self.assertRaises(
-            AssertionError,
+        self.assertRaisesRegex(
+            DissimilarityMatrixError,
+            'Data must be at least 1x1 in size',
             distanceSum,
             [],
             self.dm20)
-
-        # test for correct type
-        self.assertRaises(
-            TypeError,
-            distanceSum,
-            range(0, 21),
-            None)
 
         # test for result correctness
         self.assertAlmostEqual(2454.1437464961, distanceSum(self.dm100.ids,

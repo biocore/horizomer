@@ -25,16 +25,17 @@ from skbio.stats.distance import DistanceMatrix
 import itertools
 import numpy as np
 import scipy as sp
+from typing import Sequence, Tuple
 
 
-def distanceSum(elements, dm: DistanceMatrix):
+def distanceSum(elements: Sequence[str], dm: DistanceMatrix) -> float:
     '''Compute the sum of pairwise distances for the given elements according to
     the given distance matrix.
 
     Parameters
     ----------
-    elements: iterable of str
-        list or set of elements for which the sum of distances is computed
+    elements: sequence of str
+        list or elements for which the sum of distances is computed
     dm: skbio.stats.distance.DistanceMatrix
         pairwise distance matrix.
 
@@ -44,18 +45,12 @@ def distanceSum(elements, dm: DistanceMatrix):
         the sum of all pairwise distances of dm for IDs in elements
     '''
 
-    # some assertions
-    if type(dm) != DistanceMatrix:
-        raise TypeError('dm is not of type "DistanceMatrix"')
-    assert(len(elements) > 0)
-
-    # actual computation
     return np.tril(dm.filter(elements).data).sum()
 
 
-def prototypeSelection_exhaustive(distanceMatrix: DistanceMatrix,
-                                  numPrototypes: int,
-                                  maxCombinationsToTest=200000):
+def prototypeSelection_exhaustive(
+      distanceMatrix: DistanceMatrix,
+      numPrototypes: int, maxCombinationsToTest: int=200000) -> Sequence[str]:
     '''Select k prototypes for given distance matrix
 
     Parameters
@@ -74,9 +69,9 @@ def prototypeSelection_exhaustive(distanceMatrix: DistanceMatrix,
 
     Returns
     -------
-    tuple
-        The k-tuple holding selected prototypes, i.e. a sub-set of the elements
-        in the distance matrix.
+    sequence of str
+        A sequence holding selected prototypes, i.e. a sub-set of the
+        elements in the distance matrix.
 
     Notes
     -----
@@ -95,9 +90,9 @@ def prototypeSelection_exhaustive(distanceMatrix: DistanceMatrix,
                         heuristic implementation for instances with more than \
                         %i combinations instead!"
                         % (combinations, maxCombinationsToTest))
+
     maxDist, maxSet = -1 * np.infty, None
-    for s in set(itertools.combinations(distanceMatrix.ids,
-                                        numPrototypes)):
+    for s in set(itertools.combinations(distanceMatrix.ids, numPrototypes)):
         d = distanceSum(s, distanceMatrix)
         if d > maxDist:
             maxDist, maxSet = d, s
