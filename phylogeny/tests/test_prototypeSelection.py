@@ -33,25 +33,17 @@ class prototypeSelection(TestCase):
 
         # test that no ID is duplicated
         self.assertRaisesRegex(
-            Exception,
-            'List of elements contain duplicates!',
+            DissimilarityMatrixError,
+            'IDs must be unique. Found the following duplicate IDs',
             distanceSum,
             ['A', 'B', 'C', 'D', 'B'],
             self.dm20)
 
-        # test that list of IDs holds at least 2 elements
+        # test that list of IDs holds at least 1 element
         self.assertRaises(
             AssertionError,
             distanceSum,
-            ['A'],
-            self.dm20)
-
-        # test that list of IDs holds at most as many elements as the distance
-        # matrix
-        self.assertRaises(
-            AssertionError,
-            distanceSum,
-            range(0, 21),
+            [],
             self.dm20)
 
         # test for correct type
@@ -60,6 +52,24 @@ class prototypeSelection(TestCase):
             distanceSum,
             range(0, 21),
             None)
+
+        # test for result correctness
+        self.assertAlmostEqual(2454.1437464961, distanceSum(self.dm100.ids,
+                                                            self.dm100))
+        self.assertAlmostEqual(32.9720926186, distanceSum(
+            ['550.L1S173.s.1.sequence', '550.L1S141.s.1.sequence',
+             '550.L1S18.s.1.sequence', '550.L1S156.s.1.sequence',
+             '550.L1S110.s.1.sequence', '550.L1S143.s.1.sequence',
+             '550.L1S134.s.1.sequence', '550.L1S103.s.1.sequence',
+             '550.L1S185.s.1.sequence', '550.L1S114.s.1.sequence',
+             '550.L1S138.s.1.sequence', '550.L1S137.s.1.sequence'],
+            self.dm100))
+
+        self.assertAlmostEqual(81.6313, distanceSum(self.dm20.ids,
+                                                    self.dm20))
+        self.assertAlmostEqual(13.3887, distanceSum(
+            ['A', 'C', 'F', 'G', 'M', 'N', 'P', 'T'],
+            self.dm20))
 
     def test_exhaustive(self):
         # check if execution is rejected if number of combination is too high
