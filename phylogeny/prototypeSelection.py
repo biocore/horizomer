@@ -30,7 +30,9 @@ import scipy as sp
 from skbio.stats.distance import DistanceMatrix
 
 
-def distance_sum(elements: Sequence[str], dm: DistanceMatrix) -> float:
+def distance_sum(elements, dm):
+    # function signature with type annotation for future use with python >= 3.5
+    # def distance_sum(elements: Sequence[str], dm: DistanceMatrix) -> float:
     '''Compute the sum of pairwise distances for the given elements according to
     the given distance matrix.
 
@@ -50,9 +52,13 @@ def distance_sum(elements: Sequence[str], dm: DistanceMatrix) -> float:
     return np.tril(dm.filter(elements).data).sum()
 
 
-def prototype_selection_exhaustive(
-  dm: DistanceMatrix,
-  num_prototypes: int, max_combinations_to_test: int=200000) -> Sequence[str]:
+def prototype_selection_exhaustive(dm, num_prototypes,
+                                   max_combinations_to_test=200000):
+    # function signature with type annotation for future use with python >= 3.5
+    # def prototype_selection_exhaustive(
+    #   dm: DistanceMatrix,
+    #   num_prototypes: int, max_combinations_to_test: int=200000)
+    #    -> Sequence[str]:
     '''Select k prototypes for given distance matrix
 
     Parameters
