@@ -13,14 +13,6 @@ from phylogeny.prototypeSelection import (prototype_selection_exhaustive,
 
 class prototypeSelection(TestCase):
     def setUp(self):
-        self.dm_nonNull = get_data_path('distMatrix_nonNull.txt')
-        self.dm_repIDs = get_data_path('distMatrix_repIDs.txt')
-        self.dm_asym = get_data_path('distMatrix_asym.txt')
-        # this file must not exists!
-        self.dm_noFile = get_data_path('noFile.txt')
-        # any file that is present, but not a DistanceMatrix
-        self.dm_wrongFormat = get_data_path('wrongFileformat.txt')
-
         self.dm100 = DistanceMatrix.read(get_data_path('distMatrix_100.txt'))
         self.dm20 = DistanceMatrix.read(get_data_path('distMatrix_20_f5.txt'))
 
@@ -116,43 +108,6 @@ class prototypeSelection(TestCase):
              'O', 'P', 'Q', 'R', 'S', 'T'),
             res)
         self.assertAlmostEqual(74.1234, distance_sum(res, self.dm20))
-
-    def test_wellformed_distance_matrix(self):
-        # tests if matrices are rejected that are not symmetric
-        self.assertRaisesRegex(
-            DistanceMatrixError,
-            "Data must be symmetric",
-            DistanceMatrix.read,
-            self.dm_asym)
-
-        # tests if matrices are rejected that are hollow, i.e. have non zero
-        # entries in their main diagonal
-        self.assertRaisesRegex(
-            DissimilarityMatrixError,
-            "Data must be hollow",
-            DistanceMatrix.read,
-            self.dm_nonNull)
-
-        # tests if matrices are rejected that have duplicate IDs
-        self.assertRaisesRegex(
-            DissimilarityMatrixError,
-            "IDs must be unique. Found the following duplicate IDs",
-            DistanceMatrix.read,
-            self.dm_repIDs)
-
-        # tests if absence of files is detected
-        self.assertRaisesRegex(
-            FileNotFoundError,
-            "No such file or directory",
-            DistanceMatrix.read,
-            self.dm_noFile)
-
-        # tests if a wrong format is rejected
-        self.assertRaisesRegex(
-            UnrecognizedFormatError,
-            "Could not detect the format of",
-            DistanceMatrix.read,
-            self.dm_wrongFormat)
 
 
 if __name__ == '__main__':
