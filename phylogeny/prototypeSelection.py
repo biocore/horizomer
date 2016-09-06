@@ -21,9 +21,9 @@ For completeness, the exact but exponential algorithm is implemented, too.
     Fuzzy Systems, 2008. FUZZ-IEEE 2008.
 """
 
-from typing import Sequence, Tuple
+# needed for signature type annotations, but only works for python >= 3.5
+# from typing import Sequence, Tuple
 from itertools import combinations
-# import itertools
 
 import numpy as np
 import scipy as sp
