@@ -54,7 +54,7 @@ before_install:
   # Install Java goodies
   - mkdir java-files
   # Install PhyloNet
-  - wget http://bioinfo.cs.rice.edu/sites/g/files/bxs266/f/kcfinder/files/PhyloNet_3.5.7.jar -O java-files/PhyloNet_3.5.7.jar
+  - wget http://bioinfo.cs.rice.edu/sites/g/files/bxs266/f/kcfinder/files/PhyloNet_3.5.7.jar -O java-files/PhyloNet_3.5.7.jar --no-check-certificate
 install:
   # install a few of the dependencies that pip would otherwise try to install
   # when intalling scikit-bio
