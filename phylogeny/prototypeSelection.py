@@ -31,8 +31,6 @@ from skbio.stats.distance import DistanceMatrix
 
 
 def distance_sum(elements, dm):
-    # function signature with type annotation for future use with python >= 3.5
-    # def distance_sum(elements: Sequence[str], dm: DistanceMatrix) -> float:
     '''Compute the sum of pairwise distances for the given elements according to
     the given distance matrix.
 
@@ -47,6 +45,11 @@ def distance_sum(elements, dm):
     -------
     float:
         the sum of all pairwise distances of dm for IDs in elements
+
+    Notes
+    -----
+    function signature with type annotation for future use with python >= 3.5
+    def distance_sum(elements: Sequence[str], dm: DistanceMatrix) -> float:
     '''
 
     return np.tril(dm.filter(elements).data).sum()
@@ -54,11 +57,6 @@ def distance_sum(elements, dm):
 
 def prototype_selection_exhaustive(dm, num_prototypes,
                                    max_combinations_to_test=200000):
-    # function signature with type annotation for future use with python >= 3.5
-    # def prototype_selection_exhaustive(
-    #   dm: DistanceMatrix,
-    #   num_prototypes: int, max_combinations_to_test: int=200000)
-    #    -> Sequence[str]:
     '''Select k prototypes for given distance matrix
 
     Parameters
@@ -101,6 +99,10 @@ def prototype_selection_exhaustive(dm, num_prototypes,
     Idea: test all (n over k) combinations of selecting k elements from n with-
           out replacement. Compute the objective for each such combination and
           report the combination with maximal value.
+
+    function signature with type annotation for future use with python >= 3.5:
+    def prototype_selection_exhaustive(dm: DistanceMatrix, num_prototypes: int,
+    max_combinations_to_test: int=200000) -> Sequence[str]:
     '''
     if num_prototypes < 2:
         raise ValueError(("'num_prototypes' must be >= 2, since a single "
