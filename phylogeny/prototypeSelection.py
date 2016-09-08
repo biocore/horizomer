@@ -129,14 +129,19 @@ def prototype_selection_exhaustive(dm, num_prototypes,
 
 def prototype_selection_constructive_maxdist(dm, num_prototypes, steps=10):
     '''Heuristically select k prototypes for given distance matrix.
-       Greedily grow the set of prototypes by adding the element with the
-       largest sum of distances to the non-prototype elements.
+
+       Prototype selection is NP-hard. This is an implementation of a greedy
+       correctness heuristic: Greedily grow the set of prototypes by adding the
+       element with the largest sum of distances to the non-prototype elements.
+       Start with the two elements that are globally most distant from each
+       other. The set of prototypes is then constructively grown by adding the
+       element showing largest sum of distances to all non-prototype elements
+       in the distance matrix in each iteration.
 
     Parameters
     ----------
     dm: skbio.stats.distance.DistanceMatrix
-        pairwise distances for all elements in the full set S.
-        Must be symmetric and non-hollow.
+        Pairwise distances for all elements in the full set S.
     num_prototypes: int
         Number of prototypes to select for distance matrix.
         Must be >= 2, since a single prototype is useless.
@@ -163,12 +168,6 @@ def prototype_selection_constructive_maxdist(dm, num_prototypes, steps=10):
 
     Notes
     -----
-    Prototype selection is NP-hard. This is an implementation of a greedy
-    correctness heuristic.
-    Idea: Start with the two elements that are globally most distant from each
-          other. The set of prototypes is then constructively grown by adding
-          the element showing largest sum of distances to all non-prototype
-          elements in the distance matrix in each iteration.
     Timing: %timeit -n 100 prototype_selection_constructive_maxdist(dm, 100)
             100 loops, best of 3: 1.43 s per loop
             where the dm holds 27,398 elements
@@ -203,4 +202,5 @@ def prototype_selection_constructive_maxdist(dm, num_prototypes, steps=10):
         resSet.append(maxElmIdx)
 
     # return the ids of the selected prototype elements
-    return [dm.ids[idx] for idx, x in enumerate(uncovered) if x == np.False_]
+    return tuple([dm.ids[idx] for idx, x in enumerate(uncovered)
+                 if x == np.False_])
