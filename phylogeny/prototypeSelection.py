@@ -127,7 +127,7 @@ def prototype_selection_exhaustive(dm, num_prototypes,
     return max_set
 
 
-def prototype_selection_constructive_maxdist(dm, num_prototypes, steps=10):
+def prototype_selection_constructive_maxdist(dm, num_prototypes):
     '''Heuristically select k prototypes for given distance matrix.
 
        Prototype selection is NP-hard. This is an implementation of a greedy
