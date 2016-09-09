@@ -204,3 +204,52 @@ def prototype_selection_constructive_maxdist(dm, num_prototypes):
     # return the ids of the selected prototype elements
     return tuple([dm.ids[idx] for idx, x in enumerate(uncovered)
                  if x == np.False_])
+
+
+def prototype_selection_constructive_protoclass(dm, num_prototypes, eps=0.38, lbda=0):
+    if num_prototypes < 2:
+        raise ValueError(("'num_prototypes' must be >= 2, since a single "
+                          "prototype is useless."))
+    if num_prototypes >= len(dm.ids):
+        raise ValueError(("'num_prototypes' must be smaller than the number of"
+                          " elements in the distance matrix, otherwise no "
+                          "reduction is necessary."))
+
+    # def greedy(dxz, y, eps=0.38, lbda=0):
+    y = [0] * dm.shape[0]
+
+    classes = list(set(y))
+    nproto = dm.shape[0]
+    K = len(classes)
+    n = dm.shape[0]
+    C = np.matrix([np.True_] * n).T
+    B = dm.data < eps
+
+    covered = [0] * n
+    W = np.dot(C, 2)-1
+    scores = np.dot(B.T, W)
+
+    protos = []
+    ncovered = []
+    alpha = np.matrix([0]*nproto).T
+    i = 0
+    while(True):
+        i += 1
+        iimax = scores.argmax()
+        kmax = 0
+        pmax = iimax
+
+        if scores[pmax] > lbda:
+            protos.append(pmax)
+            alpha[pmax, kmax] = 1
+
+            justcovered = (B[:, pmax] & C[:, kmax].T & np.logical_not(covered)).getA1()
+            covered = covered + justcovered
+            affectedProtos = np.where(B[justcovered, :].sum(axis=0)>0)
+            ncovered.extend((sum(justcovered), (B[:, pmax] & np.logical_not(C[:,kmax]).T).sum()))
+
+            scoreReduction = [sum(B[:, p] & justcovered) for p in list(affectedProtos[0])]
+            scores[affectedProtos, kmax] = scores[affectedProtos,kmax] - scoreReduction
+        else:
+            break
+    return tuple([dm.ids[idx] for idx in protos])
