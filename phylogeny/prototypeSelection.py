@@ -202,11 +202,31 @@ def prototype_selection_constructive_maxdist(dm, num_prototypes):
         resSet.append(maxElmIdx)
 
     # return the ids of the selected prototype elements
-    return tuple([dm.ids[idx] for idx, x in enumerate(uncovered)
-                 if x == np.False_])
+    return tuple([dm.ids[idx] for idx, x in enumerate(uncovered) if not x])
 
 
-def prototype_selection_constructive_protoclass(dm, num_prototypes, eps=0.38, lbda=0):
+def _protoclass(dm, epsilon):
+    B = dm.data < epsilon
+    covered = [0] * dm.shape[0]
+    scores = B.sum(axis=0)
+    prototypes = []
+
+    i = 0
+    while(True):
+        i += 1
+
+        idx_max = scores.argmax()
+        if (scores[idx_max] > 0):
+            prototypes.append(idx_max)
+            justcovered = B[:, idx_max] & np.logical_not(covered)
+            covered += justcovered
+            scores -= B[justcovered, :].sum(axis=0)
+        else:
+            break
+    return tuple(np.array(dm.ids)[prototypes])
+
+
+def prototype_selection_constructive_protoclass(dm, num_prototypes, steps=100):
     if num_prototypes < 2:
         raise ValueError(("'num_prototypes' must be >= 2, since a single "
                           "prototype is useless."))
@@ -215,41 +235,32 @@ def prototype_selection_constructive_protoclass(dm, num_prototypes, eps=0.38, lb
                           " elements in the distance matrix, otherwise no "
                           "reduction is necessary."))
 
-    # def greedy(dxz, y, eps=0.38, lbda=0):
-    y = [0] * dm.shape[0]
+    epsilon = dm.data.mean()
+    stepSize = 0.2
 
-    classes = list(set(y))
-    nproto = dm.shape[0]
-    K = len(classes)
-    n = dm.shape[0]
-    C = np.matrix([np.True_] * n).T
-    B = dm.data < eps
+    direction = 0
+    prototypes = []
+    for i in range(steps):
+        oldDirection = direction
+        oldEpsilon = epsilon
 
-    covered = [0] * n
-    W = np.dot(C, 2)-1
-    scores = np.dot(B.T, W)
+        stepSize *= 1.1
+        prototypes = _protoclass(dm, epsilon)
+        if len(prototypes) > num_prototypes:
+            direction = +1
+        elif len(prototypes) < num_prototypes:
+            direction = -1
 
-    protos = []
-    ncovered = []
-    alpha = np.matrix([0]*nproto).T
-    i = 0
-    while(True):
-        i += 1
-        iimax = scores.argmax()
-        kmax = 0
-        pmax = iimax
+        if direction != oldDirection:
+            stepSize /= 10
+        epsilon += direction * stepSize
 
-        if scores[pmax] > lbda:
-            protos.append(pmax)
-            alpha[pmax, kmax] = 1
+        # print("%02i) %02i %.4f -> %.4f" % (i, len(prototypes), oldEpsilon,
+        #                                    epsilon))
 
-            justcovered = (B[:, pmax] & C[:, kmax].T & np.logical_not(covered)).getA1()
-            covered = covered + justcovered
-            affectedProtos = np.where(B[justcovered, :].sum(axis=0)>0)
-            ncovered.extend((sum(justcovered), (B[:, pmax] & np.logical_not(C[:,kmax]).T).sum()))
-
-            scoreReduction = [sum(B[:, p] & justcovered) for p in list(affectedProtos[0])]
-            scores[affectedProtos, kmax] = scores[affectedProtos,kmax] - scoreReduction
-        else:
+        if len(prototypes) == num_prototypes:
             break
-    return tuple([dm.ids[idx] for idx in protos])
+    if len(prototypes) < num_prototypes:
+        raise Exception("nothing found")
+
+    return prototypes[:num_prototypes]

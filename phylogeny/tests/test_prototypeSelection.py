@@ -11,6 +11,7 @@ from phylogeny.prototypeSelection import (
     prototype_selection_exhaustive,
     prototype_selection_constructive_maxdist,
     prototype_selection_constructive_protoclass,
+    _protoclass,
     distance_sum)
 
 
@@ -201,41 +202,101 @@ class prototypeSelection(TestCase):
             self.dm20,
             len(self.dm20.ids)+1)
 
-        res = prototype_selection_constructive_protoclass(self.dm20, 3, eps=0.42)
-        self.assertCountEqual(('D', 'Q', 'A'), res)
-        self.assertAlmostEqual(1.7409, distance_sum(res, self.dm20))
+        res = prototype_selection_constructive_protoclass(self.dm20, 3)
+        self.assertCountEqual(('A', 'H', 'Q'), res)
+        self.assertAlmostEqual(1.7387, distance_sum(res, self.dm20))
 
-        res = prototype_selection_constructive_protoclass(self.dm20, 4, eps=0.40)
-        self.assertCountEqual(('S', 'Q', 'A', 'B'), res)
-        self.assertAlmostEqual(3.1509, distance_sum(res, self.dm20))
+        res = prototype_selection_constructive_protoclass(self.dm20, 4)
+        self.assertCountEqual(('A', 'B', 'Q', 'G'), res)
+        self.assertAlmostEqual(3.278799999, distance_sum(res, self.dm20))
 
-        res = prototype_selection_constructive_protoclass(self.dm20, 5, eps=0.38)
-        self.assertCountEqual(('F', 'G', 'Q', 'A', 'B'), res)
-        self.assertAlmostEqual(5.1588, distance_sum(res, self.dm20))
+        res = prototype_selection_constructive_protoclass(self.dm20, 5)
+        self.assertCountEqual(('H', 'C', 'G', 'Q', 'A'), res)
+        self.assertAlmostEqual(5.2747, distance_sum(res, self.dm20))
 
-        res = prototype_selection_constructive_protoclass(self.dm20, 18, eps=0.31)
+        res = prototype_selection_constructive_protoclass(self.dm20, 18)
         self.assertCountEqual(
             ('D', 'I', 'A', 'B', 'C', 'E', 'F', 'G', 'J', 'K', 'L', 'M', 'N',
              'P', 'Q', 'R', 'S', 'T'),
             res)
         self.assertAlmostEqual(66.4964, distance_sum(res, self.dm20))
 
-        res = prototype_selection_constructive_protoclass(self.dm20, 19, eps=0.305)
+        res = prototype_selection_constructive_protoclass(self.dm20, 19)
+        self.assertCountEqual(
+            ('I', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M',
+             'N', 'P', 'Q', 'R', 'S', 'T'),
+            res)
+        self.assertAlmostEqual(73.6075, distance_sum(res, self.dm20))
+
+        res = prototype_selection_constructive_protoclass(self.dm100, 5)
+        self.assertCountEqual(
+            ('550.L1S156.s.1.sequence', '550.L1S105.s.1.sequence',
+             '550.L1S18.s.1.sequence', '550.L1S1.s.1.sequence',
+             '550.L1S165.s.1.sequence'),
+            res)
+        self.assertAlmostEqual(5.72452336845315, distance_sum(res, self.dm100))
+
+        res = prototype_selection_constructive_protoclass(self.dm100, 10)
+        self.assertCountEqual(
+            ('550.L1S156.s.1.sequence', '550.L1S117.s.1.sequence',
+             '550.L1S14.s.1.sequence', '550.L1S182.s.1.sequence',
+             '550.L1S135.s.1.sequence', '550.L1S144.s.1.sequence',
+             '550.L1S1.s.1.sequence', '550.L1S146.s.1.sequence',
+             '550.L1S136.s.1.sequence', '550.L1S176.s.1.sequence'),
+            res)
+        self.assertAlmostEqual(24.9367079851425, distance_sum(res, self.dm100))
+
+        res = prototype_selection_constructive_protoclass(self.dm100, 20)
+        self.assertCountEqual(
+            ('550.L1S163.s.1.sequence', '550.L1S117.s.1.sequence',
+             '550.L1S148.s.1.sequence', '550.L1S179.s.1.sequence',
+             '550.L1S128.s.1.sequence', '550.L1S12.s.1.sequence',
+             '550.L1S182.s.1.sequence', '550.L1S133.s.1.sequence',
+             '550.L1S127.s.1.sequence', '550.L1S139.s.1.sequence',
+             '550.L1S173.s.1.sequence', '550.L1S1.s.1.sequence',
+             '550.L1S141.s.1.sequence', '550.L1S165.s.1.sequence',
+             '550.L1S18.s.1.sequence', '550.L1S103.s.1.sequence',
+             '550.L1S16.s.1.sequence', '550.L1S136.s.1.sequence',
+             '550.L1S132.s.1.sequence', '550.L1S176.s.1.sequence'),
+            res)
+        self.assertAlmostEqual(101.104980832350, distance_sum(res, self.dm100))
+
+    def test_protoclass(self):
+        res = _protoclass(self.dm20, 0.42)
+        self.assertCountEqual(('D', 'Q', 'A'), res)
+        self.assertAlmostEqual(1.7409, distance_sum(res, self.dm20))
+
+        res = _protoclass(self.dm20, 0.40)
+        self.assertCountEqual(('S', 'Q', 'A', 'B'), res)
+        self.assertAlmostEqual(3.1509, distance_sum(res, self.dm20))
+
+        res = _protoclass(self.dm20, 0.38)
+        self.assertCountEqual(('F', 'G', 'Q', 'A', 'B'), res)
+        self.assertAlmostEqual(5.1588, distance_sum(res, self.dm20))
+
+        res = _protoclass(self.dm20, 0.31)
+        self.assertCountEqual(
+            ('D', 'I', 'A', 'B', 'C', 'E', 'F', 'G', 'J', 'K', 'L', 'M', 'N',
+             'P', 'Q', 'R', 'S', 'T'),
+            res)
+        self.assertAlmostEqual(66.4964, distance_sum(res, self.dm20))
+
+        res = _protoclass(self.dm20, 0.305)
         self.assertCountEqual(
             ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
              'N', 'P', 'Q', 'R', 'S', 'T'),
             res)
         self.assertAlmostEqual(73.6075, distance_sum(res, self.dm20))
 
-        res = prototype_selection_constructive_protoclass(self.dm100, 5, eps=0.5)
+        res = _protoclass(self.dm100, 0.5)
         self.assertCountEqual(
             ('550.L1S1.s.1.sequence', '550.L1S105.s.1.sequence',
              '550.L1S117.s.1.sequence', '550.L1S165.s.1.sequence',
              '550.L1S167.s.1.sequence'),
             res)
-        self.assertAlmostEqual(5.3870850252988713, distance_sum(res, self.dm100))
+        self.assertAlmostEqual(5.38708502529887, distance_sum(res, self.dm100))
 
-        res = prototype_selection_constructive_protoclass(self.dm100, 10, eps=0.41)
+        res = _protoclass(self.dm100, 0.41)
         self.assertCountEqual(
             ('550.L1S1.s.1.sequence', '550.L1S117.s.1.sequence',
              '550.L1S133.s.1.sequence', '550.L1S136.s.1.sequence',
@@ -245,7 +306,7 @@ class prototypeSelection(TestCase):
             res)
         self.assertAlmostEqual(25.0901634594939, distance_sum(res, self.dm100))
 
-        res = prototype_selection_constructive_protoclass(self.dm100, 20, eps=0.374)
+        res = _protoclass(self.dm100, 0.374)
         self.assertCountEqual(
             ('550.L1S1.s.1.sequence', '550.L1S103.s.1.sequence',
              '550.L1S117.s.1.sequence', '550.L1S12.s.1.sequence',
