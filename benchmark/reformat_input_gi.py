@@ -53,13 +53,13 @@ def reformat_egid(genbank_fp,
         for feature in gb.interval_metadata.features:
             if feature['type_'] == 'CDS' and 'protein_id' in feature:
                 protein_id = feature['protein_id'].replace('\"', '')
-                translation = feature['translation'].replace(' ', '') \
-                    .replace('\"', '')
-                strand = '-' if feature['rc_'] else '+'
-                loc = gb.interval_metadata.features[feature]
-                start = loc[0][0] + abs_pos + 1
-                end = loc[0][1] + abs_pos
                 if protein_id not in genes:
+                    translation = feature['translation'].replace(' ', '') \
+                        .replace('\"', '')
+                    strand = '-' if feature['rc_'] else '+'
+                    loc = gb.interval_metadata.features[feature]
+                    start = loc[0][0] + abs_pos + 1
+                    end = loc[0][1] + abs_pos
                     genes[protein_id] = [translation, start, end, strand]
         abs_pos += int(size)
     output_f = {}
