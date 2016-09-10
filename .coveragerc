@@ -6,7 +6,7 @@ omit =
     */__init__.py
 source = benchmark,distance-method,phylogeny
 branch = True
-incldue = */*
+include = */*
 
 [report]
 exclude_lines =
