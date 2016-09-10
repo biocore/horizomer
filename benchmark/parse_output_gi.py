@@ -37,11 +37,11 @@ def parse_output_gi(genbank_fp,
         if feature['type_'] == 'CDS':
             if 'protein_id' in feature:
                 protein_id = feature['protein_id'].replace('\"', '')
-                loc = gb.interval_metadata.features[feature]
-                start = loc[0][0] + 1
-                end = loc[0][1]
                 if protein_id not in genes:
-                    genes[protein_id] = [start, end]
+                    loc = gb.interval_metadata.features[feature]
+                    start = loc[0][0] + 1
+                    end = loc[0][1]
+                    genes[protein_id] = (start, end)
     genes_in_gi = {}
     with open(gi_fp, 'r') as input_f:
         for line in input_f:
@@ -53,10 +53,7 @@ def parse_output_gi(genbank_fp,
                 if (l[0] >= start and l[1] <= end):
                     if gene not in genes_in_gi:
                         genes_in_gi[gene] = 1
-    output = []
-    for gene in sorted(genes_in_gi):
-        output.append(gene)
-    return '\n'.join(output)
+    return '\n'.join(sorted(genes_in_gi))
 
 
 @click.command()
