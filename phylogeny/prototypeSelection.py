@@ -9,9 +9,10 @@ Here, we define "best represents" as maximizing the sum of distances between
 all points, i.e. sum {over a,b in S} DM[a,b]. This is our objective function.
 
 This problem is known to be NP-hard [1], thus we need to resort to heuristics.
-In the future, this module will implement several heuristics, whose quality can
-be measured by the objective function for each problem instance, since there is
-no global winner.
+This module implements several heuristics, whose quality can be measured by
+the objective function for each problem instance, since there is no global
+winner. Currently implemented are:
+ - prototype_selection_constructive_maxdist
 For completeness, the exact but exponential algorithm is implemented, too.
   "prototype_selection_exhaustive"
 
@@ -37,14 +38,14 @@ def distance_sum(elements, dm):
     Parameters
     ----------
     elements: sequence of str
-        list or elements for which the sum of distances is computed
+        List or elements for which the sum of distances is computed.
     dm: skbio.stats.distance.DistanceMatrix
-        pairwise distance matrix.
+        Pairwise distance matrix.
 
     Returns
     -------
     float:
-        the sum of all pairwise distances of dm for IDs in elements
+        The sum of all pairwise distances of dm for IDs in elements.
 
     Notes
     -----
@@ -62,8 +63,7 @@ def prototype_selection_exhaustive(dm, num_prototypes,
     Parameters
     ----------
     dm: skbio.stats.distance.DistanceMatrix
-        pairwise distances for all elements in the full set S.
-        Must be symmetric and non-hollow.
+        Pairwise distances for all elements in the full set S.
     num_prototypes: int
         Number of prototypes to select for distance matrix.
         Must be >= 2, since a single prototype is useless.
@@ -75,7 +75,7 @@ def prototype_selection_exhaustive(dm, num_prototypes,
 
     Returns
     -------
-    sequence of str
+    list of str
         A sequence holding selected prototypes, i.e. a sub-set of the
         elements in the distance matrix.
 
@@ -102,7 +102,7 @@ def prototype_selection_exhaustive(dm, num_prototypes,
 
     function signature with type annotation for future use with python >= 3.5:
     def prototype_selection_exhaustive(dm: DistanceMatrix, num_prototypes: int,
-    max_combinations_to_test: int=200000) -> Sequence[str]:
+    max_combinations_to_test: int=200000) -> List[str]:
     '''
     if num_prototypes < 2:
         raise ValueError(("'num_prototypes' must be >= 2, since a single "
@@ -124,7 +124,7 @@ def prototype_selection_exhaustive(dm, num_prototypes,
         d = distance_sum(s, dm)
         if d > max_dist:
             max_dist, max_set = d, s
-    return max_set
+    return list(max_set)
 
 
 def prototype_selection_constructive_maxdist(dm, num_prototypes):
@@ -150,17 +150,12 @@ def prototype_selection_constructive_maxdist(dm, num_prototypes):
 
     Returns
     -------
-    sequence of str
+    list of str
         A sequence holding selected prototypes, i.e. a sub-set of the
         elements in the distance matrix.
 
     Raises
     ------
-    RuntimeError
-        Combinatorics explode even for small instances. To save the user from
-        waiting (almost) forever, this function declines execution if the
-        number of combinations to test are too high,
-        i.e. > max_combinations_to_test
     ValueError
         The number of prototypes to be found should be at least 2 and at most
         one element smaller than elements in the distance matrix. Otherwise, a
@@ -173,7 +168,7 @@ def prototype_selection_constructive_maxdist(dm, num_prototypes):
             where the dm holds 27,398 elements
     function signature with type annotation for future use with python >= 3.5:
     def prototype_selection_constructive_maxdist(dm: DistanceMatrix,
-    num_prototypes: int) -> Sequence[str]:
+    num_prototypes: int) -> List[str]:
     '''
     if num_prototypes < 2:
         raise ValueError(("'num_prototypes' must be >= 2, since a single "
@@ -189,18 +184,17 @@ def prototype_selection_constructive_maxdist(dm, num_prototypes):
     # the first two prototypes are those elements that have the globally
     # maximal distance in the distance matrix. Mark those two elements as
     # being covered, i.e. prototypes
-    distance, resSet = dm.data.max(), list(np.unravel_index(dm.data.argmax(),
-                                           dm.data.shape))
-    uncovered[resSet] = np.False_
+    distance = dm.data.max()
+    res_set = list(np.unravel_index(dm.data.argmax(), dm.data.shape))
+    uncovered[res_set] = np.False_
 
     # repeat until enough prototypes have been selected:
     #  the new prototype is the element that has maximal distance sum to all
     #  non-prototype elements in the distance matrix.
     while dm.shape[0] - np.sum(uncovered) < num_prototypes:
-        maxElmIdx = (dm.data[list(resSet), :].sum(axis=0) * uncovered).argmax()
-        uncovered[maxElmIdx] = np.False_
-        resSet.append(maxElmIdx)
+        max_elm_idx = (dm.data[res_set, :].sum(axis=0) * uncovered).argmax()
+        uncovered[max_elm_idx] = np.False_
+        res_set.append(max_elm_idx)
 
     # return the ids of the selected prototype elements
-    return tuple([dm.ids[idx] for idx, x in enumerate(uncovered)
-                 if x == np.False_])
+    return [dm.ids[idx] for idx, x in enumerate(uncovered) if not x]
