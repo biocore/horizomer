@@ -189,6 +189,15 @@ class prototypeSelection(TestCase):
 
     def test_prototype_selection_constructive_protoclass(self):
         self.assertRaisesRegex(
+            RuntimeError,
+            "Number of iterations exceeded before",
+            prototype_selection_constructive_protoclass,
+            self.dm20,
+            5,
+            steps=1
+        )
+
+        self.assertRaisesRegex(
             ValueError,
             "must be >= 2, since a single",
             prototype_selection_constructive_protoclass,
