@@ -7,8 +7,10 @@ from skbio.stats.distance._base import (DistanceMatrixError,
 from skbio.util import get_data_path
 from skbio.io._exception import UnrecognizedFormatError
 
-from phylogeny.prototypeSelection import (prototype_selection_exhaustive,
-                                          distance_sum)
+from phylogeny.prototypeSelection import (
+    prototype_selection_exhaustive,
+    prototype_selection_constructive_maxdist,
+    distance_sum)
 
 
 class prototypeSelection(TestCase):
@@ -109,6 +111,79 @@ class prototypeSelection(TestCase):
             res)
         self.assertAlmostEqual(74.1234, distance_sum(res, self.dm20))
 
+    def test_prototype_selection_constructive_maxdist(self):
+        self.assertRaisesRegex(
+            ValueError,
+            "must be >= 2, since a single",
+            prototype_selection_constructive_maxdist,
+            self.dm20,
+            1)
+
+        self.assertRaisesRegex(
+            ValueError,
+            "otherwise no reduction is necessary",
+            prototype_selection_constructive_maxdist,
+            self.dm20,
+            len(self.dm20.ids)+1)
+
+        res = prototype_selection_constructive_maxdist(self.dm20, 3)
+        self.assertCountEqual(('A', 'P', 'Q'), res)
+        self.assertAlmostEqual(1.8410, distance_sum(res, self.dm20))
+
+        res = prototype_selection_constructive_maxdist(self.dm20, 4)
+        self.assertCountEqual(('A', 'P', 'Q', 'O'), res)
+        self.assertAlmostEqual(3.4284, distance_sum(res, self.dm20))
+
+        res = prototype_selection_constructive_maxdist(self.dm20, 5)
+        self.assertCountEqual(('A', 'P', 'Q', 'O', 'C'), res)
+        self.assertAlmostEqual(5.4480, distance_sum(res, self.dm20))
+
+        res = prototype_selection_constructive_maxdist(self.dm20, 18)
+        self.assertCountEqual(
+            ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'I', 'J', 'K', 'L', 'M', 'N',
+             'O', 'P', 'Q', 'R', 'T'),
+            res)
+        self.assertAlmostEqual(66.9400, distance_sum(res, self.dm20))
+
+        res = prototype_selection_constructive_maxdist(self.dm20, 19)
+        self.assertCountEqual(
+            ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'I', 'J', 'K', 'L', 'M', 'N',
+             'O', 'P', 'Q', 'R', 'T', 'S'),
+            res)
+        self.assertAlmostEqual(74.1234, distance_sum(res, self.dm20))
+
+        res = prototype_selection_constructive_maxdist(self.dm100, 5)
+        self.assertCountEqual(
+            ('550.L1S1.s.1.sequence', '550.L1S183.s.1.sequence',
+             '550.L1S136.s.1.sequence', '550.L1S115.s.1.sequence',
+             '550.L1S176.s.1.sequence'),
+            res)
+        self.assertAlmostEqual(6.51378126, distance_sum(res, self.dm100))
+
+        res = prototype_selection_constructive_maxdist(self.dm100, 10)
+        self.assertCountEqual(
+            ('550.L1S1.s.1.sequence', '550.L1S183.s.1.sequence',
+             '550.L1S147.s.1.sequence', '550.L1S13.s.1.sequence',
+             '550.L1S136.s.1.sequence', '550.L1S15.s.1.sequence',
+             '550.L1S115.s.1.sequence', '550.L1S129.s.1.sequence',
+             '550.L1S189.s.1.sequence', '550.L1S176.s.1.sequence'),
+            res)
+        self.assertAlmostEqual(26.88492051, distance_sum(res, self.dm100))
+
+        res = prototype_selection_constructive_maxdist(self.dm100, 20)
+        self.assertCountEqual(
+            ('550.L1S1.s.1.sequence', '550.L1S173.s.1.sequence',
+             '550.L1S183.s.1.sequence', '550.L1S180.s.1.sequence',
+             '550.L1S135.s.1.sequence', '550.L1S18.s.1.sequence',
+             '550.L1S178.s.1.sequence', '550.L1S147.s.1.sequence',
+             '550.L1S134.s.1.sequence', '550.L1S13.s.1.sequence',
+             '550.L1S136.s.1.sequence', '550.L1S15.s.1.sequence',
+             '550.L1S132.s.1.sequence', '550.L1S115.s.1.sequence',
+             '550.L1S11.s.1.sequence', '550.L1S151.s.1.sequence',
+             '550.L1S121.s.1.sequence', '550.L1S129.s.1.sequence',
+             '550.L1S189.s.1.sequence', '550.L1S176.s.1.sequence'),
+            res)
+        self.assertAlmostEqual(107.02463381, distance_sum(res, self.dm100))
 
 if __name__ == '__main__':
     main()
