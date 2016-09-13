@@ -39,14 +39,14 @@ def distance_sum(elements, dm):
     Parameters
     ----------
     elements: sequence of str
-        list or elements for which the sum of distances is computed
+        List or elements for which the sum of distances is computed.
     dm: skbio.stats.distance.DistanceMatrix
-        pairwise distance matrix.
+        Pairwise distance matrix.
 
     Returns
     -------
     float:
-        the sum of all pairwise distances of dm for IDs in elements
+        The sum of all pairwise distances of dm for IDs in elements.
 
     Notes
     -----
@@ -64,8 +64,7 @@ def prototype_selection_exhaustive(dm, num_prototypes,
     Parameters
     ----------
     dm: skbio.stats.distance.DistanceMatrix
-        pairwise distances for all elements in the full set S.
-        Must be symmetric and non-hollow.
+        Pairwise distances for all elements in the full set S.
     num_prototypes: int
         Number of prototypes to select for distance matrix.
         Must be >= 2, since a single prototype is useless.
@@ -186,17 +185,20 @@ def prototype_selection_constructive_maxdist(dm, num_prototypes):
     # the first two prototypes are those elements that have the globally
     # maximal distance in the distance matrix. Mark those two elements as
     # being covered, i.e. prototypes
-    distance, res_set = dm.data.max(), list(np.unravel_index(dm.data.argmax(),
-                                            dm.data.shape))
+    distance = dm.data.max()
+    res_set = list(np.unravel_index(dm.data.argmax(), dm.data.shape))
     uncovered[res_set] = np.False_
+    # counts the number of already found prototypes
+    num_found_prototypes = len(res_set)
 
     # repeat until enough prototypes have been selected:
     #  the new prototype is the element that has maximal distance sum to all
     #  non-prototype elements in the distance matrix.
-    while dm.shape[0] - np.sum(uncovered) < num_prototypes:
-        maxElmIdx = (dm.data[res_set, :].sum(axis=0) * uncovered).argmax()
-        uncovered[maxElmIdx] = np.False_
-        res_set.append(maxElmIdx)
+    while num_found_prototypes < num_prototypes:
+        max_elm_idx = (dm.data[res_set, :].sum(axis=0) * uncovered).argmax()
+        uncovered[max_elm_idx] = np.False_
+        num_found_prototypes += 1
+        res_set.append(max_elm_idx)
 
     # return the ids of the selected prototype elements
     return [dm.ids[idx] for idx, x in enumerate(uncovered) if not x]

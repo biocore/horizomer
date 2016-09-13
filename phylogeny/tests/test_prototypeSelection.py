@@ -320,5 +320,6 @@ class prototypeSelection(TestCase):
              '550.L1S180.s.1.sequence', '550.L1S187.s.1.sequence'),
             res)
         self.assertAlmostEqual(101.91549799314, distance_sum(res, self.dm100))
+
 if __name__ == '__main__':
     main()
