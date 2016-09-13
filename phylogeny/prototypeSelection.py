@@ -187,13 +187,16 @@ def prototype_selection_constructive_maxdist(dm, num_prototypes):
     distance = dm.data.max()
     res_set = list(np.unravel_index(dm.data.argmax(), dm.data.shape))
     uncovered[res_set] = np.False_
+    # counts the number of already found prototypes
+    num_found_prototypes = len(res_set)
 
     # repeat until enough prototypes have been selected:
     #  the new prototype is the element that has maximal distance sum to all
     #  non-prototype elements in the distance matrix.
-    while dm.shape[0] - np.sum(uncovered) < num_prototypes:
+    while num_found_prototypes < num_prototypes:
         max_elm_idx = (dm.data[res_set, :].sum(axis=0) * uncovered).argmax()
         uncovered[max_elm_idx] = np.False_
+        num_found_prototypes += 1
         res_set.append(max_elm_idx)
 
     # return the ids of the selected prototype elements
