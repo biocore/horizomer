@@ -13,6 +13,7 @@ This module implements several heuristics, whose quality can be measured by
 the objective function for each problem instance, since there is no global
 winner. Currently implemented are:
  - prototype_selection_constructive_maxdist
+ - prototype_selection_constructive_protoclass
 For completeness, the exact but exponential algorithm is implemented, too.
   "prototype_selection_exhaustive"
 
@@ -201,3 +202,173 @@ def prototype_selection_constructive_maxdist(dm, num_prototypes):
 
     # return the ids of the selected prototype elements
     return [dm.ids[idx] for idx, x in enumerate(uncovered) if not x]
+
+
+def _protoclass(dm, epsilon):
+    '''Heuristically select n prototypes for a fixed epsilon radius.
+
+       A ball is drawn around every element in the distance matrix with radius
+       epsilon. The element whoes ball covers most other elements is selected
+       as prototype. All such covered elements and the new prototype are
+       removed for the next round. This is repeated until no balls cover more
+       than its center element.
+       This idea is adapted from [1] with the difference that we only deal with
+       a single class.
+
+    Parameters
+    ----------
+    dm: skbio.stats.distance.DistanceMatrix
+        Pairwise distances for all elements in the full set S.
+    epsilon: float
+        Radius for the balls to be "drawn". As a rule of thumb, the larger
+        epsilon, the less prototypes are found.
+
+    Returns
+    -------
+    list of str
+        A sequence holding selected prototypes, i.e. a sub-set of the
+        elements in the distance matrix.
+
+    Notes
+    -----
+    function signature with type annotation for future use with python >= 3.5:
+    def _protoclass(dm: DistanceMatrix, epsilon: float) -> List[str]:
+
+    [1] Jacob Bien and Robert Tibshirani.
+        "Prototype selection for interpretable classification."
+        The Annals of Applied Statistics (2011): 2403-2424.
+    '''
+
+    # is an element (column) covered by the epsilon ball of another element
+    # (row)
+    B = dm.data < epsilon
+    # tracks which elements are covered by prototypes
+    covered = [0] * dm.shape[0]
+    # score is the number of other elements that falls within the epsilon ball
+    scores = B.sum(axis=0)
+    # found prototypes
+    prototypes = []
+
+    i = 0
+    while(True):
+        i += 1
+
+        # candidate for a new prototype is the element whose epsilon ball
+        # covers most other elements.
+        idx_max = scores.argmax()
+        if (scores[idx_max] > 0):
+            # candidate is new prototype, add it to the list
+            prototypes.append(idx_max)
+            # which elements have been just covered by the new prototype
+            justcovered = B[:, idx_max] & np.logical_not(covered)
+            # update the global list of ever covered elements
+            covered += justcovered
+            # update the scores, i.e. which epsilon balls cover how many
+            # uncovered elements
+            scores -= B[justcovered, :].sum(axis=0)
+        else:
+            # break if no epsilon balls cover other elements
+            break
+    return np.array(dm.ids)[prototypes]
+
+
+def prototype_selection_constructive_protoclass(dm, num_prototypes, steps=100):
+    '''Heuristically select k prototypes for given distance matrix.
+
+       Prototype selection is NP-hard. This is an implementation of a greedy
+       correctness heuristic from [1]: A ball is drawn around every element in
+       the distance matrix with radius epsilon. The element whoes ball covers
+       most other elements is selected as prototype. All such covered elements
+       and the new prototype are removed for the next round. This is repeated
+       until no balls cover more than its center element.
+
+       Unfortunately, we need to vary epsilon such that the desired number of
+       prototypes is found. It is very likely that we cannot find the optimal
+       value for epsilon and we try at most <steps> times.
+
+    Parameters
+    ----------
+    dm: skbio.stats.distance.DistanceMatrix
+        Pairwise distances for all elements in the full set S.
+    num_prototypes: int
+        Number of prototypes to select for distance matrix.
+        Must be >= 2, since a single prototype is useless.
+        Must be smaller than the number of elements in the distance matrix,
+        otherwise no reduction is necessary.
+    steps: int
+        Maximal number of steps used to find a suitable epsilon.
+
+    Returns
+    -------
+    list of str
+        A sequence holding selected prototypes, i.e. a sub-set of the
+        elements in the distance matrix.
+
+    Raises
+    ------
+    RuntimeError
+        There is a very naive optimization strategy in place to find a suitable
+        epsilon to find the desired number of prototypes. It will abort after
+        <steps> unsuccessful tries. Default is 100.
+    ValueError
+        The number of prototypes to be found should be at least 2 and at most
+        one element smaller than elements in the distance matrix. Otherwise, a
+        ValueError is raised.
+
+    Notes
+    -----
+    Timing: %timeit -n 100 prototype_selection_constructive_protoclass(dm, 100)
+            10 loops, best of 3: 32.8 s per loop
+            where the dm holds 27,398 elements
+    function signature with type annotation for future use with python >= 3.5:
+    def prototype_selection_constructive_protoclass(dm: DistanceMatrix,
+    num_prototypes: int, steps=100: int) -> List[str]:
+    '''
+    if num_prototypes < 2:
+        raise ValueError(("'num_prototypes' must be >= 2, since a single "
+                          "prototype is useless."))
+    if num_prototypes >= len(dm.ids):
+        raise ValueError(("'num_prototypes' must be smaller than the number of"
+                          " elements in the distance matrix, otherwise no "
+                          "reduction is necessary."))
+
+    # this function is basically a search for a suitable epsilon and wraps
+    # the protoclass function
+
+    # initiate epsilon with a more or less arbitrary value
+    epsilon = dm.data.mean()
+    # define how much epsilon should be changes in an interation
+    stepSize = 0.2
+
+    # must epsilon be increased (+1) or decreased (-1). Initiallz no change
+    # take place, thus the direction is neutral.
+    direction = 0
+    # list of prototypes
+    prototypes = []
+    for i in range(steps):
+        oldDirection = direction
+        oldEpsilon = epsilon
+
+        # increase the stepsize in each iteration to converge faster
+        stepSize *= 1.1
+        # call the protoclass with a defined epsilon
+        prototypes = _protoclass(dm, epsilon)
+        # check if direction of epsilon changes has changed
+        if len(prototypes) > num_prototypes:
+            direction = +1
+        elif len(prototypes) < num_prototypes:
+            direction = -1
+
+        #  make smaller steps on epsilion whenever the direction changed
+        if direction != oldDirection:
+            stepSize /= 10
+        epsilon += direction * stepSize
+
+        # end iteration when the desired number of prototypes have been found
+        if len(prototypes) == num_prototypes:
+            break
+    if len(prototypes) < num_prototypes:
+        raise RuntimeError(("Number of iterations exceeded before the desired"
+                            " number of prototypes could be found."))
+
+    return list(prototypes[:num_prototypes])
