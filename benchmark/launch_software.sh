@@ -75,6 +75,8 @@ hgtector_install_dp=${25}
 gi_to_taxid_fp=${26}
 # Parse HGTs for DarkHorse
 parse_hgts=${27}
+# EGID install directory
+egid_install_dp=${28}
 # qsub params
 qsub="-q route -m abe -M jenya.kopylov@gmail.com -l nodes=1:ppn=${threads} -l walltime=230:00:00 -l pmem=10gb -l mem=20gb"
 
@@ -105,6 +107,7 @@ then
     echo "darkhorse_install_dp: $darkhorse_install_dp"
     echo "hgtector_config_fp: $hgtector_config_fp"
     echo "hgtector_install_dp: $hgtector_install_dp"
+    echo "egid_install_dp: $egid_install_dp"
 fi
 
 if [ "${bash_config}" == "None" ]
@@ -248,6 +251,15 @@ cmd="${init_command}; \
                                           ${scripts_dir} \
                                           ${hgt_summary}.hgtector.txt"
 submit_job "${cmd}" hgtector
+
+## run HGTector
+cmd="${init_command}; \
+      bash ${scripts_dir}/run_egid.sh ${species_genome_fp} \
+                                      ${scripts_dir} \
+                                      ${working_dir} \
+                                      ${egid_install_dir} \
+                                      ${hgt_summary}.egid.txt"
+submit_job "${cmd}" egid
 
 ## run the Distance Method
 cmd="${init_command}; \

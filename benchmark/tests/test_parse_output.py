@@ -9,9 +9,8 @@
 from unittest import TestCase, main
 from shutil import rmtree
 from tempfile import mkdtemp
+from os import remove
 from os.path import join
-
-from skbio.util import remove_files
 
 from benchmark.parse_output import (parse_hgts,
                                     parse_consel,
@@ -72,7 +71,8 @@ class ParseOutputTests(TestCase):
                                 self.empty_output_hgt_fp]
 
     def tearDown(self):
-        remove_files(self.files_to_remove)
+        for file in self.files_to_remove:
+            remove(file)
         rmtree(self.working_dir)
 
     def test_parse_hgts_trex(self):

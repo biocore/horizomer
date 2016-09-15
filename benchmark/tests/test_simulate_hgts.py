@@ -18,13 +18,13 @@ from operator import itemgetter
 from skbio import Sequence
 import skbio.io
 
-from simulate_hgts import (extract_genbank,
-                           launch_orthofinder,
-                           parse_orthofinder,
-                           simulate_orthologous_rep,
-                           simulate_novel_acq,
-                           write_results,
-                           simulate_genbank)
+from benchmark.simulate_hgts import (extract_genbank,
+                                     launch_orthofinder,
+                                     parse_orthofinder,
+                                     simulate_orthologous_rep,
+                                     simulate_novel_acq,
+                                     write_results,
+                                     simulate_genbank)
 
 
 class SimulateHGTsTests(TestCase):

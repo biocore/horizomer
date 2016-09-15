@@ -9,10 +9,9 @@
 from unittest import TestCase, main
 from shutil import rmtree
 from tempfile import mkstemp, mkdtemp
-from os import close
+from os import close, remove
 from os.path import join
 
-from skbio.util import remove_files
 from skbio import TreeNode, TabularMSA, Protein
 
 from benchmark.reformat_input import (join_trees,
@@ -86,7 +85,8 @@ class workflowTests(TestCase):
                                 self.msa_fa_3_fp]
 
     def tearDown(self):
-        remove_files(self.files_to_remove)
+        for file in self.files_to_remove:
+            remove(file)
         rmtree(self.working_dir)
 
     def test_join_trees(self):
