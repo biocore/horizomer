@@ -122,8 +122,7 @@ def parse_darkhorse(input_f, output_fp, low_lpi, high_lpi):
     for l in input_f:
         l = line.strip('\r\n').split('\t')
         bets_hit_ids.add(l[3])
-        if (l[5] > low_lpi) and
-                (l[5] < high_lpi):
+        if (l[5] > low_lpi) and (l[5] < high_lpi):
             hgt = '\t'.join(l[0], l[3], l[12], l[13], l[14], l[6], l[9], l[4])
             hgts.append(hgt)
     if output_fp:
