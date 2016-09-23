@@ -120,14 +120,15 @@ def parse_darkhorse(input_f, output_fp, low_lpi, high_lpi):
     # skip header
     next(input_f)
     for l in input_f:
-        l = line.strip('\r\n').split('\t')
-        bets_hit_ids.add(l[3])
-        if (l[5] > low_lpi) and (l[5] < high_lpi):
-            hgt = '\t'.join(l[0], l[3], l[12], l[13], l[14], l[6], l[9], l[4])
+        l = l.strip('\r\n').split('\t')
+        best_hit_ids.add(l[3])
+        if (float(l[5]) > low_lpi) and (float(l[5]) < high_lpi):
+            hgt = '\t'.join((l[0], l[3], l[12], l[13], l[14],
+                             l[6], l[9], l[4]))
             hgts.append(hgt)
     if output_fp:
         with open(output_fp, 'w') as output_f:
-            output_f.write('\n'.join(best_hit_ids)) 
+            output_f.write('\n'.join(best_hit_ids))
     return '\n'.join(hgts)
 
 
@@ -157,8 +158,8 @@ def parse_hgtector(input_f):
 
 def parse_output(hgt_results_fp,
                  method,
-                 low_lpi,
-                 high_lpi,
+                 low_lpi=0.0,
+                 high_lpi=0.6,
                  output_fp=None):
     """Call parse_hgts() based on HGT detection method used.
 
@@ -225,7 +226,7 @@ def parse_output(hgt_results_fp,
 def main(hgt_results_fp,
          method,
          darkhorse_low_lpi,
-         darkhose_high_lpi,
+         darkhorse_high_lpi,
          darkhorse_output_fp=None):
     """ Parsing functions for various HGT detection tool outputs.
     """
