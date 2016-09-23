@@ -13,11 +13,6 @@
 #          standardized statistics (number of HGTs, donors, recipients, gains
 #          and losses)
 #
-# usage: bash launch_software.sh working_dir scripts_dir species_tree_fp \
-#             species_genome_fp species_model_fp query_species_coding_seqs_fp \
-#             ref_species_coding_seqs_fp gene_tree_dir gene_msa_dir \
-#             phylonet_install_dir jane_install_dir trex_install_dir \
-#             verbose_str
 
 # working dir
 working_dir=$(readlink -m $1)
@@ -31,54 +26,49 @@ species_genome_fp=$4
 species_model_fp=$5
 # query species protein coding sequences in FASTA format 
 query_species_coding_seqs_fp=$6
-# reference species protein coding sequences in FASTA format (DB folder from ALF)
-ref_species_coding_seqs_fp=$7
 # gene trees in Newick format (GeneTrees folder from ALF)
-gene_tree_dir=$8
+gene_tree_dir=$7
 # gene multiple sequence alignment dir
-gene_msa_dir=$9
+gene_msa_dir=$8
 # DIAMOND alignments for query genome
-diamond_tabular_query_fp=${10}
+diamond_tabular_query_fp=$9
 # PhyloNet install dir
-phylonet_install_dir=${11}
+phylonet_install_dir=${10}
 # Jane 4 install dir
-jane_install_dir=${12}
+jane_install_dir=${11}
 # T-REX install dir
-trex_install_dir=${13}
+trex_install_dir=${12}
 # Verbose string 'true' or 'false'
-verbose=${14}
+verbose=${13}
 # Initial command that precedes call to software
 # (example choosing virtualenv to workon)
-init_command="${15}"
+init_command="${14}"
 # Number of threads
-threads=${16}
+threads=${15}
 # nr FASTA file
-nr_fp=${17}
+nr_fp=${16}
 # directory that contains names.dmp and nodes.dmp
-nr_tax_dp=${18}
+nr_tax_dp=${17}
 # nr DIAMOND database
-diamond_db_nr=${19}
+diamond_db_nr=${18}
 # Bash config file path (if None, default ~/.bash_profile)
-bash_config="${20}"
+bash_config="${19}"
 # Launch on qsub cluster environment (true or false, if None, defaults to true)
-qsub_env=${21}
-# DarkHorse config file
-darkhorse_config_fp=${22}
-# DarkHorse install directory
-darkhorse_install_dp=${23}
+qsub_env=${20}
 # HGTector config file
-hgtector_config_fp=${24}
+hgtector_config_fp=${21}
 # HGTector install directory
-hgtector_install_dp=${25}
+hgtector_install_dp=${22}
 # GI-to-TaxID translation table
 # ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/gi_taxid_prot.zip
-gi_to_taxid_fp=${26}
-# Parse HGTs for DarkHorse
-parse_hgts=${27}
+gi_to_taxid_fp=${23}
 # EGID install directory
-egid_install_dp=${28}
-# qsub params
-qsub="-q route -m abe -M jenya.kopylov@gmail.com -l nodes=1:ppn=${threads} -l walltime=230:00:00 -l pmem=10gb -l mem=20gb"
+egid_install_dp=${24}
+# HGT summary file basename
+hgt_summary=${25}
+# Qsub command
+qsub="${26}"
+
 
 if [ "$verbose" == "true" ]
 then
@@ -88,7 +78,6 @@ then
     echo "species genome: $species_genome_fp"
     echo "HMM model: $species_model_fp"
     echo "query genomes: $query_species_coding_seqs_fp"
-    echo "species proteome: $ref_species_coding_seqs_fp"
     echo "gene trees: $gene_tree_dir"
     echo "gene MSAs: $gene_msa_dir"
     echo "DIAMOND alignments of query genome: ${diamond_query_tabular}"
@@ -103,40 +92,19 @@ then
     echo "threads: $threads"
     echo "bash config file: $bash_config"
     echo "qsub_env: $qsub_env" 
-    echo "darkhorse_config_fp: $darkhorse_config_fp"
-    echo "darkhorse_install_dp: $darkhorse_install_dp"
     echo "hgtector_config_fp: $hgtector_config_fp"
     echo "hgtector_install_dp: $hgtector_install_dp"
     echo "egid_install_dp: $egid_install_dp"
 fi
 
-if [ "${bash_config}" == "None" ]
-then
-    bash_config="~/.bash_profile"
-fi
-if [ "${qsub_env}" == "None" ]
-then
-    qsub_env="true"
-fi
-
 base_input_file_nwk="input_tree_nwk"
 base_input_file_nex="input_tree_nex"
 base_output_file="results_prog"
-hgt_summary=$working_dir/"hgt_summary"
 input_file_nwk=$working_dir/$base_input_file_nwk
 input_file_nex=$working_dir/$base_input_file_nex
 output_file=$working_dir/$base_output_file
 stderr=$working_dir/"stderr"
 stdout=$working_dir/"stdout"
-
-mkdir -p "${working_dir}"
-if [ "${init_command}" == "None" ]
-then
-    init_command="sleep 1"
-fi
-
-# load submit_job function
-. $scripts_dir/utils.sh
 
 ## run T-REX
 cmd="${init_command}; \
@@ -218,23 +186,6 @@ cmd="${init_command}; \
                                           ${working_dir}"
 submit_job "${cmd}" genemark
 
-## run DarkHorse
-cmd="${init_command}; \
-      bash ${scripts_dir}/run_darkhorse.sh ${nr_fp} \
-                                           ${diamond_db_nr} \
-                                           ${diamond_tabular_query_fp} \
-                                           ${darkhorse_config_fp} \
-                                           ${darkhorse_install_dp} \
-                                           ${query_species_coding_seqs_fp} \
-                                           ${working_dir} \
-                                           ${threads} \
-                                           ${verbose} \
-                                           ${lpi_upper} \
-                                           ${lpi_lower} \
-                                           ${scripts_dir} \
-                                           ${hgt_summary}.darkhorse.txt"
-submit_job "${cmd}" darkhorse
-
 ## run HGTector
 cmd="${init_command}; \
       bash ${scripts_dir}/run_hgtector.sh ${nr_fp} \
@@ -252,7 +203,7 @@ cmd="${init_command}; \
                                           ${hgt_summary}.hgtector.txt"
 submit_job "${cmd}" hgtector
 
-## run HGTector
+## run EGID
 cmd="${init_command}; \
       bash ${scripts_dir}/run_egid.sh ${species_genome_fp} \
                                       ${scripts_dir} \
@@ -261,14 +212,4 @@ cmd="${init_command}; \
                                       ${hgt_summary}.egid.txt"
 submit_job "${cmd}" egid
 
-## run the Distance Method
-cmd="${init_command}; \
-      bash ${scripts_dir}/run_hgtector.sh ${distance_method_install_dir} \
-                                          ${query_species_coding_seqs_fp} \
-                                          ${target_proteomes_dir} \
-                                          ${stdout}.dm.txt \
-                                          ${stderr}.dm.txt \
-                                          ${working_dir} \
-                                          ${threads}"
-submit_job "${cmd}" distance_method
 

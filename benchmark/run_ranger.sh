@@ -8,7 +8,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
-# usage: run RANGER-DTL software
+# Usage: run RANGER-DTL software
 gene_tree_dir=$1
 output_fp=$2
 verbose=$3
