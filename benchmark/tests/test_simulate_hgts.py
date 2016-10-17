@@ -65,6 +65,13 @@ class SimulateHGTsTests(TestCase):
             "ACCTGGGGCACCACCTGGATCGCCATGAAGATCGCCTGTATATACCAGCAATT"
             "TCCCCAATTTTGCTTTTAAAATTTGAAATTGATTTTTTTATTTTAGAAAACGT"
             "TGGTTTTTGACCAGTAATATATTTTATTGA")
+        self.seq_donor.metadata['LOCUS'] = {'locus_name': 'donor',
+                                            'size': len(str(self.seq_donor)),
+                                            'unit': 'bp',
+                                            'shape': 'circular',
+                                            'division': 'CON',
+                                            'mol_type': 'DNA',
+                                            'date': '01-JAN-1900'}
         self.genes_recip = {'R_1': ['MNLEYNPKKIESFVQQYWRN', 45, 104, '+'],
                             'R_2': ['MTELITLNLLGLRCPEPLMV', 120, 179, '+'],
                             'R_3': ['MWGTTWIAMKIVITTIPPIFATGLRFL',
@@ -78,6 +85,13 @@ class SimulateHGTsTests(TestCase):
             "TGAAAATTGTTATTACTACTATTCCACCAATTTTTGCTACTGGTTTGAGATTT"
             "TTGATTTTAGACTGGTATTTCAAGAACGATTACTTTTAAACTGGCGTTTAAAT"
             "ATCAACATCTCCCAGCTATCCTACACAAAAA")
+        self.seq_recip.metadata['LOCUS'] = {'locus_name': 'recipient',
+                                            'size': len(str(self.seq_recip)),
+                                            'unit': 'bp',
+                                            'shape': 'circular',
+                                            'division': 'CON',
+                                            'mol_type': 'DNA',
+                                            'date': '01-JAN-1900'}
 
     def tearDown(self):
         rmtree(self.working_dir)
@@ -322,7 +336,8 @@ class SimulateHGTsTests(TestCase):
         self.genes_recip['D_2_hgt_n'] = ['MKKNIILNLIGLRCPEPIMI', 321, 381, '+']
         donor_genbank_fp = join(self.proteomes_dir, "donor.fna")
         recipient_genbank_fp = join(self.proteomes_dir, "recip.fna")
-        dnr_g_nucl_fp, dnr_g_aa_fp, rcp_g_nucl_fp, rcp_g_aa_fp =\
+        dnr_g_nucl_fp, dnr_g_aa_fp, dnr_g_gb_fp, \
+            rcp_g_nucl_fp, rcp_g_aa_fp, rcp_g_gb_fp =\
             write_results(self.genes_donor,
                           donor_genbank_fp,
                           self.genes_recip,
@@ -336,6 +351,20 @@ class SimulateHGTsTests(TestCase):
         recip_nucl = Sequence.read(rcp_g_nucl_fp, format='fasta')
         # test for correctness of recipient nucleotide genome sequence
         self.assertEqual(str(recip_nucl), str(self.seq_recip))
+        locus = {'unit': 'bp', 'shape': 'circular', 'division': 'CON',
+                 'mol_type': 'DNA', 'date': '01-JAN-1900'}
+        donor_gb = Sequence.read(dnr_g_gb_fp, format='genbank')
+        locus['locus_name'] = 'donor'
+        locus['size'] = len(str(self.seq_donor))
+        # test for correctness of donor GenBank file
+        self.assertEqual(str(donor_gb), str(self.seq_donor))
+        self.assertDictEqual(donor_gb.metadata['LOCUS'], locus)
+        recip_gb = Sequence.read(rcp_g_gb_fp, format='genbank')
+        locus['locus_name'] = 'recipient'
+        locus['size'] = len(str(self.seq_recip))
+        # test for correctness of recipient GenBank file
+        self.assertEqual(str(recip_gb), str(self.seq_recip))
+        self.assertDictEqual(recip_gb.metadata['LOCUS'], locus)
         donor_aa_dict = {}
         for seq in skbio.io.read(dnr_g_aa_fp, format='fasta'):
             donor_aa_dict[seq.metadata['id']] = str(seq)
@@ -378,7 +407,8 @@ class SimulateHGTsTests(TestCase):
         log_fp = join(self.working_dir, "log.txt")
         threads = 1
         with open(log_fp, 'w') as log_f:
-            dnr_nucl_fp, dnr_aa_fp, rcp_nucl_fp, rcp_aa_fp =\
+            dnr_nucl_fp, dnr_aa_fp, dnr_gb_fp, \
+                rcp_nucl_fp, rcp_aa_fp, rcp_gb_fp =\
                 simulate_genbank(donor_genbank_fp,
                                  recip_genbank_fp,
                                  output_dir,
