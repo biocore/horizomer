@@ -96,7 +96,7 @@ def launch_orthofinder(proteomes_dir, threads, verbose=False):
     verbose: boolean
         if True, run in verbose mode
     """
-    if verbose: 
+    if verbose:
         sys.stdout.write("\tLaunch OrthoFinder ..\n")
     orthofinder_command = ["orthofinder.py",
                            "-f", proteomes_dir,
@@ -275,9 +275,9 @@ def simulate_orthologous_rep(genes_donor,
             genes_recip[hgt_gene][1:]
         start_pos_donor, end_pos_donor, strand_donor =\
             genes_donor[gene_donor_label][1:]
-        seq_recip_seq = str(seq_recip_seq[:start_pos_recip]) +\
-                        str(seq_donor[start_pos_donor:end_pos_donor]) +\
-                        str(seq_recip_seq[end_pos_recip:])
+        seq_recip_seq = (str(seq_recip_seq[:start_pos_recip]) +
+                         str(seq_donor[start_pos_donor:end_pos_donor]) +
+                         str(seq_recip_seq[end_pos_recip:]))
         if strand_recip != strand_donor:
             genes_recip[hgt_gene][3] = genes_donor[gene_donor_label][3]
         # write HGTs to log file
@@ -373,10 +373,10 @@ def simulate_novel_acq(genes_donor,
                     [genes_donor[gene_donor_label][0], idx_recip, idx_end,
                      genes_donor[gene_donor_label][3]]
                 # insert gene (nucleotide)
-                seq_recip_seq = str(seq_recip_seq[:idx_recip]) +\
-                                str(seq_donor[genes_donor[gene_donor_label][1]:
-                                    genes_donor[gene_donor_label][2]]) +\
-                                str(seq_recip_seq[idx_recip:])
+                seq_recip_seq = (str(seq_recip_seq[:idx_recip]) +
+                                 str(seq_donor[genes_donor[gene_donor_label][1]:
+                                     genes_donor[gene_donor_label][2]]) +
+                                 str(seq_recip_seq[idx_recip:]))
                 # write HGTs to log file
                 log_f.write(
                     "n\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" %
@@ -458,7 +458,7 @@ def write_results(genes_donor,
     seq_donor.write(donor_genome_gb_fp, format='genbank')
     if 'LOCUS' in seq_recip.metadata:
         seq_recip.metadata['LOCUS']['size'] = len(str(seq_recip))
-    seq_recip.metadata['FEATURES'] = [] 
+    seq_recip.metadata['FEATURES'] = []
     for (gene, l) in sorted(genes_recip.items(), key=lambda x: x[1][1]):
         location = str(l[1]) + '..' + str(l[2])
         if l[3] == '-':

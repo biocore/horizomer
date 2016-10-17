@@ -337,7 +337,7 @@ class SimulateHGTsTests(TestCase):
         donor_genbank_fp = join(self.proteomes_dir, "donor.fna")
         recipient_genbank_fp = join(self.proteomes_dir, "recip.fna")
         dnr_g_nucl_fp, dnr_g_aa_fp, dnr_g_gb_fp, \
-        rcp_g_nucl_fp, rcp_g_aa_fp, rcp_g_gb_fp =\
+            rcp_g_nucl_fp, rcp_g_aa_fp, rcp_g_gb_fp =\
             write_results(self.genes_donor,
                           donor_genbank_fp,
                           self.genes_recip,
@@ -408,7 +408,7 @@ class SimulateHGTsTests(TestCase):
         threads = 1
         with open(log_fp, 'w') as log_f:
             dnr_nucl_fp, dnr_aa_fp, dnr_gb_fp, \
-            rcp_nucl_fp, rcp_aa_fp, rcp_gb_fp =\
+                rcp_nucl_fp, rcp_aa_fp, rcp_gb_fp =\
                 simulate_genbank(donor_genbank_fp,
                                  recip_genbank_fp,
                                  output_dir,
