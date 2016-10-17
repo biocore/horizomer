@@ -456,7 +456,8 @@ def write_results(genes_donor,
     recip_genome_gb_fp = join(
         simulated_dir, "%s.gb" % basename(splitext(recip_genome_fp)[0]))
     seq_donor.write(donor_genome_gb_fp, format='genbank')
-    seq_recip.metadata['LOCUS']['size'] = len(str(seq_recip))
+    if 'LOCUS' in seq_recip.metadata:
+        seq_recip.metadata['LOCUS']['size'] = len(str(seq_recip))
     seq_recip.metadata['FEATURES'] = [] 
     for (gene, l) in sorted(genes_recip.items(), key=lambda x: x[1][1]):
         location = str(l[1]) + '..' + str(l[2])
@@ -470,7 +471,7 @@ def write_results(genes_donor,
     seq_recip.write(recip_genome_gb_fp, format='genbank')
 
     return (donor_genome_nucl_fp, donor_genome_aa_fp, donor_genome_gb_fp,
-            recip_genome_nucl_fp, recip_genome_gb_fp, recip_genome_aa_fp)
+            recip_genome_nucl_fp, recip_genome_aa_fp, recip_genome_gb_fp)
 
 
 def simulate_hgts(seq_donor,
