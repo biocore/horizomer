@@ -374,8 +374,10 @@ def simulate_novel_acq(genes_donor,
                      genes_donor[gene_donor_label][3]]
                 # insert gene (nucleotide)
                 seq_recip_seq = (str(seq_recip_seq[:idx_recip]) +
-                                 str(seq_donor[genes_donor[gene_donor_label][1]:
-                                     genes_donor[gene_donor_label][2]]) +
+                                 str(seq_donor[genes_donor[gene_donor_label]\
+                                                          [1]:
+                                               genes_donor[gene_donor_label]\
+                                                          [2]]) +
                                  str(seq_recip_seq[idx_recip:]))
                 # write HGTs to log file
                 log_f.write(
