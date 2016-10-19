@@ -561,12 +561,10 @@ def _main(gene_tree_fp,
     SPECIES_GENE is acceptable for multiple genes in the gene
     tree. Leaf labels must also be at most 10 characters long (for
     PHYLIP manipulations).
-    
+
     For compositional methods, a GenBank file containing both the genome
     sequence and the coordinates of its gene regions is required. Draft
     genomes (multiple sequences) are acceptable.
-    
-    For distance methods, there is no need to reformat input files (?)
     """
 
     # add function to check where tree is multifurcating and the labeling
