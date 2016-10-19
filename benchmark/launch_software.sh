@@ -210,11 +210,12 @@ submit_job "${cmd}" consel
 
 ## run GeneMark
 cmd="${init_command}; \
-      bash ${scripts_dir}/run_genemark.sh ${species_model_fp} \
+      bash ${scripts_dir}/run_genemark.sh ${species_genome_fp} \
                                           ${output_file}.gm.txt \
-                                          ${species_genome_fp} \
                                           ${stdout}.gm.txt \
                                           ${stderr}.gm.txt \
+                                          ${scripts_dir} \
+                                          ${genemark_install_dir} \
                                           ${working_dir}"
 submit_job "${cmd}" genemark
 
@@ -252,7 +253,7 @@ cmd="${init_command}; \
                                           ${hgt_summary}.hgtector.txt"
 submit_job "${cmd}" hgtector
 
-## run HGTector
+## run EGID
 cmd="${init_command}; \
       bash ${scripts_dir}/run_egid.sh ${species_genome_fp} \
                                       ${scripts_dir} \

@@ -13,7 +13,9 @@ Reformat input files to format accepted by given HGT tool
 
 import click
 
-from skbio import TreeNode, TabularMSA, Protein
+from os import remove
+from os.path import join
+from skbio import TreeNode, TabularMSA, Sequence, Protein, DNA
 from collections import OrderedDict
 
 
@@ -337,12 +339,181 @@ def reformat_treepuzzle(gene_tree,
     msa_fa.write(output_msa_phy_fp, format='phylip')
 
 
+def _merge_genbank_seqs(genbank_fp):
+    """ Merge one to multiple sequences in a GenBank file into one.
+
+    Parameters
+    ----------
+    genbank_fp: string
+        file path to genome in GenBank format
+
+    Returns
+    -------
+    tuple of (
+        skbio.Sequence,
+            Genome sequence and metadata
+        dict of { list of [ string, int, int, string ] }
+            Gene name : translation, start, end, and strand
+    )
+    """
+    loci = []
+    nucl_seq = ''
+    genes = {}
+    nseq = 0  # number of nucleotide sequences
+    with open(genbank_fp, 'r') as input_f:
+        for line in input_f:
+            if line.startswith('//'):
+                nseq += 1
+    abs_pos = 0  # absolute position in concantenated nucleotide sequence
+    for i in range(nseq):
+        gb = Sequence.read(genbank_fp, seq_num=i+1, format='genbank')
+        locus_name = gb.metadata['LOCUS']['locus_name']
+        size = gb.metadata['LOCUS']['size']
+        loci.append([locus_name, size])
+        nucl_seq += str(gb)
+        for feature in gb.interval_metadata.features:
+            if feature['type_'] == 'CDS' and 'protein_id' in feature:
+                protein_id = feature['protein_id'].replace('\"', '')
+                if protein_id not in genes:
+                    translation = feature['translation'].replace(' ', '') \
+                        .replace('\"', '')
+                    strand = '-' if feature['rc_'] else '+'
+                    loc = gb.interval_metadata.features[feature]
+                    start = loc[0][0] + abs_pos + 1
+                    end = loc[0][1] + abs_pos
+                    genes[protein_id] = [translation, start, end, strand]
+        abs_pos += int(size)
+    gb = DNA(nucl_seq)
+    gb.metadata['LOCUS'] = {'locus_name': 'locus001', 'size': len(nucl_seq),
+                            'unit': 'bp', 'shape': 'circular',
+                            'division': 'CON', 'mol_type': 'DNA',
+                            'date': '01-JAN-1900'}
+    gb.metadata['id'] = 'locus001'
+    return (gb, genes)
+
+
+def _write_genebank_file(gb,
+                         genes,
+                         output_dir):
+    """ Write output genome to a GenBank file.
+
+    Parameters
+    ----------
+    gb: skbio.Sequence,
+        Genome sequence and metadata
+    genes: dict of { list of [ string, int, int, string ] }
+        Gene name : translation, start, end, and strand
+    output_dir: string
+        output directory path
+
+    Notes
+    -----
+    The reason this script does not use skbio's GenBank write function, is
+    that EGID cannot parse skbio-written GenBank format. Perhaps the reason
+    is the differential pattern of leading white spaces in the feature table.
+    """
+    output_f = open(join(output_dir, 'id.gbk'), 'w')
+    tmp_fp = join(output_dir, 'id.tmp')
+    DNA.write(gb, tmp_fp, format='genbank')
+    with open(tmp_fp, 'r') as input_f:
+        output_f.write(input_f.readline())
+    output_f.write('FEATURES             Location/Qualifiers\n')
+    gid = 1
+    for (gene, l) in sorted(genes.items(), key=lambda x: x[1][1]):
+        location = str(l[1]) + '..' + str(l[2])
+        if l[3] == '-':
+            location = 'complement(' + location + ')'
+        lines = []
+        lines.append('     gene            ' + location)
+        lines.append('                     /locus_tag=gene' + str(gid))
+        lines.append('     CDS             ' + location)
+        lines.append('                     /locus_tag=gene' + str(gid))
+        lines.append('                     /protein_id=' + gene)
+        lines.append('                     /translation=' + l[0])
+        for line in lines:
+            output_f.write(line + '\n')
+        gid += 1
+    with open(tmp_fp, 'r') as input_f:
+        next(input_f)
+        for line in input_f:
+            output_f.write(line)
+    output_f.close()
+    remove(tmp_fp)
+
+
+def reformat_egid(genbank_fp,
+                  output_dir):
+    """ Reformat input genome to the formats accepted by EGID.
+
+    Parameters
+    ----------
+    genbank_fp: string
+        file path to genome in GenBank format
+    output_dir: string
+        output directory path
+
+    Notes
+    -----
+    Input to EGID are five obsolete NCBI standard files: gbk, fna, faa, ffn
+    and ptt.
+    """
+    (gb, genes) = _merge_genbank_seqs(genbank_fp)
+    DNA.write(gb, join(output_dir, 'id.fna'), format='fasta')
+    _write_genebank_file(gb, genes, output_dir)
+    nucl_seq = str(gb)
+    output_f = {}
+    for x in ('faa', 'ffn', 'ptt'):
+        output_f[x] = open(join(output_dir, 'id.' + x), 'w')
+    output_f['ptt'].write('locus001\n' + str(len(genes)) + ' proteins\n')
+    fields = ('Location', 'Strand', 'Length', 'PID', 'Gene', 'Synonym',
+              'Code', 'COG', 'Product')
+    output_f['ptt'].write('\t'.join(fields) + '\n')
+    gid = 1
+    for (gene, l) in sorted(genes.items(), key=lambda x: x[1][1]):
+        output_f['faa'].write('>' + gene + '\n' + l[0] + '\n')
+        output_f['ptt'].write(str(l[1]) + '..' + str(l[2]) + '\t' +
+                              l[3] + '\t' + str(len(l[0])) + '\t' +
+                              str(gid) + '\t-\tgene' + str(gid) +
+                              '\t-\t-\t-\n')
+        if l[3] == '+':
+            output_f['ffn'].write('>locus001:' + str(l[1]) + '-' +
+                                  str(l[2]) + '\n' +
+                                  nucl_seq[l[1]-1:l[2]] + '\n')
+        else:
+            rc_seq = str(DNA(nucl_seq[l[1]-1:l[2]]).reverse_complement())
+            output_f['ffn'].write('>locus001:c' + str(l[2]) + '-' +
+                                  str(l[1]) + '\n' + rc_seq + '\n')
+        gid += 1
+    for x in output_f:
+        output_f[x].close()
+
+
+def reformat_genemark(genbank_fp,
+                      output_dir):
+    """ Reformat input genome to the formats accepted by GeneMark.
+
+    Parameters
+    ----------
+    genbank_fp: string
+        file path to genome in GenBank format
+    output_dir: string
+        output directory path
+
+    Notes
+    -----
+    GeneMark's acceptable input file format is FASTA (genome sequence).
+    """
+    (gb, genes) = _merge_genbank_seqs(genbank_fp)
+    DNA.write(gb, join(output_dir, 'id.fna'), format='fasta')
+    _write_genebank_file(gb, genes, output_dir)
+
+
 @click.command()
-@click.option('--gene-tree-fp', required=True,
+@click.option('--gene-tree-fp', required=False,
               type=click.Path(resolve_path=True, readable=True, exists=True,
                               file_okay=True),
               help='Gene tree in Newick format')
-@click.option('--species-tree-fp', required=True,
+@click.option('--species-tree-fp', required=False,
               type=click.Path(resolve_path=True, readable=True, exists=True,
                               file_okay=True),
               help='Species tree in Newick format')
@@ -350,6 +521,10 @@ def reformat_treepuzzle(gene_tree,
               type=click.Path(resolve_path=True, readable=True, exists=True,
                               file_okay=True),
               help='MSA of genes in FASTA format')
+@click.option('--genbank-fp', required=False,
+              type=click.Path(resolve_path=True, readable=True, exists=True,
+                              file_okay=True),
+              help='Genome in GenBank format')
 @click.option('--output-tree-fp', required=False,
               type=click.Path(resolve_path=True, readable=True, exists=False,
                               file_okay=True),
@@ -358,34 +533,47 @@ def reformat_treepuzzle(gene_tree,
               type=click.Path(resolve_path=True, readable=True, exists=False,
                               file_okay=True),
               help='Output MSA in PHYLIP format')
+@click.option('--output-dir', required=False,
+              type=click.Path(resolve_path=True, readable=True, exists=False),
+              help='Output directory path')
 @click.option('--method', required=True,
               type=click.Choice(['trex', 'ranger-dtl',
                                  'riata-hgt', 'consel',
-                                 'darkhorse', 'wn-svm',
-                                 'genemark', 'hgtector',
+                                 'darkhorse', 'hgtector',
+                                 'genemark', 'egid',
                                  'distance-method', 'jane4',
-                                 'tree-puzzle']),
+                                 'wn-svm', 'tree-puzzle']),
               help='The method to be used for HGT detection')
 def _main(gene_tree_fp,
           species_tree_fp,
           gene_msa_fa_fp,
+          genbank_fp,
           output_tree_fp,
           output_msa_phy_fp,
+          output_dir,
           method):
-    """ Reformat trees to input accepted by various HGT detection methods.
+    """ Reformat input files to format accepted by various HGT tools.
 
+    For phylogenetic methods, a species tree and a gene tree are mandatory.
     Species tree can be multifurcating, however will be converted to
     bifurcating trees for software that require them. Leaf labels of
     species tree and gene tree must match, however the label
     SPECIES_GENE is acceptable for multiple genes in the gene
     tree. Leaf labels must also be at most 10 characters long (for
     PHYLIP manipulations).
+
+    For compositional methods, a GenBank file containing both the genome
+    sequence and the coordinates of its gene regions is required. Draft
+    genomes (multiple sequences) are acceptable.
     """
 
     # add function to check where tree is multifurcating and the labeling
     # is correct
-    gene_tree = TreeNode.read(gene_tree_fp, format='newick')
-    species_tree = TreeNode.read(species_tree_fp, format='newick')
+    (gene_tree, species_tree) = (None, None)
+    if gene_tree_fp is not None:
+        gene_tree = TreeNode.read(gene_tree_fp, format='newick')
+    if species_tree_fp is not None:
+        species_tree = TreeNode.read(species_tree_fp, format='newick')
 
     if method == 'ranger-dtl':
         reformat_rangerdtl(
@@ -414,6 +602,14 @@ def _main(gene_tree_fp,
             gene_msa_fa_fp=gene_msa_fa_fp,
             output_tree_fp=output_tree_fp,
             output_msa_phy_fp=output_msa_phy_fp)
+    elif method == 'egid':
+        reformat_egid(
+            genbank_fp=genbank_fp,
+            output_dir=output_dir)
+    elif method == 'genemark':
+        reformat_genemark(
+            genbank_fp=genbank_fp,
+            output_dir=output_dir)
 
 
 if __name__ == "__main__":
