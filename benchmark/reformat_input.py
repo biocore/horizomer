@@ -569,11 +569,10 @@ def _main(gene_tree_fp,
 
     # add function to check where tree is multifurcating and the labeling
     # is correct
-    (gene_tree, species_tree) = (None, None)
-    if gene_tree_fp is not None:
-        gene_tree = TreeNode.read(gene_tree_fp, format='newick')
-    if species_tree_fp is not None:
-        species_tree = TreeNode.read(species_tree_fp, format='newick')
+    gene_tree = TreeNode.read(gene_tree_fp, format='newick') \
+        if gene_tree_fp is not None else None
+    species_tree = TreeNode.read(species_tree_fp, format='newick') \
+        if species_tree_fp is not None else None
 
     if method == 'ranger-dtl':
         reformat_rangerdtl(
