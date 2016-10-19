@@ -9,23 +9,27 @@
 # ----------------------------------------------------------------------------
 
 # usage: run GeneMark software
-species_genome_fp=$1
+species_model_fp=$1
 output_fp=$2
-stdout=$3
-stderr=$4
-scripts_dir=$5
-genemark_install_dir=$6
-working_dir=$7
+species_genome_fp=$3
+stdout=$4
+stderr=$5
+working_dir=$6
 
 ## run GeneMarkS training (generate typical and atypical gene models)
-mkdir -p "${working_dir}/input"
-python ${scripts_dir}/reformat_input_gi.py --genbank-fp ${species_genome_fp} --output-dir "${working_dir}/input" --method 'egid'
-PWD=$(pwd)
-cd ${working_dir}
-cp ${genemark_install_dir}/.gm_key ./
-${genemark_install_dir}/gmsn.pl --combine --gm --clean --name id input/id.fna 1>>$stdout 2>>$stderr
-${genemark_install_dir}/gmhmmp -r -m id_hmm_combined.mod -o GeneMark_output.txt input/id.fna 1>>$stdout 2>>$stderr
-python ${scripts_dir}/parse_output_genemark.py --genbank-fp input/id.gbk --genemark-output-fp GeneMark_output.txt >> $output_fp
-rm -rf input
-rm id*
-cd $PWD
+mkdir -p "${working_dir}/hmm-models"
+filename=$(basename "${species_genome_fp}")
+hmm_output=${working_dir}/hmm-models/$filename
+if [ "${species_model_fp}" == "None" ]
+then
+    gmsn.pl --combine --gm --clean --name ${species_model_fp} "${hmm_output%.*}"
+    species_model_fp="${hmm_output%.*}_hmm_combined.mod"
+fi
+
+TIMEFORMAT='%U %R'
+TIME="$( time (gmhmmp -r -m ${species_model_fp} -o $output_fp ${species_genome_fp} 1>$stdout 2>>$stderr) 2>&1)"                                                                                              
+user_time=$(echo $TIME | awk '{print $1}')                                                                                                                                                               
+wall_time=$(echo $TIME | awk '{print $2}')
+
+echo "Total user time GeneMark: ${user_time}" >> $stderr
+echo "Total wall time GeneMark: ${wall_time}" >> $stderr
