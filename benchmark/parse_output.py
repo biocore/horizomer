@@ -225,7 +225,7 @@ def parse_genemark(input_f, genbank_fp):
     for line in input_f:
         l = line.strip().split()
         if len(l) == 2 and l == ['#', 'Length']:
-            reading = True;
+            reading = True
         elif reading and len(l) == 6 and l[5] == '2':
             (start, end, strand) = (int(l[2].lstrip('<>')),
                                     int(l[3].lstrip('<>')),
