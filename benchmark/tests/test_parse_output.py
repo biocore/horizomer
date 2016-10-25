@@ -124,7 +124,7 @@ class ParseOutputTests(TestCase):
         self.assertEqual(int(output), 1)
 
     def test_parse_consel(self):
-        """ Test functionality of parse_consel
+        """ Test functionality of parse_consel for CONSEL
         """
         output_exp = ['0.99', '0.01']
         with open(self.consel_output_hgt_fp, 'r') as f:
