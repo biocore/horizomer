@@ -47,8 +47,7 @@ setup(name='wgshgt',
       glob('benchmark/tests/*py'),
       extras_require={'test': ["nose", "pep8", "flake8"],
                       'doc': ["Sphinx == 1.3.3"]},
-      install_requires=['click >= 6',
-                        'scikit-bio >= 0.4.0'],
+      install_requires=['click >= 6'],
       classifiers=classifiers
       )
 
