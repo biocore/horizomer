@@ -180,8 +180,8 @@ def parse_egid(input_f, genbank_fp):
         if len(l) < 2:
             continue
         (start, end) = (int(l[0]), int(l[1]))
-        for (gene, l) in genes.items():
-            if (l[0] >= start and l[1] <= end):
+        for (gene, pos) in genes.items():
+            if (pos[0] >= start and pos[1] <= end):
                 if gene not in genes_in_gi:
                     genes_in_gi[gene] = 1
     return '\n'.join(sorted(genes_in_gi))
@@ -226,6 +226,7 @@ def parse_genemark(input_f, genbank_fp):
         l = line.strip().split()
         if len(l) == 2 and l == ['#', 'Length']:
             reading = True
+        # atypical genes have class '2' in the 6th column 
         elif reading and len(l) == 6 and l[5] == '2':
             (start, end, strand) = (int(l[2].lstrip('<>')),
                                     int(l[3].lstrip('<>')),
