@@ -226,7 +226,7 @@ def parse_genemark(input_f, genbank_fp):
         l = line.strip().split()
         if len(l) == 2 and l == ['#', 'Length']:
             reading = True
-        # atypical genes have class '2' in the 6th column 
+        # atypical genes have class '2' in the 6th column
         elif reading and len(l) == 6 and l[5] == '2':
             (start, end, strand) = (int(l[2].lstrip('<>')),
                                     int(l[3].lstrip('<>')),
