@@ -63,24 +63,25 @@ def extract_genbank(genbank_fp, verbose=False):
     """
     genes = {}
     if verbose:
-        sys.stdout.write("\tParse GenBank record ...\n")
+        sys.stdout.write('\tParse GenBank record ...\n')
     seq = Sequence.read(genbank_fp, format='genbank')
     if verbose:
-        sys.stdout.write("\t\tDone.\n")
-    for feature in seq.interval_metadata.features:
-        if feature['type_'] == 'CDS':
-            protein_id = feature['protein_id']
-            translation = feature['translation']
-            strand = '-' if feature['rc_'] else '+'
-            loc = seq.interval_metadata.features[feature]
-            start_pos = loc[0][0]
-            end_pos = loc[0][1]
+        sys.stdout.write('\t\tDone.\n')
+    for feature in seq.interval_metadata._intervals:
+        m = feature.metadata
+        if m['type'] == 'CDS':
+            protein_id = m['protein_id']
+            translation = m['translation']
+            strand = m['strand']
+            # in scikit-bio, this number is the start location - 1
+            start = feature.bounds[0][0] + 1
+            end = feature.bounds[0][1]
             if protein_id not in genes:
-                genes[protein_id.replace("\"", "")] = [
-                    translation.replace(" ", "").replace("\"", ""),
-                    start_pos, end_pos, strand]
+                genes[protein_id.replace('\"', '')] = [
+                    translation.replace(' ', '').replace('\"', ''),
+                    start, end, strand]
             else:
-                raise KeyError("%s already exists in dictionary" % protein_id)
+                raise KeyError('%s already exists in dictionary' % protein_id)
     return seq, genes
 
 
@@ -460,18 +461,19 @@ def write_results(genes_donor,
     seq_donor.write(donor_genome_gb_fp, format='genbank')
     if 'LOCUS' in seq_recip.metadata:
         seq_recip.metadata['LOCUS']['size'] = len(str(seq_recip))
-    seq_recip.metadata['FEATURES'] = []
+    seq_recip.interval_metadata._intervals = []
     for (gene, l) in sorted(genes_recip.items(), key=lambda x: x[1][1]):
         location = str(l[1]) + '..' + str(l[2])
         if l[3] == '-':
             location = 'complement(' + location + ')'
-        feature = {'type_': 'gene', 'locus_tag': gene, 'location': location}
-        seq_recip.metadata['FEATURES'].append(feature)
-        feature = {'type_': 'CDS', 'locus_tag': gene, 'location': location,
+        # in scikit-bio, bounds[0][0] is the start location - 1
+        bounds = [(l[1] - 1, l[2])]
+        feature = {'type': 'gene', 'locus_tag': gene, '__location': location}
+        seq_recip.interval_metadata.add(bounds, metadata=feature)
+        feature = {'type': 'CDS', 'locus_tag': gene, '__location': location,
                    'protein_id': gene, 'translation': l[0]}
-        seq_recip.metadata['FEATURES'].append(feature)
+        seq_recip.interval_metadata.add(bounds, metadata=feature)
     seq_recip.write(recip_genome_gb_fp, format='genbank')
-
     return (donor_genome_nucl_fp, donor_genome_aa_fp, donor_genome_gb_fp,
             recip_genome_nucl_fp, recip_genome_aa_fp, recip_genome_gb_fp)
 
