@@ -177,9 +177,11 @@ def parse_egid(input_f, genbank_fp):
     genes_in_gi = {}
     for line in input_f:
         l = line.strip().split()
+        # a valid GI definition should have at least 2 columns
         if len(l) < 2:
             continue
-        (start, end) = (int(l[0]), int(l[1]))
+        start = int(l[0])
+        end = int(l[1])
         for (gene, pos) in genes.items():
             if (pos[0] >= start and pos[1] <= end):
                 if gene not in genes_in_gi:
