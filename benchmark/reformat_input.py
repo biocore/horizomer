@@ -13,7 +13,6 @@ Reformat input files to format accepted by given HGT tool
 
 import click
 
-from os import remove
 from os.path import join
 from skbio import TreeNode, TabularMSA, Sequence, Protein, DNA
 from collections import OrderedDict
