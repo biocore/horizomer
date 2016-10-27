@@ -131,6 +131,27 @@ class ParseOutputTests(TestCase):
             output = parse_consel(input_f=f)
         self.assertListEqual(output, output_exp)
 
+    def test_parse_hgtector(self):
+        """ Test functionality of parse_hgtector
+        """
+        output_exp = ("WP_011672248.1\t372461\tBuchnera aphidicola\tProteobac"
+                      "teria;Gammaproteobacteria;Enterobacteriales;Enterobact"
+                      "eriaceae;Buchnera;Buchnera aphidicola\t37.5\t99.14\nWP"
+                      "_045117937.1\t580331\tThermoanaerobacter italicus\tFir"
+                      "micutes;Clostridia;Thermoanaerobacterales;Thermoanaero"
+                      "bacteraceae;Thermoanaerobacter;Thermoanaerobacter ital"
+                      "icus\t42.6\t93.84")
+        with open(self.hgtector_output_hgt_fp, 'r') as f:
+            output = parse_hgtector(input_f=f)
+        self.assertEqual(output, output_exp)
+
+    def test_parse_darkhorse(self):
+        """Test functionality of parse_darkhorse
+        """
+        input_f = "none.txt"
+        rt = parse_darkhorse(input_f)
+        self.assertEqual(rt, None)
+
     def test_parse_egid(self):
         """ Test functionality of parse_egid() for EGID
         """
@@ -174,6 +195,16 @@ class ParseOutputTests(TestCase):
         output = parse_output(hgt_results_fp=self.empty_output_hgt_fp,
                               method="darkhorse")
         self.assertEqual(output_exp, output)
+        output_exp = "AAA98667.1"
+        output = parse_output(hgt_results_fp=self.egid_output_hgt_fp,
+                              genbank_fp=self.genbank_input_fp,
+                              method="egid")
+        self.assertEqual(output_exp, output)
+        output_exp = "AAA98667.1"
+        output = parse_output(hgt_results_fp=self.genemark_output_hgt_fp,
+                              genbank_fp=self.genbank_input_fp,
+                              method="genemark")
+        self.assertEqual(output_exp, output)
 
     def test_parse_output_empty(self):
         """Test functionality of parse_output with empty file
@@ -190,27 +221,6 @@ class ParseOutputTests(TestCase):
                           parse_output,
                           hgt_results_fp=self.consel_output_hgt_fp,
                           method="Consel")
-
-    def test_parse_hgtector(self):
-        """ Test functionality of parse_hgtector
-        """
-        output_exp = ("WP_011672248.1\t372461\tBuchnera aphidicola\tProteobac"
-                      "teria;Gammaproteobacteria;Enterobacteriales;Enterobact"
-                      "eriaceae;Buchnera;Buchnera aphidicola\t37.5\t99.14\nWP"
-                      "_045117937.1\t580331\tThermoanaerobacter italicus\tFir"
-                      "micutes;Clostridia;Thermoanaerobacterales;Thermoanaero"
-                      "bacteraceae;Thermoanaerobacter;Thermoanaerobacter ital"
-                      "icus\t42.6\t93.84")
-        with open(self.hgtector_output_hgt_fp, 'r') as f:
-            output = parse_hgtector(input_f=f)
-        self.assertEqual(output, output_exp)
-
-    def test_parse_darkhorse(self):
-        """Test functionality of parse_darkhorse
-        """
-        input_f = "none.txt"
-        rt = parse_darkhorse(input_f)
-        self.assertEqual(rt, None)
 
 
 empty_output_hgt = """
