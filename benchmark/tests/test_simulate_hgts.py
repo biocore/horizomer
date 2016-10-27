@@ -103,7 +103,7 @@ class SimulateHGTsTests(TestCase):
             genbank_fp=join(self.root, "genbank_sample_record.gbk"),
             verbose=True)
         genes_exp = {'AAA98665.1': ['SSIYNGISTSGLDLNNGTIADMRQLGIVESYKLKR'
-                                    'AVVSSASEAAEVLLRVDNIIRARPRTANRQHM', 0,
+                                    'AVVSSASEAAEVLLRVDNIIRARPRTANRQHM', 1,
                                     206, '+'],
                      'AAA98667.1': ['MNRWVEKWLRVYLKCYINLILFYRNVYPPQSFDYT'
                                     'TYQSFNLPQFVPINRHPALIDYIEELILDVLSKLT'
@@ -112,7 +112,7 @@ class SimulateHGTsTests(TestCase):
                                     'FEAVINAIELELGHKLDRNRRVDSLEEKAEIERDS'
                                     'NWVKCQEDENLPDNNGFQPPKIKLTSLVGSDVGPL'
                                     'IIHQFSEKLISGDDKILNGVYSQYEEGESIFGSLF',
-                                    3299, 4037, '-'],
+                                    3300, 4037, '-'],
                      'AAA98666.1': ['MTQLQISLLLTATISLLHLVVATPYEAYPIGKQYP'
                                     'PVARVNESFTFQISNDTYKSSVDKTAQITYNCFDL'
                                     'PSWLSFDSSSRTFSGEPSSDLLSDANTTLYFNVIL'
@@ -137,7 +137,7 @@ class SimulateHGTsTests(TestCase):
                                     'YNVTKHRNRHLQNIQDSQSGKNGITPTTMSTSSSD'
                                     'DFVPVKDGENFCWVHSMEPDRRPSKKRLVDFSNKS'
                                     'NVNVGQVKDIHGRIPEML',
-                                    686, 3158, '+']}
+                                    687, 3158, '+']}
         self.assertEqual(str(seq), sample_seq)
         self.assertDictEqual(genes, genes_exp)
 
