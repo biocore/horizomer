@@ -171,7 +171,7 @@ def parse_egid(input_f, genbank_fp):
                 protein_id = feature['protein_id'].replace('\"', '')
                 if protein_id not in genes:
                     loc = gb.interval_metadata.features[feature]
-                    # in scikit-bio, this number is the actual start location - 1
+                    # in scikit-bio, this number is the start location - 1
                     start = loc[0][0] + 1
                     end = loc[0][1]
                     genes[protein_id] = (start, end)
