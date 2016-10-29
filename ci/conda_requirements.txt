@@ -7,4 +7,4 @@ blast-plus
 blast-legacy
 diamond
 mafft
-
+six
