@@ -9,7 +9,7 @@
 from unittest import TestCase, main
 from shutil import rmtree
 from tempfile import mkdtemp
-from os import makedirs
+from os import makedirs, remove
 from os.path import join, dirname, abspath
 import time
 import copy
@@ -140,6 +140,28 @@ class SimulateHGTsTests(TestCase):
                                     687, 3158, '+']}
         self.assertEqual(str(seq), sample_seq)
         self.assertDictEqual(genes, genes_exp)
+        # test key error for duplicate protein IDs
+        duplicate_genbank = (
+            'LOCUS       locus001       40 bp    DNA        '
+            '     PLN       01-JAN-1900\n'
+            'FEATURES             Location/Qualifiers\n'
+            '     CDS             1..9\n'
+            '                     /protein_id="gene1"\n'
+            '     CDS             10..18\n'
+            '                     /protein_id="gene2"\n'
+            '     CDS             19..27\n'
+            '                     /protein_id="gene1"\n'
+            'ORIGIN\n'
+            '        1 atcgatcgat cgatcgatcg atcgatcgat cgatcgatcg\n'
+            '//\n')
+        genbank_fp = join(self.working_dir, 'dup.gb')
+        with open(genbank_fp, 'w') as tmp:
+            tmp.write(duplicate_genbank)
+        with self.assertRaises(KeyError) as context:
+            extract_genbank(genbank_fp=genbank_fp)
+        err = 'gene1 already exists in dictionary'
+        self.assertEqual(str(context.exception), err)
+        remove(genbank_fp)
 
     def test_launch_orthofinder(self):
         """Test running OrthoFinder.
