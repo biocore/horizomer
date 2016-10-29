@@ -162,7 +162,7 @@ class SimulateHGTsTests(TestCase):
             tmp.write(duplicate_genbank)
         with self.assertRaises(KeyError) as context:
             extract_genbank(genbank_fp=genbank_fp)
-        err = 'gene1 already exists in dictionary'
+        err = "'gene1 already exists in dictionary'"
         self.assertEqual(str(context.exception), err)
         remove(genbank_fp)
 

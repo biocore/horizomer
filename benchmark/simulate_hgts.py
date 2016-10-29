@@ -76,12 +76,12 @@ def extract_genbank(genbank_fp, verbose=False):
             # in scikit-bio, this number is the start location - 1
             start = feature.bounds[0][0] + 1
             end = feature.bounds[0][1]
-            if protein_id not in genes:
-                genes[protein_id.replace('\"', '')] = [
-                    translation.replace(' ', '').replace('\"', ''),
-                    start, end, strand]
+            gene = protein_id.replace('\"', '')
+            if gene not in genes:
+                genes[gene] = [translation.replace(' ', '').replace('\"', ''),
+                               start, end, strand]
             else:
-                raise KeyError('%s already exists in dictionary' % protein_id)
+                raise KeyError('%s already exists in dictionary' % gene)
     return seq, genes
 
 
