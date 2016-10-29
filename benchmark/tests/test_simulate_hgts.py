@@ -147,10 +147,13 @@ class SimulateHGTsTests(TestCase):
             'FEATURES             Location/Qualifiers\n'
             '     CDS             1..9\n'
             '                     /protein_id="gene1"\n'
+            '                     /translation="IDR"\n'
             '     CDS             10..18\n'
             '                     /protein_id="gene2"\n'
+            '                     /translation="SID"\n'
             '     CDS             19..27\n'
             '                     /protein_id="gene1"\n'
+            '                     /translation="RSI"\n'
             'ORIGIN\n'
             '        1 atcgatcgat cgatcgatcg atcgatcgat cgatcgatcg\n'
             '//\n')
