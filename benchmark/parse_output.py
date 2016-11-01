@@ -165,16 +165,15 @@ def parse_egid(input_f, genbank_fp):
     """
     genes = {}
     gb = Sequence.read(genbank_fp, format='genbank')
-    for feature in gb.interval_metadata.features:
-        if feature['type_'] == 'CDS':
-            if 'protein_id' in feature:
-                protein_id = feature['protein_id'].replace('\"', '')
-                if protein_id not in genes:
-                    loc = gb.interval_metadata.features[feature]
-                    # in scikit-bio, this number is the start location - 1
-                    start = loc[0][0] + 1
-                    end = loc[0][1]
-                    genes[protein_id] = (start, end)
+    for feature in gb.interval_metadata._intervals:
+        m = feature.metadata
+        if m['type'] == 'CDS' and 'protein_id' in m:
+            protein_id = m['protein_id'].replace('\"', '')
+            if protein_id not in genes:
+                # in scikit-bio, this number is the start location - 1
+                start = feature.bounds[0][0] + 1
+                end = feature.bounds[0][1]
+                genes[protein_id] = (start, end)
     genes_in_gi = {}
     for line in input_f:
         l = line.strip().split()
@@ -213,16 +212,15 @@ def parse_genemark(input_f, genbank_fp):
     """
     genes = {}
     gb = Sequence.read(genbank_fp, format='genbank')
-    for feature in gb.interval_metadata.features:
-        if feature['type_'] == 'CDS':
-            if 'protein_id' in feature:
-                protein_id = feature['protein_id'].replace('\"', '')
-                if protein_id not in genes:
-                    strand = '-' if feature['rc_'] else '+'
-                    loc = gb.interval_metadata.features[feature]
-                    start = loc[0][0] + 1
-                    end = loc[0][1]
-                    genes[protein_id] = (start, end, strand)
+    for feature in gb.interval_metadata._intervals:
+        m = feature.metadata
+        if m['type'] == 'CDS' and 'protein_id' in m:
+            protein_id = m['protein_id'].replace('\"', '')
+            if protein_id not in genes:
+                strand = m['strand']
+                start = feature.bounds[0][0] + 1
+                end = feature.bounds[0][1]
+                genes[protein_id] = (start, end, strand)
     atypical_genes = []
     reading = False
     for line in input_f:

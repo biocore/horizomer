@@ -13,7 +13,6 @@ Reformat input files to format accepted by given HGT tool
 
 import click
 
-from os import remove
 from os.path import join
 from skbio import TreeNode, TabularMSA, Sequence, Protein, DNA
 from collections import OrderedDict
@@ -351,7 +350,7 @@ def _merge_genbank_seqs(genbank_fp):
     -------
     tuple of (
         skbio.Sequence,
-            Genome sequence and metadata
+            Genome sequence, genes and metadata
         dict of { list of [ string, int, int, string ] }
             Gene name : translation, start, end, and strand
     )
@@ -371,16 +370,16 @@ def _merge_genbank_seqs(genbank_fp):
         size = gb.metadata['LOCUS']['size']
         loci.append([locus_name, size])
         nucl_seq += str(gb)
-        for feature in gb.interval_metadata.features:
-            if feature['type_'] == 'CDS' and 'protein_id' in feature:
-                protein_id = feature['protein_id'].replace('\"', '')
+        for feature in gb.interval_metadata._intervals:
+            m = feature.metadata
+            if m['type'] == 'CDS' and 'protein_id' in m:
+                protein_id = m['protein_id'].replace('\"', '')
                 if protein_id not in genes:
-                    translation = feature['translation'].replace(' ', '') \
+                    translation = m['translation'].replace(' ', '') \
                         .replace('\"', '')
-                    strand = '-' if feature['rc_'] else '+'
-                    loc = gb.interval_metadata.features[feature]
-                    start = loc[0][0] + abs_pos + 1
-                    end = loc[0][1] + abs_pos
+                    strand = m['strand']
+                    start = feature.bounds[0][0] + abs_pos + 1
+                    end = feature.bounds[0][1] + abs_pos
                     genes[protein_id] = [translation, start, end, strand]
         abs_pos += int(size)
     gb = DNA(nucl_seq)
@@ -389,56 +388,21 @@ def _merge_genbank_seqs(genbank_fp):
                             'division': 'CON', 'mol_type': 'DNA',
                             'date': '01-JAN-1900'}
     gb.metadata['id'] = 'locus001'
-    return (gb, genes)
-
-
-def _write_genebank_file(gb,
-                         genes,
-                         output_dir):
-    """ Write output genome to a GenBank file.
-
-    Parameters
-    ----------
-    gb: skbio.Sequence,
-        Genome sequence and metadata
-    genes: dict of { list of [ string, int, int, string ] }
-        Gene name : translation, start, end, and strand
-    output_dir: string
-        output directory path
-
-    Notes
-    -----
-    The reason this script does not use skbio's GenBank write function, is
-    that EGID cannot parse skbio-written GenBank format. Perhaps the reason
-    is the differential pattern of leading white spaces in the feature table.
-    """
-    output_f = open(join(output_dir, 'id.gbk'), 'w')
-    tmp_fp = join(output_dir, 'id.tmp')
-    DNA.write(gb, tmp_fp, format='genbank')
-    with open(tmp_fp, 'r') as input_f:
-        output_f.write(input_f.readline())
-    output_f.write('FEATURES             Location/Qualifiers\n')
     gid = 1
+    gb.interval_metadata._intervals = []
     for (gene, l) in sorted(genes.items(), key=lambda x: x[1][1]):
         location = str(l[1]) + '..' + str(l[2])
         if l[3] == '-':
             location = 'complement(' + location + ')'
-        lines = []
-        lines.append('     gene            ' + location)
-        lines.append('                     /locus_tag=gene' + str(gid))
-        lines.append('     CDS             ' + location)
-        lines.append('                     /locus_tag=gene' + str(gid))
-        lines.append('                     /protein_id=' + gene)
-        lines.append('                     /translation=' + l[0])
-        for line in lines:
-            output_f.write(line + '\n')
+        feature = {'type': 'gene', 'locus_tag': 'gene' + str(gid),
+                   '__location': location}
+        gb.interval_metadata.add([(l[1] - 1, l[2])], metadata=feature)
+        feature = {'type': 'CDS', 'locus_tag': 'gene' + str(gid),
+                   '__location': location, 'protein_id': gene,
+                   'translation': l[0]}
+        gb.interval_metadata.add([(l[1] - 1, l[2])], metadata=feature)
         gid += 1
-    with open(tmp_fp, 'r') as input_f:
-        next(input_f)
-        for line in input_f:
-            output_f.write(line)
-    output_f.close()
-    remove(tmp_fp)
+    return (gb, genes)
 
 
 def reformat_egid(genbank_fp,
@@ -459,7 +423,7 @@ def reformat_egid(genbank_fp,
     """
     (gb, genes) = _merge_genbank_seqs(genbank_fp)
     DNA.write(gb, join(output_dir, 'id.fna'), format='fasta')
-    _write_genebank_file(gb, genes, output_dir)
+    DNA.write(gb, join(output_dir, 'id.gbk'), format='genbank')
     nucl_seq = str(gb)
     output_f = {}
     for x in ('faa', 'ffn', 'ptt'):
@@ -503,9 +467,9 @@ def reformat_genemark(genbank_fp,
     -----
     GeneMark's acceptable input file format is FASTA (genome sequence).
     """
-    (gb, genes) = _merge_genbank_seqs(genbank_fp)
+    gb = _merge_genbank_seqs(genbank_fp)[0]
     DNA.write(gb, join(output_dir, 'id.fna'), format='fasta')
-    _write_genebank_file(gb, genes, output_dir)
+    DNA.write(gb, join(output_dir, 'id.gbk'), format='genbank')
 
 
 @click.command()

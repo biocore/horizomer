@@ -1,10 +1,9 @@
 pip
+numpy
 nose>=1.3.7
 pep8
 flake8
 blast-plus
 blast-legacy
 diamond
-scikit-bio=0.4.2dev
 mafft
-
