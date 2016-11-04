@@ -19,7 +19,7 @@ working_dir=$(readlink -m $1)
 scripts_dir=$(readlink -m $2)
 # species tree in Newick format
 species_tree_fp=$3
-# species raw genome in FASTA format
+# species genome in GenBank format (for compositional methods)
 species_genome_fp=$4
 # species HMM model (produced by GeneMarkS)
 species_model_fp=$5

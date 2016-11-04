@@ -25,7 +25,7 @@ working_dir=$(readlink -m $1)
 scripts_dir=$(readlink -m $2)
 # species tree in Newick format
 species_tree_fp=$3
-# reference genome in FASTA format (for compositional methods)
+# species genome in GenBank format (for compositional methods)
 species_genome_fp=$4
 # species HMM model (produced by GeneMarkS)
 species_model_fp=$5
@@ -77,6 +77,8 @@ gi_to_taxid_fp=${26}
 parse_hgts=${27}
 # EGID install directory
 egid_install_dp=${28}
+# GeneMark install directory
+genemark_install_dp=${29}
 # qsub params
 qsub="-q route -m abe -M jenya.kopylov@gmail.com -l nodes=1:ppn=${threads} -l walltime=230:00:00 -l pmem=10gb -l mem=20gb"
 
@@ -95,6 +97,8 @@ then
     echo "PhyloNet install dir: $phylonet_install_dir"
     echo "Jane 4 install dir: $jane_install_dir"
     echo "T-REX install dir: $trex_install_dir"
+    echo "EGID install dir: $egid_install_dir"
+    echo "GeneMark install dir: $genemark_install_dir"
     echo "verbose: $verbose"
     echo "initial command: $init_command"
     echo "DIAMOND nr: $diamond_db_nr"
@@ -208,17 +212,6 @@ cmd="${init_command}; \
                                         ${working_dir} "
 submit_job "${cmd}" consel
 
-## run GeneMark
-cmd="${init_command}; \
-      bash ${scripts_dir}/run_genemark.sh ${species_genome_fp} \
-                                          ${output_file}.gm.txt \
-                                          ${stdout}.gm.txt \
-                                          ${stderr}.gm.txt \
-                                          ${scripts_dir} \
-                                          ${genemark_install_dir} \
-                                          ${working_dir}"
-submit_job "${cmd}" genemark
-
 ## run DarkHorse
 cmd="${init_command}; \
       bash ${scripts_dir}/run_darkhorse.sh ${nr_fp} \
@@ -256,11 +249,24 @@ submit_job "${cmd}" hgtector
 ## run EGID
 cmd="${init_command}; \
       bash ${scripts_dir}/run_egid.sh ${species_genome_fp} \
+                                      ${hgt_summary}.egid.txt \
+                                      ${stdout}.egid.txt \
+                                      ${stderr}.egid.txt \
                                       ${scripts_dir} \
-                                      ${working_dir} \
                                       ${egid_install_dir} \
-                                      ${hgt_summary}.egid.txt"
+                                      ${working_dir}"
 submit_job "${cmd}" egid
+
+## run GeneMark
+cmd="${init_command}; \
+      bash ${scripts_dir}/run_genemark.sh ${species_genome_fp} \
+                                          ${hgt_summary}.genemark.txt \
+                                          ${stdout}.genemark.txt \
+                                          ${stderr}.genemark.txt \
+                                          ${scripts_dir} \
+                                          ${genemark_install_dir} \
+                                          ${working_dir}"
+submit_job "${cmd}" genemark
 
 ## run the Distance Method
 cmd="${init_command}; \

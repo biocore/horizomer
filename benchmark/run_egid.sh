@@ -10,18 +10,28 @@
 
 # usage: run EGID software
 species_genome_fp=$1
-scripts_dir=$2
-working_dir=$3
-egid_install_dir=$4
-output_fp=$5
+output_fp=$2
+stdout=$3
+stderr=$4
+scripts_dir=$5
+egid_install_dir=$6
+working_dir=$7
 
 ## run EGID
-mkdir -p "${working_dir}/input"
-mkdir -p "${working_dir}/output"
-python ${scripts_dir}/reformat_input_gi.py --genbank-fp ${species_genome_fp} --output-dir "${working_dir}/input" --method 'egid'
+TIMEFORMAT='%U %R'
+mkdir -p "${working_dir}/input.egid"
+mkdir -p "${working_dir}/output.egid"
+python ${scripts_dir}/reformat_input.py --genbank-fp ${species_genome_fp} --output-dir "${working_dir}/input.egid" --method 'egid'
 PWD=$(pwd)
 cd ${egid_install_dir}
-./EGID "${working_dir}/input" "${working_dir}/output"
+TIME="$( time (./EGID "${working_dir}/input.egid" "${working_dir}/output.egid" 1>>$stdout 2>>$stderr) 2>&1)"
+user_time=$(echo $TIME | awk '{print $1}')                                                                                                                                                               
+wall_time=$(echo $TIME | awk '{print $2}')
+cd ${working_dir}
+python ${scripts_dir}/parse_output.py --genbank-fp input.egid/id.gbk --hgt-results-fp output.egid/EGID_output.txt --method 'egid' >> $output_fp
+# Clean up
+rm input.egid/id.faa.mob
 cd $PWD
-rm "${working_dir}/input/id.faa.mob"
-python ${scripts_dir}/parse_output_gi.py --genbank-fp "${working_dir}/input/id.gbk" --gi-fp "${working_dir}/output/EGID_output.txt" >> $output_fp
+
+echo "Total user time EGID: ${user_time}" >> $stderr
+echo "Total wall time EGID: ${wall_time}" >> $stderr
