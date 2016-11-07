@@ -243,16 +243,13 @@ def _protoclass(dm, epsilon):
     # (row)
     B = dm.data < epsilon
     # tracks which elements are covered by prototypes
-    covered = [0] * dm.shape[0]
+    covered = np.zeros(dm.shape[0], dtype=bool)
     # score is the number of other elements that falls within the epsilon ball
     scores = B.sum(axis=0)
     # found prototypes
     prototypes = []
 
-    i = 0
-    while(True):
-        i += 1
-
+    while True:
         # candidate for a new prototype is the element whose epsilon ball
         # covers most other elements.
         idx_max = scores.argmax()
