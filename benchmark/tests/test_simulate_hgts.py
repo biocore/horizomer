@@ -9,7 +9,7 @@
 from unittest import TestCase, main
 from shutil import rmtree
 from tempfile import mkdtemp
-from os import makedirs
+from os import makedirs, remove
 from os.path import join, dirname, abspath
 import time
 import copy
@@ -18,13 +18,13 @@ from operator import itemgetter
 from skbio import Sequence
 import skbio.io
 
-from simulate_hgts import (extract_genbank,
-                           launch_orthofinder,
-                           parse_orthofinder,
-                           simulate_orthologous_rep,
-                           simulate_novel_acq,
-                           write_results,
-                           simulate_genbank)
+from benchmark.simulate_hgts import (extract_genbank,
+                                     launch_orthofinder,
+                                     parse_orthofinder,
+                                     simulate_orthologous_rep,
+                                     simulate_novel_acq,
+                                     write_results,
+                                     simulate_genbank)
 
 
 class SimulateHGTsTests(TestCase):
@@ -65,6 +65,13 @@ class SimulateHGTsTests(TestCase):
             "ACCTGGGGCACCACCTGGATCGCCATGAAGATCGCCTGTATATACCAGCAATT"
             "TCCCCAATTTTGCTTTTAAAATTTGAAATTGATTTTTTTATTTTAGAAAACGT"
             "TGGTTTTTGACCAGTAATATATTTTATTGA")
+        self.seq_donor.metadata['LOCUS'] = {'locus_name': 'donor',
+                                            'size': len(str(self.seq_donor)),
+                                            'unit': 'bp',
+                                            'shape': 'circular',
+                                            'division': 'CON',
+                                            'mol_type': 'DNA',
+                                            'date': '01-JAN-1900'}
         self.genes_recip = {'R_1': ['MNLEYNPKKIESFVQQYWRN', 45, 104, '+'],
                             'R_2': ['MTELITLNLLGLRCPEPLMV', 120, 179, '+'],
                             'R_3': ['MWGTTWIAMKIVITTIPPIFATGLRFL',
@@ -78,6 +85,13 @@ class SimulateHGTsTests(TestCase):
             "TGAAAATTGTTATTACTACTATTCCACCAATTTTTGCTACTGGTTTGAGATTT"
             "TTGATTTTAGACTGGTATTTCAAGAACGATTACTTTTAAACTGGCGTTTAAAT"
             "ATCAACATCTCCCAGCTATCCTACACAAAAA")
+        self.seq_recip.metadata['LOCUS'] = {'locus_name': 'recipient',
+                                            'size': len(str(self.seq_recip)),
+                                            'unit': 'bp',
+                                            'shape': 'circular',
+                                            'division': 'CON',
+                                            'mol_type': 'DNA',
+                                            'date': '01-JAN-1900'}
 
     def tearDown(self):
         rmtree(self.working_dir)
@@ -89,7 +103,7 @@ class SimulateHGTsTests(TestCase):
             genbank_fp=join(self.root, "genbank_sample_record.gbk"),
             verbose=True)
         genes_exp = {'AAA98665.1': ['SSIYNGISTSGLDLNNGTIADMRQLGIVESYKLKR'
-                                    'AVVSSASEAAEVLLRVDNIIRARPRTANRQHM', 0,
+                                    'AVVSSASEAAEVLLRVDNIIRARPRTANRQHM', 1,
                                     206, '+'],
                      'AAA98667.1': ['MNRWVEKWLRVYLKCYINLILFYRNVYPPQSFDYT'
                                     'TYQSFNLPQFVPINRHPALIDYIEELILDVLSKLT'
@@ -98,7 +112,7 @@ class SimulateHGTsTests(TestCase):
                                     'FEAVINAIELELGHKLDRNRRVDSLEEKAEIERDS'
                                     'NWVKCQEDENLPDNNGFQPPKIKLTSLVGSDVGPL'
                                     'IIHQFSEKLISGDDKILNGVYSQYEEGESIFGSLF',
-                                    3299, 4037, '-'],
+                                    3300, 4037, '-'],
                      'AAA98666.1': ['MTQLQISLLLTATISLLHLVVATPYEAYPIGKQYP'
                                     'PVARVNESFTFQISNDTYKSSVDKTAQITYNCFDL'
                                     'PSWLSFDSSSRTFSGEPSSDLLSDANTTLYFNVIL'
@@ -123,9 +137,34 @@ class SimulateHGTsTests(TestCase):
                                     'YNVTKHRNRHLQNIQDSQSGKNGITPTTMSTSSSD'
                                     'DFVPVKDGENFCWVHSMEPDRRPSKKRLVDFSNKS'
                                     'NVNVGQVKDIHGRIPEML',
-                                    686, 3158, '+']}
+                                    687, 3158, '+']}
         self.assertEqual(str(seq), sample_seq)
         self.assertDictEqual(genes, genes_exp)
+        # test key error for duplicate protein IDs
+        duplicate_genbank = (
+            'LOCUS       locus001       40 bp    DNA        '
+            '     PLN       01-JAN-1900\n'
+            'FEATURES             Location/Qualifiers\n'
+            '     CDS             1..9\n'
+            '                     /protein_id="gene1"\n'
+            '                     /translation="IDR"\n'
+            '     CDS             10..18\n'
+            '                     /protein_id="gene2"\n'
+            '                     /translation="SID"\n'
+            '     CDS             19..27\n'
+            '                     /protein_id="gene1"\n'
+            '                     /translation="RSI"\n'
+            'ORIGIN\n'
+            '        1 atcgatcgat cgatcgatcg atcgatcgat cgatcgatcg\n'
+            '//\n')
+        genbank_fp = join(self.working_dir, 'dup.gb')
+        with open(genbank_fp, 'w') as tmp:
+            tmp.write(duplicate_genbank)
+        with self.assertRaises(KeyError) as context:
+            extract_genbank(genbank_fp=genbank_fp)
+        err = "'gene1 already exists in dictionary'"
+        self.assertEqual(str(context.exception), err)
+        remove(genbank_fp)
 
     def test_launch_orthofinder(self):
         """Test running OrthoFinder.
@@ -322,7 +361,8 @@ class SimulateHGTsTests(TestCase):
         self.genes_recip['D_2_hgt_n'] = ['MKKNIILNLIGLRCPEPIMI', 321, 381, '+']
         donor_genbank_fp = join(self.proteomes_dir, "donor.fna")
         recipient_genbank_fp = join(self.proteomes_dir, "recip.fna")
-        dnr_g_nucl_fp, dnr_g_aa_fp, rcp_g_nucl_fp, rcp_g_aa_fp =\
+        dnr_g_nucl_fp, dnr_g_aa_fp, dnr_g_gb_fp, \
+            rcp_g_nucl_fp, rcp_g_aa_fp, rcp_g_gb_fp =\
             write_results(self.genes_donor,
                           donor_genbank_fp,
                           self.genes_recip,
@@ -336,6 +376,20 @@ class SimulateHGTsTests(TestCase):
         recip_nucl = Sequence.read(rcp_g_nucl_fp, format='fasta')
         # test for correctness of recipient nucleotide genome sequence
         self.assertEqual(str(recip_nucl), str(self.seq_recip))
+        locus = {'unit': 'bp', 'shape': 'circular', 'division': 'CON',
+                 'mol_type': 'DNA', 'date': '01-JAN-1900'}
+        donor_gb = Sequence.read(dnr_g_gb_fp, format='genbank')
+        locus['locus_name'] = 'donor'
+        locus['size'] = len(str(self.seq_donor))
+        # test for correctness of donor GenBank file
+        self.assertEqual(str(donor_gb), str(self.seq_donor))
+        self.assertDictEqual(donor_gb.metadata['LOCUS'], locus)
+        recip_gb = Sequence.read(rcp_g_gb_fp, format='genbank')
+        locus['locus_name'] = 'recipient'
+        locus['size'] = len(str(self.seq_recip))
+        # test for correctness of recipient GenBank file
+        self.assertEqual(str(recip_gb), str(self.seq_recip))
+        self.assertDictEqual(recip_gb.metadata['LOCUS'], locus)
         donor_aa_dict = {}
         for seq in skbio.io.read(dnr_g_aa_fp, format='fasta'):
             donor_aa_dict[seq.metadata['id']] = str(seq)
@@ -378,7 +432,8 @@ class SimulateHGTsTests(TestCase):
         log_fp = join(self.working_dir, "log.txt")
         threads = 1
         with open(log_fp, 'w') as log_f:
-            dnr_nucl_fp, dnr_aa_fp, rcp_nucl_fp, rcp_aa_fp =\
+            dnr_nucl_fp, dnr_aa_fp, dnr_gb_fp, \
+                rcp_nucl_fp, rcp_aa_fp, rcp_gb_fp =\
                 simulate_genbank(donor_genbank_fp,
                                  recip_genbank_fp,
                                  output_dir,

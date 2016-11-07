@@ -1,7 +1,6 @@
 language: python
 sudo: false
 env:
-  - PYTHON_VERSION="3.4"
   - PYTHON_VERSION="3.5"
 before_install:
   - wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
@@ -36,7 +35,7 @@ before_install:
   - unzip PhyML-3.1.zip
   - mv ./PhyML-3.1/PhyML-3.1_linux64 ./PhyML-3.1/phyml
   - export PATH=$PWD/PhyML-3.1/phyml:$PATH
-  # Install MCL 
+  # Install MCL
   - wget http://micans.org/mcl/src/mcl-14-137.tar.gz
   - tar zxvf mcl-14-137.tar.gz
   - mkdir mcl-14-137-install
@@ -62,6 +61,10 @@ install:
   - source activate test_env
   - pip install -r ci/pip_requirements.txt
   - pip install .
+  # Install a certain scikit-bio development version from RNAer's GitHub repository,
+  # which contains the latest and correct GenBank format parser.
+  # Once this function becomes formal in scikit-bio, the present file should be modified.
+  - pip install git+https://github.com/rnaer/scikit-bio/@mixin
   # Install OrthoFinder (python 3 script, requires before_install dependencies)
   - wget https://github.com/ekopylova/OrthoFinder/archive/0.4.python3.tar.gz
   - tar zxvf 0.4.python3.tar.gz

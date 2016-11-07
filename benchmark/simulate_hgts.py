@@ -63,24 +63,25 @@ def extract_genbank(genbank_fp, verbose=False):
     """
     genes = {}
     if verbose:
-        sys.stdout.write("\tParse GenBank record ...\n")
+        sys.stdout.write('\tParse GenBank record ...\n')
     seq = Sequence.read(genbank_fp, format='genbank')
     if verbose:
-        sys.stdout.write("\t\tDone.\n")
-    for feature in seq.interval_metadata.features:
-        if feature['type_'] == 'CDS':
-            protein_id = feature['protein_id']
-            translation = feature['translation']
-            strand = '-' if feature['rc_'] else '+'
-            loc = seq.interval_metadata.features[feature]
-            start_pos = loc[0][0]
-            end_pos = loc[0][1]
-            if protein_id not in genes:
-                genes[protein_id.replace("\"", "")] = [
-                    translation.replace(" ", "").replace("\"", ""),
-                    start_pos, end_pos, strand]
+        sys.stdout.write('\t\tDone.\n')
+    for feature in seq.interval_metadata._intervals:
+        m = feature.metadata
+        if m['type'] == 'CDS':
+            protein_id = m['protein_id']
+            translation = m['translation']
+            strand = m['strand']
+            # in scikit-bio, this number is the start location - 1
+            start = feature.bounds[0][0] + 1
+            end = feature.bounds[0][1]
+            gene = protein_id.replace('\"', '')
+            if gene not in genes:
+                genes[gene] = [translation.replace(' ', '').replace('\"', ''),
+                               start, end, strand]
             else:
-                raise KeyError("%s already exists in dictionary" % protein_id)
+                raise KeyError('%s already exists in dictionary' % gene)
     return seq, genes
 
 
@@ -228,6 +229,7 @@ def simulate_orthologous_rep(genes_donor,
     idx = random.sample(range(num_orthogroups), num_hgts)
     log_f.write("#type\tdonor\tstart\tend\trecipient\tnew label "
                 "recipient\tstart\tend\tstrand\n")
+    seq_recip_seq = str(seq_recip)
     for i in idx:
         orthogroup = orthologous_groups[i]
         substitute_genes = ['*', '*']
@@ -274,9 +276,9 @@ def simulate_orthologous_rep(genes_donor,
             genes_recip[hgt_gene][1:]
         start_pos_donor, end_pos_donor, strand_donor =\
             genes_donor[gene_donor_label][1:]
-        seq_recip = Sequence(str(seq_recip[:start_pos_recip]) +
-                             str(seq_donor[start_pos_donor:end_pos_donor]) +
-                             str(seq_recip[end_pos_recip:]))
+        seq_recip_seq = (str(seq_recip_seq[:start_pos_recip]) +
+                         str(seq_donor[start_pos_donor:end_pos_donor]) +
+                         str(seq_recip_seq[end_pos_recip:]))
         if strand_recip != strand_donor:
             genes_recip[hgt_gene][3] = genes_donor[gene_donor_label][3]
         # write HGTs to log file
@@ -289,6 +291,7 @@ def simulate_orthologous_rep(genes_donor,
             start_pos_recip,
             end_pos_recip,
             strand_donor))
+    seq_recip = Sequence(seq_recip_seq, metadata=seq_recip.metadata)
     return seq_recip
 
 
@@ -351,6 +354,7 @@ def simulate_novel_acq(genes_donor,
     gene_donor_labels = random.sample(list(genes_donor), num_hgts)
     log_f.write("#type\tdonor\tstart\tend\trecipient\tstart\t"
                 "end\tstrand\n")
+    seq_recip_seq = str(seq_recip)
     # begin simulation
     for x in range(num_hgts):
         # select donor gene (for HGT)
@@ -370,11 +374,12 @@ def simulate_novel_acq(genes_donor,
                     [genes_donor[gene_donor_label][0], idx_recip, idx_end,
                      genes_donor[gene_donor_label][3]]
                 # insert gene (nucleotide)
-                seq_recip = Sequence(
-                    str(seq_recip[:idx_recip]) +
-                    str(seq_donor[genes_donor[gene_donor_label][1]:
-                        genes_donor[gene_donor_label][2]]) +
-                    str(seq_recip[idx_recip:]))
+                seq_recip_seq = (str(seq_recip_seq[:idx_recip]) +
+                                 str(seq_donor[genes_donor[gene_donor_label]
+                                               [1]:
+                                               genes_donor[gene_donor_label]
+                                               [2]]) +
+                                 str(seq_recip_seq[idx_recip:]))
                 # write HGTs to log file
                 log_f.write(
                     "n\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" %
@@ -388,7 +393,7 @@ def simulate_novel_acq(genes_donor,
                 break
             # try next open region
             idx_recip = gene_positions_s[y+1][1] + 1
-
+    seq_recip = Sequence(seq_recip_seq, metadata=seq_recip.metadata)
     return seq_recip
 
 
@@ -399,7 +404,7 @@ def write_results(genes_donor,
                   seq_donor,
                   seq_recip,
                   output_dir):
-    """Write donor and recipient genomes to FASTA files (nucl and protein).
+    """Write donor and recipient genomes to GenBank and FASTA files.
 
     Parameters
     ----------
@@ -418,10 +423,14 @@ def write_results(genes_donor,
         filepath to donor nucleotide sequence
     donor_genome_aa_fp: string
         filepath to donor protein sequences
+    donor_genome_gb_fp: string
+        filepath to donor genome in GenBank format
     recip_genome_nucl_fp: string
         filepath to recipient nucleotide sequence (simulated)
     recip_genome_aa_fp: string
         filepath to recipient protein sequence
+    recip_genome_gb_fp: string
+        filepath to donor genome in GenBank format
     """
     # output dir for simulated results
     simulated_dir = join(output_dir, "simulated")
@@ -445,9 +454,28 @@ def write_results(genes_donor,
         simulated_dir, "%s.fna" % basename(splitext(recip_genome_fp)[0]))
     seq_donor.write(donor_genome_nucl_fp, format='fasta')
     seq_recip.write(recip_genome_nucl_fp, format='fasta')
-
-    return (donor_genome_nucl_fp, donor_genome_aa_fp, recip_genome_nucl_fp,
-            recip_genome_aa_fp)
+    donor_genome_gb_fp = join(
+        simulated_dir, "%s.gb" % basename(splitext(donor_genome_fp)[0]))
+    recip_genome_gb_fp = join(
+        simulated_dir, "%s.gb" % basename(splitext(recip_genome_fp)[0]))
+    seq_donor.write(donor_genome_gb_fp, format='genbank')
+    if 'LOCUS' in seq_recip.metadata:
+        seq_recip.metadata['LOCUS']['size'] = len(str(seq_recip))
+    seq_recip.interval_metadata._intervals = []
+    for (gene, l) in sorted(genes_recip.items(), key=lambda x: x[1][1]):
+        location = str(l[1]) + '..' + str(l[2])
+        if l[3] == '-':
+            location = 'complement(' + location + ')'
+        # in scikit-bio, bounds[0][0] is the start location - 1
+        bounds = [(l[1] - 1, l[2])]
+        feature = {'type': 'gene', 'locus_tag': gene, '__location': location}
+        seq_recip.interval_metadata.add(bounds, metadata=feature)
+        feature = {'type': 'CDS', 'locus_tag': gene, '__location': location,
+                   'protein_id': gene, 'translation': l[0]}
+        seq_recip.interval_metadata.add(bounds, metadata=feature)
+    seq_recip.write(recip_genome_gb_fp, format='genbank')
+    return (donor_genome_nucl_fp, donor_genome_aa_fp, donor_genome_gb_fp,
+            recip_genome_nucl_fp, recip_genome_aa_fp, recip_genome_gb_fp)
 
 
 def simulate_hgts(seq_donor,
@@ -582,6 +610,7 @@ def simulate_genbank(donor_genbank_fp,
     if verbose:
         sys.stdout.write("Parsing recipient GenBank record ...\n")
     seq_recip, genes_recip = extract_genbank(recipient_genbank_fp, verbose)
+
     if verbose:
         sys.stdout.write("\tDone.\n")
 

@@ -9,27 +9,32 @@
 # ----------------------------------------------------------------------------
 
 # usage: run GeneMark software
-species_model_fp=$1
+species_genome_fp=$1
 output_fp=$2
-species_genome_fp=$3
-stdout=$4
-stderr=$5
-working_dir=$6
+stdout=$3
+stderr=$4
+scripts_dir=$5
+genemark_install_dir=$6
+working_dir=$7
 
 ## run GeneMarkS training (generate typical and atypical gene models)
-mkdir -p "${working_dir}/hmm-models"
-filename=$(basename "${species_genome_fp}")
-hmm_output=${working_dir}/hmm-models/$filename
-if [ "${species_model_fp}" == "None" ]
-then
-    gmsn.pl --combine --gm --clean --name ${species_model_fp} "${hmm_output%.*}"
-    species_model_fp="${hmm_output%.*}_hmm_combined.mod"
-fi
-
 TIMEFORMAT='%U %R'
-TIME="$( time (gmhmmp -r -m ${species_model_fp} -o $output_fp ${species_genome_fp} 1>$stdout 2>>$stderr) 2>&1)"                                                                                              
+mkdir -p "${working_dir}/input.genemark"
+mkdir -p "${working_dir}/output.genemark"
+python ${scripts_dir}/reformat_input.py --genbank-fp ${species_genome_fp} --output-dir "${working_dir}/input.genemark" --method 'genemark'
+PWD=$(pwd)
+cd ${working_dir}/output.genemark
+cp ${genemark_install_dir}/.gm_key ./
+TIME="$( time (${genemark_install_dir}/gmsn.pl --verbose --combine --gm --clean --name id ../input.genemark/id.fna 1>>$stdout 2>>$stderr) 2>&1)"
 user_time=$(echo $TIME | awk '{print $1}')                                                                                                                                                               
 wall_time=$(echo $TIME | awk '{print $2}')
+TIME="$( time (${genemark_install_dir}/gmhmmp -v -r -m id_hmm_combined.mod -o GeneMark_output.txt ../input.genemark/id.fna 1>>$stdout 2>>$stderr) 2>&1)"
+user_time=$(echo $user_time + $(echo $TIME | awk '{print $1}') | bc | awk '$0+=$3')
+wall_time=$(echo $wall_time + $(echo $TIME | awk '{print $2}') | bc | awk '$0+=$3')
+python ${scripts_dir}/parse_output.py --genbank-fp ../input.genemark/id.gbk --hgt-results-fp GeneMark_output.txt --method 'genemark' >> $output_fp
+# Clean up
+rm .gm_key
+cd $PWD
 
 echo "Total user time GeneMark: ${user_time}" >> $stderr
 echo "Total wall time GeneMark: ${wall_time}" >> $stderr
