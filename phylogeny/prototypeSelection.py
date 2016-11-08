@@ -486,7 +486,7 @@ def prototype_selection_destructive_maxdist(dm, num_prototypes):
     Notes
     -----
     Timing: %timeit -n 100 prototype_selection_constructive_maxdist(dm, 100)
-            100 loops, best of 3: 1.43 s per loop
+            100 loops, best of 3: 2.1 s per loop
             where the dm holds 27,398 elements
     function signature with type annotation for future use with python >= 3.5:
     def prototype_selection_constructive_maxdist(dm: DistanceMatrix,
