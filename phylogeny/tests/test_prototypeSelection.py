@@ -11,6 +11,7 @@ from phylogeny.prototypeSelection import (
     prototype_selection_exhaustive,
     prototype_selection_constructive_maxdist,
     prototype_selection_constructive_protoclass,
+    prototype_selection_constructive_pMedian,
     _protoclass,
     distance_sum)
 
@@ -329,6 +330,81 @@ class prototypeSelection(TestCase):
              '550.L1S180.s.1.sequence', '550.L1S187.s.1.sequence'),
             res)
         self.assertAlmostEqual(101.91549799314, distance_sum(res, self.dm100))
+
+    def test_prototype_selection_constructive_pMedian(self):
+        self.assertRaisesRegex(
+            ValueError,
+            "must be >= 2, since a single",
+            prototype_selection_constructive_pMedian,
+            self.dm20,
+            1)
+
+        self.assertRaisesRegex(
+            ValueError,
+            "otherwise no reduction is necessary",
+            prototype_selection_constructive_pMedian,
+            self.dm20,
+            len(self.dm20.ids)+1)
+
+        res = prototype_selection_constructive_pMedian(self.dm20, 3)
+        self.assertCountEqual(('A', 'H', 'Q'), res)
+        self.assertAlmostEqual(1.7387, distance_sum(res, self.dm20))
+
+        res = prototype_selection_constructive_pMedian(self.dm20, 4)
+        self.assertCountEqual(('A', 'H', 'Q', 'E'), res)
+        self.assertAlmostEqual(3.2306, distance_sum(res, self.dm20))
+
+        res = prototype_selection_constructive_pMedian(self.dm20, 5)
+        self.assertCountEqual(('A', 'H', 'Q', 'E', 'I'), res)
+        self.assertAlmostEqual(5.1449, distance_sum(res, self.dm20))
+
+        res = prototype_selection_constructive_pMedian(self.dm20, 18)
+        self.assertCountEqual(
+            ('A', 'B', 'C', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
+             'P', 'Q', 'R', 'S', 'T'),
+            res)
+        self.assertAlmostEqual(66.4087, distance_sum(res, self.dm20))
+
+        res = prototype_selection_constructive_pMedian(self.dm20, 19)
+        self.assertCountEqual(
+            ('A', 'B', 'C', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
+             'P', 'Q', 'R', 'S', 'T', 'D'),
+            res)
+        self.assertAlmostEqual(73.6075, distance_sum(res, self.dm20))
+
+        res = prototype_selection_constructive_pMedian(self.dm100, 5)
+        self.assertCountEqual(
+            ('550.L1S167.s.1.sequence', '550.L1S117.s.1.sequence',
+             '550.L1S12.s.1.sequence', '550.L1S163.s.1.sequence',
+             '550.L1S148.s.1.sequence'),
+            res)
+        self.assertAlmostEqual(4.8783450, distance_sum(res, self.dm100))
+
+        res = prototype_selection_constructive_pMedian(self.dm100, 10)
+        self.assertCountEqual(
+            ('550.L1S167.s.1.sequence', '550.L1S117.s.1.sequence',
+             '550.L1S12.s.1.sequence', '550.L1S163.s.1.sequence',
+             '550.L1S148.s.1.sequence', '550.L1S185.s.1.sequence',
+             '550.L1S133.s.1.sequence', '550.L1S126.s.1.sequence',
+             '550.L1S116.s.1.sequence', '550.L1S1.s.1.sequence'),
+            res)
+        self.assertAlmostEqual(23.75526307, distance_sum(res, self.dm100))
+
+        res = prototype_selection_constructive_pMedian(self.dm100, 20)
+        self.assertCountEqual(
+            ('550.L1S167.s.1.sequence', '550.L1S117.s.1.sequence',
+             '550.L1S12.s.1.sequence', '550.L1S163.s.1.sequence',
+             '550.L1S148.s.1.sequence', '550.L1S185.s.1.sequence',
+             '550.L1S133.s.1.sequence', '550.L1S126.s.1.sequence',
+             '550.L1S116.s.1.sequence', '550.L1S1.s.1.sequence',
+             '550.L1S139.s.1.sequence', '550.L1S175.s.1.sequence',
+             '550.L1S176.s.1.sequence', '550.L1S181.s.1.sequence',
+             '550.L1S173.s.1.sequence', '550.L1S136.s.1.sequence',
+             '550.L1S16.s.1.sequence', '550.L1S123.s.1.sequence',
+             '550.L1S141.s.1.sequence', '550.L1S13.s.1.sequence'),
+            res)
+        self.assertAlmostEqual(100.32727028, distance_sum(res, self.dm100))
+
 
 if __name__ == '__main__':
     main()
