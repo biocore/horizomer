@@ -435,7 +435,7 @@ def prototype_selection_constructive_pMedian(dm, num_prototypes):
     # the first prototype.
     prototypes.append(np.argmin(dm.data.sum(axis=1)))
 
-    # repeat adding prototypes until the desired number is found
+    # repeat adding prototypes until the desired number is found.
     while len(prototypes) < num_prototypes:
         # for each element, we compute the smallest distance sum to each
         # previously found prototype ...
