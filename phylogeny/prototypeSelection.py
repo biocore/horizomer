@@ -410,7 +410,7 @@ def prototype_selection_constructive_pMedian(dm, num_prototypes):
     Notes
     -----
     Timing: %timeit -n 100 prototype_selection_constructive_protoclass(dm, 100)
-            10 loops, best of 3: 32.8 s per loop
+            10 loops, best of 3: TO BE DETERMINED per loop
             where the dm holds 27,398 elements
     function signature with type annotation for future use with python >= 3.5:
     def prototype_selection_constructive_protoclass(dm: DistanceMatrix,
