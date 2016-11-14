@@ -14,6 +14,7 @@ the objective function for each problem instance, since there is no global
 winner. Currently implemented are:
  - prototype_selection_constructive_maxdist
  - prototype_selection_constructive_protoclass
+ - prototype_selection_constructive_pMedian
 For completeness, the exact but exponential algorithm is implemented, too.
   "prototype_selection_exhaustive"
 
@@ -369,3 +370,81 @@ def prototype_selection_constructive_protoclass(dm, num_prototypes, steps=100):
                             " number of prototypes could be found."))
 
     return list(prototypes[:num_prototypes])
+
+
+def prototype_selection_constructive_pMedian(dm, num_prototypes):
+    '''Heuristically select k prototypes for given distance matrix.
+
+       Prototype selection is NP-hard. This is an implementation of a greedy
+       correctness heuristic from [1]. The problem is stated as "Given a finite
+       number of users, whose demands for some service are known and must be
+       satisfied, and given a finite set of possible locations among which k
+       must be chosen for the location of service centers, select the locations
+       in such a way as to minimize the total distance travelled by the users."
+       Users are the elements in the distance matrix, k is the number of proto-
+       types. This approach has been termed as the "p-median model".
+
+    Parameters
+    ----------
+    dm: skbio.stats.distance.DistanceMatrix
+        Pairwise distances for all elements in the full set S.
+    num_prototypes: int
+        Number of prototypes to select for distance matrix.
+        Must be >= 2, since a single prototype is useless.
+        Must be smaller than the number of elements in the distance matrix,
+        otherwise no reduction is necessary.
+
+    Returns
+    -------
+    list of str
+        A sequence holding selected prototypes, i.e. a sub-set of the
+        elements in the distance matrix.
+
+    Raises
+    ------
+    ValueError
+        The number of prototypes to be found should be at least 2 and at most
+        one element smaller than elements in the distance matrix. Otherwise, a
+        ValueError is raised.
+
+    Notes
+    -----
+    Timing: %timeit -n 100 prototype_selection_constructive_protoclass(dm, 100)
+            10 loops, best of 3: TO BE DETERMINED per loop
+            where the dm holds 27,398 elements
+    function signature with type annotation for future use with python >= 3.5:
+    def prototype_selection_constructive_protoclass(dm: DistanceMatrix,
+    num_prototypes: int) -> List[str]:
+
+    [1] Desire L. Massart, Frank Plastria and Leonard Kaufman.
+        "Non-hierarchical clustering with MASLOC"
+        Pattern Recognition, 1983, Vol. 16, No. 5, pp. 507-516
+    '''
+    if num_prototypes < 2:
+        raise ValueError(("'num_prototypes' must be >= 2, since a single "
+                          "prototype is useless."))
+    if num_prototypes >= len(dm.ids):
+        raise ValueError(("'num_prototypes' must be smaller than the number of"
+                          " elements in the distance matrix, otherwise no "
+                          "reduction is necessary."))
+
+    # start with an empty list of prototypes
+    prototypes = []
+
+    # add the one element whose distance is smallest to all other elements as
+    # the first prototype.
+    prototypes.append(np.argmin(dm.data.sum(axis=1)))
+
+    # repeat adding prototypes until the desired number is found.
+    while len(prototypes) < num_prototypes:
+        # for each element, we compute the smallest distance sum to each
+        # previously found prototype ...
+        minVals = []
+        for i in range(0, dm.shape[0]):
+            m = (dm.data[prototypes+[i], :].min(axis=0)).sum()
+            minVals.append(m)
+        # ... and add the element which overall has the smallest distance sum
+        # as the next prototype.
+        prototypes.append(np.asarray(minVals).argmin())
+
+    return [dm.ids[idx] for idx in prototypes]
