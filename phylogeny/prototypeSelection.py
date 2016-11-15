@@ -520,7 +520,7 @@ def prototype_selection_destructive_maxdist(dm, num_prototypes):
         # elements
         currDists -= dm.data[minElmIdx]
         # find the next element to be removed, again as the one that is
-        # clostest to all others
+        # closest to all others
         minElmIdx = currDists.argmin()
         currDists[minElmIdx], numRemain = np.infty, numRemain-1
 
