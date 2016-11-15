@@ -411,7 +411,7 @@ def prototype_selection_constructive_pMedian(dm, num_prototypes):
     Notes
     -----
     Timing: %timeit -n 100 prototype_selection_constructive_protoclass(dm, 100)
-            10 loops, best of 3: 32.8 s per loop
+            10 loops, best of 3: TO BE DETERMINED per loop
             where the dm holds 27,398 elements
     function signature with type annotation for future use with python >= 3.5:
     def prototype_selection_constructive_protoclass(dm: DistanceMatrix,
@@ -436,7 +436,7 @@ def prototype_selection_constructive_pMedian(dm, num_prototypes):
     # the first prototype.
     prototypes.append(np.argmin(dm.data.sum(axis=1)))
 
-    # repreat adding prototypes until the desired number is found
+    # repeat adding prototypes until the desired number is found.
     while len(prototypes) < num_prototypes:
         # for each element, we compute the smallest distance sum to each
         # previously found prototype ...
