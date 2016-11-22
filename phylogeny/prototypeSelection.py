@@ -80,7 +80,7 @@ def prototype_selection_exhaustive(dm, num_prototypes,
     -------
     list of str
         A sequence holding selected prototypes, i.e. a sub-set of the
-        elements in the distance matrix.
+        IDs of the elements in the distance matrix.
 
     Raises
     ------
@@ -155,7 +155,7 @@ def prototype_selection_constructive_maxdist(dm, num_prototypes):
     -------
     list of str
         A sequence holding selected prototypes, i.e. a sub-set of the
-        elements in the distance matrix.
+        IDs of the elements in the distance matrix.
 
     Raises
     ------
@@ -229,7 +229,7 @@ def _protoclass(dm, epsilon):
     -------
     list of str
         A sequence holding selected prototypes, i.e. a sub-set of the
-        elements in the distance matrix.
+        IDs of the elements in the distance matrix.
 
     Notes
     -----
@@ -301,7 +301,7 @@ def prototype_selection_constructive_protoclass(dm, num_prototypes, steps=100):
     -------
     list of str
         A sequence holding selected prototypes, i.e. a sub-set of the
-        elements in the distance matrix.
+        IDs of the elements in the distance matrix.
 
     Raises
     ------
@@ -336,7 +336,7 @@ def prototype_selection_constructive_protoclass(dm, num_prototypes, steps=100):
 
     # initiate epsilon with a more or less arbitrary value
     epsilon = dm.data.mean()
-    # define how much epsilon should be changes in an interation
+    # define how much epsilon should be changes in an iteration
     stepSize = 0.2
 
     # must epsilon be increased (+1) or decreased (-1). Initiallz no change
@@ -399,7 +399,7 @@ def prototype_selection_constructive_pMedian(dm, num_prototypes):
     -------
     list of str
         A sequence holding selected prototypes, i.e. a sub-set of the
-        elements in the distance matrix.
+        IDs of the elements in the distance matrix.
 
     Raises
     ------
@@ -455,7 +455,7 @@ def prototype_selection_destructive_maxdist(dm, num_prototypes):
     '''Heuristically select k prototypes for given distance matrix.
 
        Prototype selection is NP-hard. This is an implementation of a greedy
-       correctness heuristic: Start with the complete set and interatively
+       correctness heuristic: Start with the complete set and iteratively
        remove elements until the number of required prototypes is left.
        The decision which element shall be removed is based on the minimal
        distance sum this element has to all other.
@@ -474,7 +474,7 @@ def prototype_selection_destructive_maxdist(dm, num_prototypes):
     -------
     list of str
         A sequence holding selected prototypes, i.e. a sub-set of the
-        elements in the distance matrix.
+        IDs of the elements in the distance matrix.
 
     Raises
     ------
