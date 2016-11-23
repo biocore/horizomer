@@ -13,6 +13,7 @@ This module implements several heuristics, whose quality can be measured by
 the objective function for each problem instance, since there is no global
 winner. Currently implemented are:
  - prototype_selection_constructive_maxdist
+ - prototype_selection_destructive_maxdist
  - prototype_selection_constructive_protoclass
  - prototype_selection_constructive_pMedian
 For completeness, the exact but exponential algorithm is implemented, too.
@@ -79,7 +80,7 @@ def prototype_selection_exhaustive(dm, num_prototypes,
     -------
     list of str
         A sequence holding selected prototypes, i.e. a sub-set of the
-        elements in the distance matrix.
+        IDs of the elements in the distance matrix.
 
     Raises
     ------
@@ -154,7 +155,7 @@ def prototype_selection_constructive_maxdist(dm, num_prototypes):
     -------
     list of str
         A sequence holding selected prototypes, i.e. a sub-set of the
-        elements in the distance matrix.
+        IDs of the elements in the distance matrix.
 
     Raises
     ------
@@ -228,7 +229,7 @@ def _protoclass(dm, epsilon):
     -------
     list of str
         A sequence holding selected prototypes, i.e. a sub-set of the
-        elements in the distance matrix.
+        IDs of the elements in the distance matrix.
 
     Notes
     -----
@@ -300,7 +301,7 @@ def prototype_selection_constructive_protoclass(dm, num_prototypes, steps=100):
     -------
     list of str
         A sequence holding selected prototypes, i.e. a sub-set of the
-        elements in the distance matrix.
+        IDs of the elements in the distance matrix.
 
     Raises
     ------
@@ -335,7 +336,7 @@ def prototype_selection_constructive_protoclass(dm, num_prototypes, steps=100):
 
     # initiate epsilon with a more or less arbitrary value
     epsilon = dm.data.mean()
-    # define how much epsilon should be changes in an interation
+    # define how much epsilon should be changes in an iteration
     stepSize = 0.2
 
     # must epsilon be increased (+1) or decreased (-1). Initiallz no change
@@ -398,7 +399,7 @@ def prototype_selection_constructive_pMedian(dm, num_prototypes):
     -------
     list of str
         A sequence holding selected prototypes, i.e. a sub-set of the
-        elements in the distance matrix.
+        IDs of the elements in the distance matrix.
 
     Raises
     ------
@@ -448,3 +449,83 @@ def prototype_selection_constructive_pMedian(dm, num_prototypes):
         prototypes.append(np.asarray(minVals).argmin())
 
     return [dm.ids[idx] for idx in prototypes]
+
+
+def prototype_selection_destructive_maxdist(dm, num_prototypes):
+    '''Heuristically select k prototypes for given distance matrix.
+
+       Prototype selection is NP-hard. This is an implementation of a greedy
+       correctness heuristic: Start with the complete set and iteratively
+       remove elements until the number of required prototypes is left.
+       The decision which element shall be removed is based on the minimal
+       distance sum this element has to all other.
+
+    Parameters
+    ----------
+    dm: skbio.stats.distance.DistanceMatrix
+        Pairwise distances for all elements in the full set S.
+    num_prototypes: int
+        Number of prototypes to select for distance matrix.
+        Must be >= 2, since a single prototype is useless.
+        Must be smaller than the number of elements in the distance matrix,
+        otherwise no reduction is necessary.
+
+    Returns
+    -------
+    list of str
+        A sequence holding selected prototypes, i.e. a sub-set of the
+        IDs of the elements in the distance matrix.
+
+    Raises
+    ------
+    ValueError
+        The number of prototypes to be found should be at least 2 and at most
+        one element smaller than elements in the distance matrix. Otherwise, a
+        ValueError is raised.
+
+    Notes
+    -----
+    Timing: %timeit -n 100 prototype_selection_constructive_maxdist(dm, 100)
+            100 loops, best of 3: 2.1 s per loop
+            where the dm holds 27,398 elements
+    function signature with type annotation for future use with python >= 3.5:
+    def prototype_selection_constructive_maxdist(dm: DistanceMatrix,
+    num_prototypes: int) -> List[str]:
+    '''
+    if num_prototypes < 2:
+        raise ValueError(("'num_prototypes' must be >= 2, since a single "
+                          "prototype is useless."))
+    if num_prototypes >= len(dm.ids):
+        raise ValueError(("'num_prototypes' must be smaller than the number of"
+                          " elements in the distance matrix, otherwise no "
+                          "reduction is necessary."))
+
+    # clever bookkeeping allows for significant speed-ups!
+
+    # track the number of available elements
+    numRemain = len(dm.ids)
+
+    # distances from each element to all others
+    currDists = dm.data.sum(axis=1)
+
+    # the element to remove first is the one that has smallest distance to all
+    # other. "Removing" works by tagging its distance-sum as infinity. Plus, we
+    # decrease the number of available elements by one.
+    minElmIdx = currDists.argmin()
+    currDists[minElmIdx], numRemain = np.infty, numRemain-1
+
+    # continue until only num_prototype elements are left
+    while (numRemain > num_prototypes):
+        # substract the distance to the removed element for all remaining
+        # elements
+        currDists -= dm.data[minElmIdx]
+        # find the next element to be removed, again as the one that is
+        # closest to all others
+        minElmIdx = currDists.argmin()
+        currDists[minElmIdx], numRemain = np.infty, numRemain-1
+
+    # return a list of IDs of the surviving elements, which are the found
+    # prototypes.
+    return [dm.ids[idx]
+            for idx, dist in enumerate(currDists)
+            if dist != np.infty]
