@@ -120,8 +120,8 @@ cmd="${init_command}; \
                                            ${parse_hgts}"
 submit_job "${cmd}" darkhorse
 
-## TODO Step 3:
-##    Prune complete species tree to include only species from Step 2
+## Step 3:
+##    Run PhyloPhlAn on candidate species genomes
 if [ "${species_tree_fp}" == "None" ]
 then
     continue

@@ -90,9 +90,8 @@ def parse_consel(input_f):
     return pvalues
 
 
-def parse_darkhorse(input_f, low_lpi=0.0, high_lpi=0.6, return_genomes=False):
-    """ TODO: Parse output of DarkHorse (smry file).
-
+def parse_darkhorse(input_f, output_fp, low_lpi=0.0, high_lpi=0.6):
+    """ Parse output of DarkHorse (smry file).
     Paramters
     ---------
     input_f: string
@@ -101,21 +100,34 @@ def parse_darkhorse(input_f, low_lpi=0.0, high_lpi=0.6, return_genomes=False):
         lower LPI (lineage probability index) score bound
     high_lpi: float
         upper LPI score bound
-    return_genomes: boolean
-        if True, return genome tax_id
-
+    output_fp: str
+        Filepath to output best hit genome IDs
     Returns
     -------
-    number_of_hgts: string
-        number of HGTs reported by a tool, or NaN if an entry was not found
-
+    hgts: string
+        one putative HGT-derived gene per line
+        columns: query_id, besthit_id, tax_id, species, lineage, pct_id,
+        pct_coverage, norm_LPI
     Notes
     -----
-    Parse output of DarkHorse to return tax_ids of candidate genomes for
-    species tree and a tab-separated file of putative HGTs using the LPI
-    bounds.
+    Parse output of DarkHorse to return tab-separated file of putative HGTs
+    using the LPI bounds and a file with all best hit genome IDs.
     """
-    return None
+    best_hit_ids = set()
+    hgts = []
+    # skip header
+    next(input_f)
+    for l in input_f:
+        l = l.strip('\r\n').split('\t')
+        best_hit_ids.add(l[3])
+        if (float(l[5]) > low_lpi) and (float(l[5]) < high_lpi):
+            hgt = '\t'.join((l[0], l[3], l[12], l[13], l[14],
+                             l[6], l[9], l[4]))
+            hgts.append(hgt)
+    if output_fp:
+        with open(output_fp, 'w') as output_f:
+            output_f.write('\n'.join(best_hit_ids))
+    return '\n'.join(hgts)
 
 
 def parse_hgtector(input_f):
@@ -238,18 +250,27 @@ def parse_genemark(input_f, genbank_fp):
     return '\n'.join(sorted(atypical_genes))
 
 
-def parse_output(hgt_results_fp, method, genbank_fp=None):
+def parse_output(hgt_results_fp,
+                 method,
+                 genbank_fp=None,
+                 low_lpi=0.0,
+                 high_lpi=0.6,
+                 output_fp=None):
     """Call parse_hgts() based on HGT detection method used.
-
     Parameters
     ----------
-    hgt_results_fp: string
+    hgt_results_fp: str
         filepath to detected HGTs
     genbank_fp: string
         file path to genome in GenBank format
     method: string
         tool used to detect HGTs
-
+    output_fp: str
+        output file storing best hit IDs (DarkHorse)
+    low_lpi: float
+        lower bound LPI score (DarkHorse Lineage Probability Index)
+    high_lpi: float
+        upper bound LPI score (DarkHorse Lineage Probability Index)
     Returns
     -------
     output: string
@@ -265,7 +286,10 @@ def parse_output(hgt_results_fp, method, genbank_fp=None):
         elif method == 'consel':
             output = parse_consel(input_f=input_f)
         elif method == 'darkhorse':
-            output = parse_darkhorse(input_f=input_f)
+            output = parse_darkhorse(input_f=input_f,
+                                     output_fp=output_fp,
+                                     low_lpi=low_lpi,
+                                     high_lpi=high_lpi)
         elif method == 'hgtector':
             output = parse_hgtector(input_f=input_f)
         elif method == 'egid':
@@ -277,6 +301,7 @@ def parse_output(hgt_results_fp, method, genbank_fp=None):
         else:
             raise ValueError("Method is not supported: %s" % method)
         return output
+
 
 
 @click.command()
@@ -297,19 +322,34 @@ def parse_output(hgt_results_fp, method, genbank_fp=None):
               type=click.Choice(['trex', 'ranger-dtl',
                                  'riata-hgt', 'consel',
                                  'darkhorse', 'hgtector',
-                                 'genemark', 'egid',
-                                 'distance-method', 'jane4',
-                                 'wn-svm', 'tree-puzzle']),
+                                 'genemark', 'egid', 'jane4',
+                                 'tree-puzzle']),
               help='The method used for HGT detection')
-def _main(hgt_results_fp,
-          genbank_fp,
-          method,
-          ncbi_nr):
+@click.option('--darkhorse-low-lpi', type=float, default=0.0,
+              show_default=True, required=False, help='Lower bound LPI score')
+@click.option('--darkhorse-high-lpi', type=float, default=0.6,
+              show_default=True, required=False, help='Upper bound LPI score')
+@click.option('--darkhorse-output-fp', required=False,
+              type=click.Path(resolve_path=True, readable=True, exists=False,
+                              file_okay=True),
+              help='Output all best hit IDs from DarkHorse summary')
+def main(hgt_results_fp,
+         genbank_fp,
+         method,
+         ncbi_nr,
+         darkhorse_low_lpi,
+         darkhorse_high_lpi,
+         darkhorse_output_fp=None):
     """ Parsing functions for various HGT detection tool outputs.
     """
-    output = parse_output(hgt_results_fp, method, genbank_fp)
+    output = parse_output(hgt_results_fp=hgt_results_fp,
+                          method=method,
+                          genbank_fp=genbank_fp,
+                          low_lpi=darkhorse_low_lpi,
+                          high_lpi=darkhorse_high_lpi,
+                          output_fp=darkhorse_output_fp)
     sys.stdout.write(output)
 
 
 if __name__ == "__main__":
-    _main()
+    main()

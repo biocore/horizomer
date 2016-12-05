@@ -63,6 +63,11 @@ class ParseOutputTests(TestCase):
             self.working_dir, "hgtector_output_hgt.txt")
         with open(self.hgtector_output_hgt_fp, 'w') as tmp:
             tmp.write(hgtector_output_hgt)
+        # DarkHorse output
+        self.darkhorse_output_hgt_fp = join(
+            self.working_dir, "darkhorse_output_hgt.txt")
+        with open(self.darkhorse_output_hgt_fp, 'w') as tmp:
+            tmp.write(darkhorse_output_hgt)
         # EGID output
         self.egid_output_hgt_fp = join(
             self.working_dir, "egid_output_hgt.txt")
@@ -148,9 +153,25 @@ class ParseOutputTests(TestCase):
     def test_parse_darkhorse(self):
         """Test functionality of parse_darkhorse
         """
-        input_f = "none.txt"
-        rt = parse_darkhorse(input_f)
-        self.assertEqual(rt, None)
+        output_candidate_genomes_fp = join(
+            self.working_dir, "output_candidate_genomes_fp")
+        output_exp = ("G2311_SE001,\tgi|557307555|ref|YP_008766893.1|\t140749"
+                      "3\tShigella phage SfIV\tViruses;Caudovirales;Myovirida"
+                      "e\t67.4\t100\t0.002\nG1250_SE001,\tgi|9630468|ref|NP_0"
+                      "46899.1|\t40631\tEnterobacteria phage N15\tViruses;Cau"
+                      "dovirales;Siphoviridae;N15likevirus\t79.4\t100\t0.002\n"
+                      "G1252_SE001,\tgi|428782382|ref|YP_007112139.1|\t114714"
+                      "4\tEnterobacteria phage HK225\tViruses;Caudovirales;Si"
+                      "phoviridae;Lambdalikevirus\t88.2\t100\t0.002\nG1251_SE"
+                      "001,\tgi|428782381|ref|YP_007112138.1|\t1147144\tEnter"
+                      "obacteria phage HK225\tViruses;Caudovirales;Siphovirid"
+                      "ae;Lambdalikevirus\t94.9\t100\t0.002")
+        with open(self.darkhorse_output_hgt_fp, 'r') as f:
+            output = parse_darkhorse(input_f=f,
+                                     output_fp=output_candidate_genomes_fp,
+                                     low_lpi=0.0,
+                                     high_lpi=0.6)
+        self.assertEqual(output, output_exp)
 
     def test_parse_egid(self):
         """ Test functionality of parse_egid() for EGID
@@ -191,8 +212,18 @@ class ParseOutputTests(TestCase):
         output = parse_output(hgt_results_fp=self.hgtector_output_hgt_fp,
                               method="hgtector")
         self.assertEqual(output_exp, output)
-        output_exp = None
-        output = parse_output(hgt_results_fp=self.empty_output_hgt_fp,
+        output_exp = ("G2311_SE001,\tgi|557307555|ref|YP_008766893.1|\t140749"
+                      "3\tShigella phage SfIV\tViruses;Caudovirales;Myovirida"
+                      "e\t67.4\t100\t0.002\nG1250_SE001,\tgi|9630468|ref|NP_0"
+                      "46899.1|\t40631\tEnterobacteria phage N15\tViruses;Cau"
+                      "dovirales;Siphoviridae;N15likevirus\t79.4\t100\t0.002\n"
+                      "G1252_SE001,\tgi|428782382|ref|YP_007112139.1|\t114714"
+                      "4\tEnterobacteria phage HK225\tViruses;Caudovirales;Si"
+                      "phoviridae;Lambdalikevirus\t88.2\t100\t0.002\nG1251_SE"
+                      "001,\tgi|428782381|ref|YP_007112138.1|\t1147144\tEnter"
+                      "obacteria phage HK225\tViruses;Caudovirales;Siphovirid"
+                      "ae;Lambdalikevirus\t94.9\t100\t0.002")
+        output = parse_output(hgt_results_fp=self.darkhorse_output_hgt_fp,
                               method="darkhorse")
         self.assertEqual(output_exp, output)
         output_exp = "AAA98667.1"
@@ -645,6 +676,48 @@ WP_011672400.1	398		266	1.61	0.27	66.29		WP_014953873	2.4e-\
 65	40.7	97.99	859653	alpha proteobacterium HIMB5	Proteobacteria;Alphap\
 roteobacteria;Pelagibacterales;Pelagibacteraceae;alpha proteobacterium HIMB5
 WP_011672275.1	97		2	1.60	0.00	0.00\t\t
+"""
+
+darkhorse_output_hgt = """query_id\tnonself_matches\tcandidate_matches\tbesth\
+it_id\traw_LPI\tnorm_LPI\tpct_id\tquery_len\talign_len\tpct_coverage\tev\
+alue\tbitscore\ttax_id\tspecies\tlineage\tquery_annotation\tbesthit_annotat\
+ion
+G2311_SE001,\t8\t6\tgi|557307555|ref|YP_008766893.1|\t0.002\t0.002\t67.4\t46\
+\t46\t100\t9.3e-10\t70\t1407493\tShigella phage SfIV\tViruses;Caudovir\
+ales;Myoviridae\tsequence type: type1, locus: 2310\texcisionase [Shigella pha\
+ge SfIV]
+G1250_SE001,\t501\t32\tgi|9630468|ref|NP_046899.1|\t0.002\t0.002\t79.4\t530\
+\t530\t100\t4.5e-249\t868\t40631\tEnterobacteria phage N15\tViruses;Caudov\
+irales;Siphoviridae;N15likevirus\tsequence type: type1, locus: 1249\tgp4 [En\
+terobacteria phage N15]
+G1252_SE001,\t494\t10\tgi|428782382|ref|YP_007112139.1|\t0.002\t0.003\t88.2\
+\t110\t110\t100\t1.0e-46\t194\t1147144\tEnterobacteria phage HK225\tViruse\
+s;Caudovirales;Siphoviridae;Lambdalikevirus\tsequence type: type1, locus: 125\
+1\thead decoration protein D [Enterobacteria phage HK225]
+G1251_SE001,\t499\t12\tgi|428782381|ref|YP_007112138.1|\t0.002\t0.003\t94.9\t\
+447\t447\t100\t8.5e-233\t814\t1147144\tEnterobacteria phage HK225\tViruses;Ca\
+udovirales;Siphoviridae;Lambdalikevirus\tsequence type: type1, locus: 1250\t\
+head maturation protease C [Enterobacteria phage HK225]
+G3193_SE001,\t483\t304\tgi|696545845|ref|WP_033078695.1|\t0.745\t0.775\t80.6\
+\t124\t124\t100\t1.4e-52\t213\t1535422\tThalassotalea sp. ND16A\tBacteria;\
+Proteobacteria;Gammaproteobacteria;Alteromonadales;Colwelliaceae;Thalassotale\
+a\tsequence type: type1, locus: 3192\t30S ribosomal protein S12 [Thalassotale\
+a sp. ND16A]gi|694336737|gb|KGJ89822.1|
+G2940_SE001,\t486\t94\tgi|696545934|ref|WP_033078779.1|\t0.745\t0.775\t84.5\
+\t71\t71\t100\t3.8e-26\t125\t1535422\tThalassotalea sp. ND16A\tBacteria;Pr\
+oteobacteria;Gammaproteobacteria;Alteromonadales;Colwelliaceae;Thalassotalea\t\
+sequence type: type1, locus: 2939\t30S ribosomal protein S21 [Thalassotalea s\
+p. ND16A]gi|694336159|gb|KGJ89275.1|
+G1709_SE001,\t497\t208\tgi|696543685|ref|WP_033076612.1|\t0.745\t0.775\t86.3\
+\t118\t117\t99\t8.1e-50\t204\t1535422\tThalassotalea sp. ND16A\tBacteria;P\
+roteobacteria;Gammaproteobacteria;Alteromonadales;Colwelliaceae;Thalassotale\
+a\tsequence type: type1, locus: 1708\t50S ribosomal protein L20 [Thalassotale\
+a sp. ND16A]gi|694347050|gb|KGJ99640.1|
+G3168_SE001,\t489\t101\tgi|696545255|ref|WP_033078130.1|\t0.745\t0.775\t68.5\
+\t92\t92\t100\t4.3e-30\t138\t1535422\tThalassotalea sp. ND16A\tBacteria;Pr\
+oteobacteria;Gammaproteobacteria;Alteromonadales;Colwelliaceae;Thalassotale\
+a\tsequence type: type1, locus: 3167\t30S ribosomal protein S19 [Thalassotale\
+a sp. ND16A]gi|694340362|gb|KGJ93291.1|
 """
 
 egid_output_hgt = """

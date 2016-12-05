@@ -24,8 +24,6 @@ parse_hgts=${12}
 scripts_dir=${13}
 output_fp=${14}
 
-printf "#DarkHorse\n" >> $output_fp
-
 mkdir -p "${working_dir}/diamond"
 if [ "$verbose" == "true" ]
 then
