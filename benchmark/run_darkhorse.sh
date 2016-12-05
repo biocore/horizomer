@@ -115,6 +115,7 @@ fi
 ## TODO: Parse HGTs
 if [ "$parse_hgts" == "true" ]
 then
-    python ${scripts_dir}/parse_output.py --hgt-results-fp ${working_dir}/darkhorse/calcs_*/*_smry --method 'darkhorse' >> $output_fp
+    python ${scripts_dir}/parse_output.py --hgt-results-fp ${working_dir}/darkhorse/calcs_*/*_smry \ 
+                                          --method 'darkhorse' >> $output_fp
 fi
 

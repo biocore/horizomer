@@ -303,7 +303,6 @@ def parse_output(hgt_results_fp,
         return output
 
 
-
 @click.command()
 @click.option('--hgt-results-fp', required=True,
               type=click.Path(resolve_path=True, readable=True, exists=True,
