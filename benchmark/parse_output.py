@@ -92,22 +92,25 @@ def parse_consel(input_f):
 
 def parse_darkhorse(input_f, output_fp, low_lpi=0.0, high_lpi=0.6):
     """ Parse output of DarkHorse (smry file).
+
     Paramters
     ---------
     input_f: string
         file descriptor for Consel output results
+    output_fp: str
+        Filepath to output best hit genome IDs
     low_lpi: float
         lower LPI (lineage probability index) score bound
     high_lpi: float
         upper LPI score bound
-    output_fp: str
-        Filepath to output best hit genome IDs
+
     Returns
     -------
     hgts: string
         one putative HGT-derived gene per line
         columns: query_id, besthit_id, tax_id, species, lineage, pct_id,
         pct_coverage, norm_LPI
+
     Notes
     -----
     Parse output of DarkHorse to return tab-separated file of putative HGTs
@@ -120,7 +123,7 @@ def parse_darkhorse(input_f, output_fp, low_lpi=0.0, high_lpi=0.6):
     for l in input_f:
         l = l.strip('\r\n').split('\t')
         best_hit_ids.add(l[3])
-        if (float(l[5]) > low_lpi) and (float(l[5]) < high_lpi):
+        if low_lpi < float(l[5]) < high_lpi:
             hgt = '\t'.join((l[0], l[3], l[12], l[13], l[14],
                              l[6], l[9], l[4]))
             hgts.append(hgt)

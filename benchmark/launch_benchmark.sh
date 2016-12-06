@@ -123,7 +123,7 @@ submit_job "${cmd}" darkhorse
 ## Step 3:
 ##    Run PhyloPhlAn on candidate species genomes
 if [ "${species_tree_fp}" == "None" ]
-then
+thenre
     continue
 fi
 
