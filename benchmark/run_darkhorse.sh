@@ -24,8 +24,6 @@ parse_hgts=${12}
 scripts_dir=${13}
 output_fp=${14}
 
-printf "#DarkHorse\n" >> $output_fp
-
 mkdir -p "${working_dir}/diamond"
 if [ "$verbose" == "true" ]
 then
@@ -117,6 +115,7 @@ fi
 ## TODO: Parse HGTs
 if [ "$parse_hgts" == "true" ]
 then
-    python ${scripts_dir}/parse_output.py --hgt-results-fp ${working_dir}/darkhorse/calcs_*/*_smry --method 'darkhorse' >> $output_fp
+    python ${scripts_dir}/parse_output.py --hgt-results-fp ${working_dir}/darkhorse/calcs_*/*_smry \ 
+                                          --method 'darkhorse' >> $output_fp
 fi
 
