@@ -229,8 +229,8 @@ def reformat_riatahgt(gene_tree,
     """
     nexus_file = """#NEXUS
 BEGIN TREES;
-Tree speciesTree = SPECIES_TREE
-Tree geneTree = GENE_TREE
+Tree speciesTree = %s
+Tree geneTree = %s
 END;
 BEGIN PHYLONET;
 RIATAHGT speciesTree {geneTree};
@@ -238,10 +238,9 @@ END;
 """
     # trim gene tree leaves to exclude '_GENENAME' (if exists)
     trim_gene_tree_leaves(gene_tree)
-    p = nexus_file.replace('SPECIES_TREE', str(species_tree)[:-1])
-    p = p.replace('GENE_TREE', str(gene_tree)[:-1])
     with open(output_tree_fp, 'w') as output_tree_f:
-        output_tree_f.write(p)
+        output_tree_f.write(nexus_file % (str(species_tree)[:-1],
+                                          str(gene_tree)[:-1]))
 
 
 def reformat_jane4(gene_tree,
@@ -269,13 +268,13 @@ def reformat_jane4(gene_tree,
     """
     nexus_file = """#NEXUS
 begin host;
-tree host = SPECIES_TREE
+tree host = %s
 endblock;
 begin parasite;
-tree parasite = GENE_TREE
+tree parasite = %s
 endblock;
 begin distribution;
-Range MAPPING;
+Range %s;
 endblock;
 """
     # create a mapping between the species and gene tree leaves
@@ -287,11 +286,10 @@ endblock;
     for species in mapping_dict:
         for gene in mapping_dict[species]:
             mapping_str = "%s%s:%s, " % (mapping_str, gene, species)
-    p = nexus_file.replace('SPECIES_TREE', str(species_tree))
-    p = p.replace('GENE_TREE', str(gene_tree))
-    p = p.replace('MAPPING', mapping_str[:-2])
     with open(output_tree_fp, 'w') as output_tree_f:
-        output_tree_f.write(p)
+        output_tree_f.write(nexus_file % (str(species_tree),
+                                          str(gene_tree),
+                                          mapping_str[:-2]))
 
 
 def reformat_treepuzzle(gene_tree,
@@ -383,16 +381,18 @@ def _merge_genbank_seqs(genbank_fp):
                     genes[protein_id] = [translation, start, end, strand]
         abs_pos += int(size)
     gb = DNA(nucl_seq)
+    # generate mock metadata for the merged sequence
     gb.metadata['LOCUS'] = {'locus_name': 'locus001', 'size': len(nucl_seq),
                             'unit': 'bp', 'shape': 'circular',
                             'division': 'CON', 'mol_type': 'DNA',
                             'date': '01-JAN-1900'}
     gb.metadata['id'] = 'locus001'
-    gid = 1
+    gid = 1  # assign an incremental integer to the current gene
     gb.interval_metadata._intervals = []
     for (gene, l) in sorted(genes.items(), key=lambda x: x[1][1]):
-        location = str(l[1]) + '..' + str(l[2])
-        if l[3] == '-':
+        # generate "gene" and "CDS" records for each protein-coding gene
+        location = str(l[1]) + '..' + str(l[2])  # start and end coordinates
+        if l[3] == '-':  # negative strand
             location = 'complement(' + location + ')'
         feature = {'type': 'gene', 'locus_tag': 'gene' + str(gid),
                    '__location': location}
@@ -429,21 +429,22 @@ def reformat_egid(genbank_fp,
     for x in ('faa', 'ffn', 'ptt'):
         output_f[x] = open(join(output_dir, 'id.' + x), 'w')
     output_f['ptt'].write('locus001\n' + str(len(genes)) + ' proteins\n')
+    # a ptt file contains the following columns:
     fields = ('Location', 'Strand', 'Length', 'PID', 'Gene', 'Synonym',
               'Code', 'COG', 'Product')
     output_f['ptt'].write('\t'.join(fields) + '\n')
-    gid = 1
+    gid = 1  # assign an incremental integer to the current gene
     for (gene, l) in sorted(genes.items(), key=lambda x: x[1][1]):
         output_f['faa'].write('>' + gene + '\n' + l[0] + '\n')
         output_f['ptt'].write(str(l[1]) + '..' + str(l[2]) + '\t' +
                               l[3] + '\t' + str(len(l[0])) + '\t' +
                               str(gid) + '\t-\tgene' + str(gid) +
                               '\t-\t-\t-\n')
-        if l[3] == '+':
+        if l[3] == '+':  # positive strand
             output_f['ffn'].write('>locus001:' + str(l[1]) + '-' +
                                   str(l[2]) + '\n' +
                                   nucl_seq[l[1]-1:l[2]] + '\n')
-        else:
+        else:  # negative strand (reverse complement)
             rc_seq = str(DNA(nucl_seq[l[1]-1:l[2]]).reverse_complement())
             output_f['ffn'].write('>locus001:c' + str(l[2]) + '-' +
                                   str(l[1]) + '\n' + rc_seq + '\n')
