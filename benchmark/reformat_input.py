@@ -539,23 +539,8 @@ def _main(gene_tree_fp,
     species_tree = TreeNode.read(species_tree_fp, format='newick') \
         if species_tree_fp is not None else None
 
-    if method == 'ranger-dtl':
-        reformat_rangerdtl(
-            gene_tree=gene_tree,
-            species_tree=species_tree,
-            output_tree_fp=output_tree_fp)
-    elif method == 'trex':
-        reformat_trex(
-            gene_tree=gene_tree,
-            species_tree=species_tree,
-            output_tree_fp=output_tree_fp)
-    elif method == 'riata-hgt':
-        reformat_riatahgt(
-            gene_tree=gene_tree,
-            species_tree=species_tree,
-            output_tree_fp=output_tree_fp)
-    elif method == 'jane4':
-        reformat_jane4(
+    if method in ('ranger-dtl', 'trex', 'riata-hgt', 'jane4'):
+        eval('reformat_%s' % method.replace('-', ''))(
             gene_tree=gene_tree,
             species_tree=species_tree,
             output_tree_fp=output_tree_fp)
