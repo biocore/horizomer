@@ -526,9 +526,7 @@ def simulate_hgts(seq_donor,
             sys.stdout.write("\tSimulate orthologous replacement HGTs ...\n")
         launch_orthofinder(proteomes_dir, threads, verbose=True)
         date = time.strftime("%c").split()
-        day = date[2]
-        if int(day) < 10:
-            day = "0%s" % day
+        day = date[2].zfill(2)
         results_dir = join(
             proteomes_dir, "Results_%s%s" % (date[1], day),
             "WorkingDirectory")
