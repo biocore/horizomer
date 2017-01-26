@@ -9,16 +9,39 @@
 # ----------------------------------------------------------------------------
 
 # usage: run T-REX software
-gene_tree_dir=$1
-output_fp=$2
-verbose=$3
-stdout=$4
-stderr=$5
-scripts_dir=$6
-species_tree_fp=$7
-input_file_nwk=$8
-trex_install_dir=$9
-base_input_file_nwk=${10}
+
+# -e: script will exit if any command fails
+# -u: force initialization of all variables
+set -eu
+
+# define parameters using an array
+args=(
+  gene_tree_dir  # hey
+  output_fp      # look
+  verbose        # I can comment each parameter
+  stdout
+  stderr
+  scripts_dir
+  species_tree_fp
+  input_file_nwk
+  trex_install_dir
+  base_input_file_nwk
+)
+
+# convert parameters to --longoptions
+arg_str=$(IFS=,; echo "${args[*]/%/:}" | tr '_' '-')
+
+# use GNU getopt to handle parameters
+TEMP=`getopt -o "" -l $arg_str -n "$0" -- "$@"`
+eval set -- "$TEMP"
+while true ; do
+  case "$1" in
+    # avoid re-writing parameter names
+    --?*) eval $(echo ${1:2} | tr '-' '_')=$2 ; shift 2 ;;
+    --) shift ; break ;;
+    *) echo "Internal error!" ; exit 1 ;;
+  esac
+done
 
 TIMEFORMAT='%U %R'
 total_user_time_trex="0.0"
