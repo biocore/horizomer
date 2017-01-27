@@ -171,9 +171,7 @@ class SimulateHGTsTests(TestCase):
         """
         launch_orthofinder(self.proteomes_dir, 1, verbose=True)
         date = time.strftime("%c").split()
-        day = date[2]
-        if int(day) < 10:
-            day = "0%s" % day
+        day = date[2].zfill(2)
         results_dir = join(
             self.proteomes_dir, "Results_%s%s" % (date[1], day))
         orthogroups_exp = [['YP_002468181.1', 'YP_004590122.1'],
