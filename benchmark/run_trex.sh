@@ -16,9 +16,9 @@ set -eu
 
 # define parameters using an array
 args=(
-  gene_tree_dir  # hey
-  output_fp      # look
-  verbose        # I can comment each parameter
+  gene_tree_dir        # directory containing gene trees
+  output_fp
+  verbose
   stdout
   stderr
   scripts_dir
