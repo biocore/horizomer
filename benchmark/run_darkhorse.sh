@@ -9,37 +9,41 @@
 # ----------------------------------------------------------------------------
 
 # usage: run DarkHorse software
-database_fp=$1
-diamond_nr_fp=$2
-diamond_tabular_query_fp=$3
-darkhorse_config_fp=$4
-darkhose_install_dir=$5
-query_species_coding_seqs_fp=$6
-working_dir=$7
-threads=$8
-verbose=$9
-lpi_upper=${10}
-lpi_lower=${11}
-parse_hgts=${12}
-scripts_dir=${13}
-output_fp=${14}
+args=(
+  database_fp
+  diamond_nr_fp
+  diamond_tabular_query_fp
+  darkhorse_config_fp
+  darkhose_install_dir
+  query_species_coding_seqs_fp
+  working_dir
+  threads
+  verbose
+  lpi_upper
+  lpi_lower
+  parse_hgts
+  scripts_dir
+  output_fp
+)
+arg_str=$(IFS=,; echo "${args[*]/%/:}" | tr '_' '-')
+TEMP=`getopt -o "" -l $arg_str -n "$0" -- "$@"`
+eval set -- "$TEMP"
+while true ; do
+  case "$1" in
+    --?*) eval $(echo ${1:2} | tr '-' '_')=$2 ; shift 2 ;;
+    --) shift ; break ;;
+    *) echo "Internal error!" ; exit 1 ;;
+  esac
+done
 
 mkdir -p "${working_dir}/diamond"
 if [ "$verbose" == "true" ]
 then
     echo "Parameters:"
-    echo "database_fp = ${database_fp}"
-    echo "diamond_nr_fp = ${diamond_nr_fp}"
-    echo "diamond_tabular_query_fp = ${diamond_tabular_query_fp}"
-    echo "darkhorse_config_fp = ${darkhorse_config_fp}"
-    echo "darkhose_install_dir = ${darkhose_install_dir}"
-    echo "query_species_coding_seqs_fp = ${query_species_coding_seqs_fp}"
-    echo "working_dir = ${working_dir}"
-    echo "threads = ${threads}"
-    echo "verbose = ${verbose}"
-    echo "lpi_upper = ${lpi_upper}"
-    echo "lpi_lower = ${lpi_lower}"
-    echo "parse_hgts = ${parse_hgts}"
+    for i in ${args[@]}
+    do
+      echo "$i = ${!i}"
+    done
 fi
 
 ## Default LPI upper bound (used by DarkHorse)
@@ -87,25 +91,21 @@ fi
 
 ## Select list of species for "exclude list template"
 ## Run DarkHorse
+cmd="perl ${darkhose_install_dir}/bin/darkhorse.pl -c ${darkhorse_config_fp} \
+                                                   -t ${diamond_tabular_query_fp} \
+                                                   -g ${query_species_coding_seqs_fp} \
+                                                   -e ${darkhose_install_dir}/templates/exclude_list_template"
 if [ "$verbose" == "true" ]
 then
     echo "Running DarkHorse .."
-    echo "command: ${darkhose_install_dir}/bin/darkhorse.pl \
-                                          -c ${darkhorse_config_fp} \
-                                          -t ${diamond_tabular_query_fp} \
-                                          -g ${query_species_coding_seqs_fp} \
-                                          -e ${darkhose_install_dir}/templates/exclude_list_template"
+    echo "command: $cmd"
 fi
 ## Create DarkHorse working directory and cd into it (DarkHorse does not currently support
 ## writing to defined output directory)
 mkdir -p "${working_dir}/darkhorse"
 PWD=$(pwd)
 cd ${working_dir}/darkhorse
-perl ${darkhose_install_dir}/bin/darkhorse.pl \
-                                          -c ${darkhorse_config_fp} \
-                                          -t ${diamond_tabular_query_fp} \
-                                          -g ${query_species_coding_seqs_fp} \
-                                          -e ${darkhose_install_dir}/templates/exclude_list_template
+$cmd
 cd $PWD
 if [ "$verbose" == "true" ]
 then
@@ -115,7 +115,6 @@ fi
 ## TODO: Parse HGTs
 if [ "$parse_hgts" == "true" ]
 then
-    python ${scripts_dir}/parse_output.py --hgt-results-fp ${working_dir}/darkhorse/calcs_*/*_smry \ 
+    python ${scripts_dir}/parse_output.py --hgt-results-fp ${working_dir}/darkhorse/calcs_*/*_smry \
                                           --method 'darkhorse' >> $output_fp
 fi
-
