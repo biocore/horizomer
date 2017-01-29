@@ -121,6 +121,7 @@ then
     # convert output to tab delimited format
     # Note: newer versions of DIAMOND can generate tabular output directly.
     diamond view --daa ${diamond_output}.daa -f tab -o ${diamond_output}.m8
+    rm ${diamond_output}.daa
     diamond_tabular_query_fp=${diamond_output}.m8
     if [ "$verbose" == "true" ]
     then

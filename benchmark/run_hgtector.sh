@@ -9,19 +9,31 @@
 # ----------------------------------------------------------------------------
 
 # usage: run HGTector software
-database_fp=$1
-diamond_nr=$2
-diamond_tabular_query=$3
-hgtector_config_file=$4
-hgtector_install_dir=$5
-query_species_coding_seqs_fp=$6
-working_dir=$7
-threads=$8
-taxid=$9
-taxdump_dp=${10}
-gi_to_taxid_fp=${11}
-scripts_dir=${12}
-output_fp=${13}
+args=(
+  working_dir
+  query_species_coding_seqs_fp
+  hit_table_fp
+  database_faa_fp
+  database_dmnd_fp
+  taxdump_dp
+  gi_to_taxid_fp
+  hgtector_config_fp
+  threads
+  taxid
+  scripts_dir
+  hgtector_install_dir
+  output_fp
+)
+arg_str=$(IFS=,; echo "${args[*]/%/:}" | tr '_' '-')
+TEMP=`getopt -o "" -l $arg_str -n "$0" -- "$@"`
+eval set -- "$TEMP"
+while true ; do
+  case "$1" in
+    --?*) eval $(echo ${1:2} | tr '-' '_')=$2 ; shift 2 ;;
+    --) shift ; break ;;
+    *) echo "Internal error!" ; exit 1 ;;
+  esac
+done
 
 mkdir -p "${working_dir}/diamond"
 
@@ -32,18 +44,18 @@ then
 fi
 
 ## Align with DIAMOND if alignments don't exist
-if [ "${diamond_tabular_query}" == "None" ]
+if [ "${hit_table_fp}" == "None" ]
 then
     ## Build database if doesn't exist
-    if [ "${diamond_nr}" == "None" ]
+    if [ "${database_dmnd_fp}" == "None" ]
     then
-        diamond_nr=${working_dir}/diamond/$(basename ${database_fp%.*})
-        diamond makedb --in ${database_fp} -d ${diamond_nr} --threads $threads
+        database_dmnd_fp=${working_dir}/diamond/$(basename ${database_faa_fp%.*})
+        diamond makedb --in ${database_faa_fp} -d ${database_dmnd_fp} --threads $threads
     fi
     ## Run DIAMOND
     filename=$(basename "${query_species_coding_seqs_fp}")
     diamond_output=${working_dir}/diamond/$filename
-    diamond blastp --db ${diamond_nr} \
+    diamond blastp --db ${database_dmnd_fp} \
                    --query ${query_species_coding_seqs_fp} \
                    --evalue 1e-5 \
                    --max-target-seqs 500 \
@@ -52,7 +64,7 @@ then
                    --sensitive
     # convert output to tab delimited format
     diamond view --daa ${diamond_output}.daa -f tab -o ${diamond_output}.m8
-    diamond_tabular_query=${diamond_output}.m8
+    hit_table_fp=${diamond_output}.m8
 fi
 
 ## Run HGTector
@@ -60,18 +72,18 @@ mkdir -p ${working_dir}/hgtector
 mkdir -p ${working_dir}/hgtector/input
 cp $query_species_coding_seqs_fp ${working_dir}/hgtector/input/id.faa
 mkdir -p ${working_dir}/hgtector/presearch
-ln -s $(readlink -f ${diamond_tabular_query}) \
+ln -s $(readlink -f ${hit_table_fp}) \
    ${working_dir}/hgtector/presearch/id.m8
 
 ## create config.txt (if wasn't passed)
-if [ "${hgtector_config_file}" == "None" ]
+if [ "${hgtector_config_fp}" == "None" ]
 then
-    hgtector_config_file=${working_dir}/hgtector/config.txt
-    touch $hgtector_config_file
+    hgtector_config_fp=${working_dir}/hgtector/config.txt
+    touch $hgtector_config_fp
     echo -e "title=trial_001\n\
     interactive=0\n\
     searchTool=DIAMOND\n\
-    protdb=${diamond_nr}.dmnd\n\
+    protdb=${database_dmnd_fp}.dmnd\n\
     taxdump=${taxdump_dp}\n\
     prot2taxid=${gi_to_taxid_fp}\n\
     preSearch=${working_dir}/hgtector/presearch\n\
@@ -81,17 +93,17 @@ then
     minSize=30\n\
     ignoreSubspecies=1\n\
     graphFp=1\n\
-    exOutlier=2\n" > "$hgtector_config_file"
+    exOutlier=2\n" > "$hgtector_config_fp"
     if [ "$taxid" != "None" ]
     then
-        echo "selfTax=id:$taxid" >> "$hgtector_config_file"
+        echo "selfTax=id:$taxid" >> "$hgtector_config_fp"
     fi
     if [ "$threads" != "None" ]
     then
-        echo "threads=$threads" >> "$hgtector_config_file"
+        echo "threads=$threads" >> "$hgtector_config_fp"
     fi
 else
-    cp -f $hgtector_config_file ${working_dir}/hgtector/config.txt
+    cp -f $hgtector_config_fp ${working_dir}/hgtector/config.txt
 fi
 
 perl ${hgtector_install_dir}/HGTector.pl ${working_dir}/hgtector

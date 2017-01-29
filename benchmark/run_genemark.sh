@@ -9,13 +9,26 @@
 # ----------------------------------------------------------------------------
 
 # usage: run GeneMark software
-species_genome_fp=$1
-output_fp=$2
-stdout=$3
-stderr=$4
-scripts_dir=$5
-genemark_install_dir=$6
-working_dir=$7
+set -eu
+args=(
+  working_dir
+  species_genome_fp
+  output_fp
+  scripts_dir
+  genemark_install_dir
+  stdout
+  stderr
+)
+arg_str=$(IFS=,; echo "${args[*]/%/:}" | tr '_' '-')
+TEMP=`getopt -o "" -l $arg_str -n "$0" -- "$@"`
+eval set -- "$TEMP"
+while true ; do
+  case "$1" in
+    --?*) eval $(echo ${1:2} | tr '-' '_')=$2 ; shift 2 ;;
+    --) shift ; break ;;
+    *) echo "Internal error!" ; exit 1 ;;
+  esac
+done
 
 ## run GeneMarkS training (generate typical and atypical gene models)
 TIMEFORMAT='%U %R'
@@ -26,7 +39,7 @@ PWD=$(pwd)
 cd ${working_dir}/output.genemark
 cp ${genemark_install_dir}/.gm_key ./
 TIME="$( time (${genemark_install_dir}/gmsn.pl --verbose --combine --gm --clean --name id ../input.genemark/id.fna 1>>$stdout 2>>$stderr) 2>&1)"
-user_time=$(echo $TIME | awk '{print $1}')                                                                                                                                                               
+user_time=$(echo $TIME | awk '{print $1}')
 wall_time=$(echo $TIME | awk '{print $2}')
 TIME="$( time (${genemark_install_dir}/gmhmmp -v -r -m id_hmm_combined.mod -o GeneMark_output.txt ../input.genemark/id.fna 1>>$stdout 2>>$stderr) 2>&1)"
 user_time=$(echo $user_time + $(echo $TIME | awk '{print $1}') | bc | awk '$0+=$3')

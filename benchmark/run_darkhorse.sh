@@ -10,8 +10,8 @@
 
 # usage: run DarkHorse software
 args=(
-  database_fp
-  diamond_nr_fp
+  database_faa_fp
+  database_dmnd_fp
   diamond_tabular_query_fp
   darkhorse_config_fp
   darkhose_install_dir
@@ -65,15 +65,15 @@ then
         echo "Running DIAMOND .."
     fi
     ## Build database if doesn't exist
-    if [ "${diamond_nr_fp}" == "None" ]
+    if [ "${database_dmnd_fp}" == "None" ]
     then
-        diamond_nr_fp=${working_dir}/diamond/$(basename ${database_fp%.*})
-        diamond makedb --in ${database_fp} -d ${diamond_nr_fp} --threads $threads
+        database_dmnd_fp=${working_dir}/diamond/$(basename ${database_faa_fp%.*})
+        diamond makedb --in ${database_faa_fp} -d ${database_dmnd_fp} --threads $threads
     fi
     ## Run DIAMOND
     filename=$(basename "${query_species_coding_seqs_fp}")
     diamond_output=${working_dir}/diamond/$filename
-    diamond blastp --db ${diamond_nr_fp} \
+    diamond blastp --db ${database_dmnd_fp} \
                    --query ${query_species_coding_seqs_fp} \
                    --evalue 1e-5 \
                    --max-target-seqs 500 \
