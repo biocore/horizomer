@@ -9,34 +9,23 @@
 # ----------------------------------------------------------------------------
 
 # usage: run T-REX software
-
-# -e: script will exit if any command fails
-# -u: force initialization of all variables
 set -eu
-
-# define parameters using an array
 args=(
-  gene_tree_dir        # directory containing gene trees
-  output_fp
-  verbose
-  stdout
-  stderr
-  scripts_dir
+  gene_tree_dir
   species_tree_fp
   input_file_nwk
+  output_fp
+  scripts_dir
   trex_install_dir
-  base_input_file_nwk
+  stdout
+  stderr
+  verbose
 )
-
-# convert parameters to --longoptions
 arg_str=$(IFS=,; echo "${args[*]/%/:}" | tr '_' '-')
-
-# use GNU getopt to handle parameters
 TEMP=`getopt -o "" -l $arg_str -n "$0" -- "$@"`
 eval set -- "$TEMP"
 while true ; do
   case "$1" in
-    # avoid re-writing parameter names
     --?*) eval $(echo ${1:2} | tr '-' '_')=$2 ; shift 2 ;;
     --) shift ; break ;;
     *) echo "Internal error!" ; exit 1 ;;
@@ -62,6 +51,7 @@ do
                                             --species-tree-fp $species_tree_fp \
                                             --output-tree-fp $input_file_nwk
     cp $input_file_nwk $trex_install_dir
+    base_input_file_nwk=$(basename $input_file_nwk)
     TIME="$( time (cd $trex_install_dir; ./hgt3.4 -inputfile=${base_input_file_nwk} 1>$stdout 2>>$stderr) 2>&1)"
     python ${scripts_dir}/parse_output.py --hgt-results-fp $stdout --method 'trex' >> $output_fp
     echo "#!#Gene $i" >> ${stdout%.*}.total_results.txt

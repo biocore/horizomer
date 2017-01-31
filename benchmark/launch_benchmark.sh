@@ -13,75 +13,105 @@
 # to launch_software.sh for executing HGT detection software. For fields
 # that are empty, None should be passed.
 
-# working dir
-working_dir=$(readlink -m $1)
-# scripts dir
-scripts_dir=$(readlink -m $2)
-# species tree in Newick format
-species_tree_fp=$3
-# species genome in GenBank format (for compositional methods)
-species_genome_fp=$4
-# species HMM model (produced by GeneMarkS)
-species_model_fp=$5
-# query species protein coding sequences in FASTA format
-query_species_coding_seqs_fp=$6
-# reference species protein coding sequences in FASTA format
-ref_species_coding_seqs_fp=$7
-# gene trees in Newick format
-gene_tree_dir=$8
-# gene multiple sequence alignment dir
-gene_msa_dir=$9
-# tabular DIAMOND alignments of query genome
-diamond_tabular_query_fp=${10}
-# PhyloNet install dir
-phylonet_install_dir=${11}
-# Jane 4 install dir
-jane_install_dir=${12}
-# T-REX install dir
-trex_install_dir=${13}
-# Verbose string 'true' or 'false'
-verbose=${14}
-# Initial command that precedes call to software
-# (example choosing virtualenv to workon)
-init_command="${15}"
-# DIAMOND NR
-diamond_nr=${16}
-# Number threads
-threads=${17}
-# Bash config file path (if None, default ~/.bash_profile)
-bash_config="${18}"
-# Launch on qsub cluster environment (true or false, if None, defaults to true)
-qsub_env=${19}
-# DarkHorse LPI upper bound
-lpi_upper=${20}
-# DarkHorse LPI lower bound
-lpi_lower=${21}
-# Parse HGTs for DarkHorse
-parse_hgts=${22}
+# -e: script will exit if any command fails
+# -u: force initialization of all variables
+set -eu
 
+# declare command-line arguments
+args=(
+  # working dir
+  working_dir
+  # scripts dir
+  scripts_dir
+  # species tree in Newick format
+  species_tree_fp
+  # species genome in GenBank format (for compositional methods)
+  species_genome_fp
+  # species HMM model (produced by GeneMarkS)
+  species_model_fp
+  # query species protein coding sequences in FASTA format
+  query_species_coding_seqs_fp
+  # reference species protein coding sequences in FASTA format
+  ref_species_coding_seqs_fp
+  # gene trees in Newick format
+  gene_tree_dir
+  # gene multiple sequence alignment dir
+  gene_msa_dir
+  # tabular DIAMOND alignments of query genome
+  diamond_tabular_query_fp
+  # reference protein sequence database compiled by DIAMOND
+  database_dmnd_fp
+  # reference protein sequence database in Fasta format
+  database_faa_fp
+  # PhyloNet install dir
+  phylonet_install_dir
+  # Jane 4 install dir
+  jane_install_dir
+  # T-REX install dir
+  trex_install_dir
+  # Verbose string 'true' or 'false'
+  verbose
+  # Initial command that precedes call to software
+  # (example choosing virtualenv to workon)
+  init_command
+  # Number threads
+  threads
+  # Bash config file path (if None, default ~/.bash_profile)
+  bash_config
+  # Launch on qsub cluster environment (true or false, if None, defaults to true)
+  qsub_env
+  # DarkHorse LPI upper bound
+  lpi_upper
+  # DarkHorse LPI lower bound
+  lpi_lower
+  # Parse HGTs for DarkHorse
+  parse_hgts
+)
+
+# convert arguments to --long-options
+arg_str=$(IFS=,; echo "${args[*]/%/:}" | tr '_' '-')
+
+# use GNU getopt to retrieve arguments
+TEMP=`getopt -o "" -l $arg_str -n "$0" -- "$@"`
+eval set -- "$TEMP"
+while true ; do
+  case "$1" in
+    --?*) eval $(echo ${1:2} | tr '-' '_')=$2 ; shift 2 ;;
+    --) shift ; break ;;
+    *) echo "Internal error!" ; exit 1 ;;
+  esac
+done
+
+# manipulate arguments
+working_dir=$(readlink -m $working_dir)
+mkdir -p $working_dir
+scripts_dir=$(readlink -m $scripts_dir)
+init_command="$init_command"
 if [ "${init_command}" == "None" ]
 then
     init_command="sleep 1"
 fi
+bash_config="$bash_config"
 
-## Step 1: 
-##    Align with DIAMOND query vs. NR
+## Step 1:
+##    Align with DIAMOND query vs. reference database (e.g., NCBI nr)
 if [ "${diamond_tabular_query_fp}" == "None" ]
 then
     if [ "$verbose" == "true" ]
     then
         echo "Running DIAMOND .."
     fi
+    mkdir -p ${working_dir}/diamond
     ## Build database if doesn't exist
-    if [ "${diamond_nr_fp}" == "None" ]
+    if [ "${database_dmnd_fp}" == "None" ]
     then
-        diamond_nr_fp=${working_dir}/diamond/$(basename ${database_fp%.*})
-        diamond makedb --in ${database_fp} -d ${diamond_nr_fp} --threads $threads
+        database_dmnd_fp=${working_dir}/diamond/$(basename ${database_faa_fp%.*})
+        diamond makedb --in ${database_faa_fp} -d ${database_dmnd_fp} --threads $threads
     fi
     ## Run DIAMOND
     filename=$(basename "${query_species_coding_seqs_fp}")
     diamond_output=${working_dir}/diamond/$filename
-    diamond blastp --db ${diamond_nr_fp} \
+    diamond blastp --db ${database_dmnd_fp} \
                    --query ${query_species_coding_seqs_fp} \
                    --evalue 1e-5 \
                    --max-target-seqs 500 \
@@ -89,7 +119,9 @@ then
                    --daa ${diamond_output}.daa \
                    --sensitive
     # convert output to tab delimited format
+    # Note: newer versions of DIAMOND can generate tabular output directly.
     diamond view --daa ${diamond_output}.daa -f tab -o ${diamond_output}.m8
+    rm ${diamond_output}.daa
     diamond_tabular_query_fp=${diamond_output}.m8
     if [ "$verbose" == "true" ]
     then
@@ -107,7 +139,7 @@ fi
 parse_hgts="false"
 cmd="${init_command}; \
       bash ${scripts_dir}/run_darkhorse.sh ${nr_fp} \
-                                           ${diamond_db_nr} \
+                                           ${database_dmnd_fp} \
                                            ${diamond_tabular_query_fp} \
                                            ${darkhorse_config_fp} \
                                            ${darkhorse_install_dp} \
@@ -123,7 +155,7 @@ submit_job "${cmd}" darkhorse
 ## Step 3:
 ##    Run PhyloPhlAn on candidate species genomes
 if [ "${species_tree_fp}" == "None" ]
-thenre
+then
     continue
 fi
 
@@ -154,8 +186,3 @@ bash ${scripts_dir}/launch_software.sh ${working_dir} \
                                        ${threads} \
                                        "${bash_config}" \
                                        ${qsub_env}
-
-
-
-
-

@@ -9,13 +9,26 @@
 # ----------------------------------------------------------------------------
 
 # usage: run EGID software
-species_genome_fp=$1
-output_fp=$2
-stdout=$3
-stderr=$4
-scripts_dir=$5
-egid_install_dir=$6
-working_dir=$7
+set -eu
+args=(
+  working_dir
+  species_genome_fp
+  output_fp
+  scripts_dir
+  egid_install_dir
+  stdout
+  stderr
+)
+arg_str=$(IFS=,; echo "${args[*]/%/:}" | tr '_' '-')
+TEMP=`getopt -o "" -l $arg_str -n "$0" -- "$@"`
+eval set -- "$TEMP"
+while true ; do
+  case "$1" in
+    --?*) eval $(echo ${1:2} | tr '-' '_')=$2 ; shift 2 ;;
+    --) shift ; break ;;
+    *) echo "Internal error!" ; exit 1 ;;
+  esac
+done
 
 ## run EGID
 TIMEFORMAT='%U %R'
@@ -25,7 +38,7 @@ python ${scripts_dir}/reformat_input.py --genbank-fp ${species_genome_fp} --outp
 PWD=$(pwd)
 cd ${egid_install_dir}
 TIME="$( time (./EGID "${working_dir}/input.egid" "${working_dir}/output.egid" 1>>$stdout 2>>$stderr) 2>&1)"
-user_time=$(echo $TIME | awk '{print $1}')                                                                                                                                                               
+user_time=$(echo $TIME | awk '{print $1}')
 wall_time=$(echo $TIME | awk '{print $2}')
 cd ${working_dir}
 python ${scripts_dir}/parse_output.py --genbank-fp input.egid/id.gbk --hgt-results-fp output.egid/EGID_output.txt --method 'egid' >> $output_fp
