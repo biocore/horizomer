@@ -18,6 +18,7 @@ args=(
     output_hit_table
     working_dir
     scripts_dir
+    threads
     verbose
 )
 get_args "$@"

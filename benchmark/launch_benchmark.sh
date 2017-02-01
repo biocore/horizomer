@@ -22,7 +22,7 @@ source $(dirname "$0")/utils.sh
 
 # declare command-line arguments
 args=(
-    ## program behavior
+    ## program runtime behavior
     # working dir
     working_dir
     # scripts dir
@@ -30,7 +30,7 @@ args=(
     # verbose screen output (true or false)
     verbose
     # initial command that precedes call to software
-    # (example choosing virtualenv to work on)
+    # (e.g., choosing virtualenv to work on)
     init_command
     # number of threads
     threads
@@ -42,7 +42,7 @@ args=(
     ## input files and directories
     # species tree in Newick format
     species_tree_fp
-    # species genome in GenBank format (for compositional methods)
+    # species genome in GenBank format
     species_genbank_fp
     # species HMM model (produced by GeneMarkS)
     species_model_fp
@@ -114,16 +114,16 @@ if [ "${hit_table_fp}" == "None" ]
 then
     filename=$(basename "${species_faa_fp}")
     diamond_output=${working_dir}/diamond/$filename
-    bash ${scripts_dir}/run_diamond.sh --query-faa-fp ${species_faa_fp}
-                                       --database-faa-fp ${database_faa_fp}
-                                       --database-dmnd-fp ${database_dmnd_fp}
-                                       --output-hit-table ${diamond_output}
-                                       --working-dir ${working_dir}
-                                       --scripts-dir ${scripts_dir}
+    bash ${scripts_dir}/run_diamond.sh --query-faa-fp ${species_faa_fp} \
+                                       --database-faa-fp ${database_faa_fp} \
+                                       --database-dmnd-fp ${database_dmnd_fp} \
+                                       --output-hit-table ${diamond_output} \
+                                       --working-dir ${working_dir} \
+                                       --scripts-dir ${scripts_dir} \
+                                       --threads ${threads} \
                                        --verbose ${verbose}
     hit_table_fp=${diamond_output}.m8
 fi
-exit 1
 
 # load submit_job function
 . $scripts_dir/utils.sh
@@ -136,16 +136,16 @@ fi
 ## Step 2:
 ##    Run DarkHorse and choose candidate reference genomes
 ##    (all genomes in DarkHorse output)
-bash ${scripts_dir}/run_darkhorse.sh --hit-table-fp ${hit_table_fp}
-                                     --darkhorse-config-fp ${darkhorse_config_fp}
-                                     --darkhose-install-dir ${darkhorse_install_dir}
-                                     --species_faa_fp ${species_faa_fp}
-                                     --working_dir ${working_dir}
-                                     --verbose ${verbose}
-                                     --lpi_upper ${lpi_upper}
-                                     --lpi_lower ${lpi_lower}
-                                     --parse_hgts false
-                                     --scripts_dir ${scripts_dir}
+bash ${scripts_dir}/run_darkhorse.sh --hit-table-fp ${hit_table_fp} \
+                                     --darkhorse-config-fp ${darkhorse_config_fp} \
+                                     --darkhose-install-dir ${darkhorse_install_dir} \
+                                     --species_faa_fp ${species_faa_fp} \
+                                     --working_dir ${working_dir} \
+                                     --verbose ${verbose} \
+                                     --lpi_upper ${lpi_upper} \
+                                     --lpi_lower ${lpi_lower} \
+                                     --parse_hgts false \
+                                     --scripts_dir ${scripts_dir} \
                                      --output_fp ${output_fp}
 selected_genomes=`
   cat ${working_dir}/darkhorse/calcs_*/*_smry | \
