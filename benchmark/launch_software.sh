@@ -29,7 +29,7 @@ species_tree_fp=$3
 species_genome_fp=$4
 # species HMM model (produced by GeneMarkS)
 species_model_fp=$5
-# query species protein coding sequences in FASTA format 
+# query species protein coding sequences in FASTA format
 query_species_coding_seqs_fp=$6
 # reference species protein coding sequences in FASTA format (DB folder from ALF)
 ref_species_coding_seqs_fp=$7
@@ -106,7 +106,7 @@ then
     echo "nr_tax_dp: $nr_tax_dp"
     echo "threads: $threads"
     echo "bash config file: $bash_config"
-    echo "qsub_env: $qsub_env" 
+    echo "qsub_env: $qsub_env"
     echo "darkhorse_config_fp: $darkhorse_config_fp"
     echo "darkhorse_install_dp: $darkhorse_install_dp"
     echo "hgtector_config_fp: $hgtector_config_fp"
@@ -167,7 +167,7 @@ cmd="${init_command}; \
                                         ${species_tree_fp} \
                                         ${input_file_nwk}.ranger.txt \
                                         ${output_file}.ranger.txt"
-submit_job "${cmd}" ranger                                   
+submit_job "${cmd}" ranger
 
 ## run RIATA-HGT
 cmd="${init_command}; \
@@ -278,4 +278,3 @@ cmd="${init_command}; \
                                           ${working_dir} \
                                           ${threads}"
 submit_job "${cmd}" distance_method
-

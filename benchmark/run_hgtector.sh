@@ -9,31 +9,24 @@
 # ----------------------------------------------------------------------------
 
 # usage: run HGTector software
+set -eu
+source $(dirname "$0")/utils.sh
 args=(
-  working_dir
-  query_species_coding_seqs_fp
-  hit_table_fp
-  database_faa_fp
-  database_dmnd_fp
-  taxdump_dp
-  gi_to_taxid_fp
-  hgtector_config_fp
-  threads
-  taxid
-  scripts_dir
-  hgtector_install_dir
-  output_fp
+    working_dir
+    query_species_coding_seqs_fp
+    hit_table_fp
+    database_faa_fp
+    database_dmnd_fp
+    taxdump_dp
+    gi_to_taxid_fp
+    hgtector_config_fp
+    threads
+    taxid
+    scripts_dir
+    hgtector_install_dir
+    output_fp
 )
-arg_str=$(IFS=,; echo "${args[*]/%/:}" | tr '_' '-')
-TEMP=`getopt -o "" -l $arg_str -n "$0" -- "$@"`
-eval set -- "$TEMP"
-while true ; do
-  case "$1" in
-    --?*) eval $(echo ${1:2} | tr '-' '_')=$2 ; shift 2 ;;
-    --) shift ; break ;;
-    *) echo "Internal error!" ; exit 1 ;;
-  esac
-done
+get_args "$@"
 
 mkdir -p "${working_dir}/diamond"
 

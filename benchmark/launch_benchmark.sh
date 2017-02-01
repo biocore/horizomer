@@ -17,6 +17,9 @@
 # -u: force initialization of all variables
 set -eu
 
+# load utilities
+source $(dirname "$0")/utils.sh
+
 # declare command-line arguments
 args=(
     ## program behavior
@@ -120,6 +123,7 @@ then
                                        --verbose ${verbose}
     hit_table_fp=${diamond_output}.m8
 fi
+exit 1
 
 # load submit_job function
 . $scripts_dir/utils.sh
