@@ -82,20 +82,7 @@ args=(
     # parse HGTs for DarkHorse
     parse_hgts
 )
-
-# convert arguments to --long-options
-arg_str=$(IFS=,; echo "${args[*]/%/:}" | tr '_' '-')
-
-# use GNU getopt to retrieve arguments
-TEMP=`getopt -o "" -l $arg_str -n "$0" -- "$@"`
-eval set -- "$TEMP"
-while true ; do
-  case "$1" in
-    --?*) eval $(echo ${1:2} | tr '-' '_')=$2 ; shift 2 ;;
-    --) shift ; break ;;
-    *) echo "Internal error!" ; exit 1 ;;
-  esac
-done
+get_args "$@"
 
 # manipulate arguments
 working_dir=$(readlink -m $working_dir)

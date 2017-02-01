@@ -12,12 +12,16 @@
 
 # get command-line arguments
 function get_args() {
+    # convert arguments to --long-options
+    # (e.g., input_file => --input-file)
     arg_str=$(IFS=,; echo "${args[*]/%/:}" | tr '_' '-')
+    # use GNU getopt to retrieve arguments
     TEMP=`getopt -o "" -l "${arg_str}" -n "$0" -- "$@"`
     eval set -- "$TEMP"
     while true
     do
         case "$1" in
+            # convert --long-options back to variable_name
             --?*) eval $(echo ${1:2} | tr '-' '_')=$2 ; shift 2 ;;
             --) shift ; break ;;
             *) echo "Internal error!" ; exit 1 ;;
