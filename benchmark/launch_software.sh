@@ -267,14 +267,3 @@ cmd="${init_command}; \
                                           ${genemark_install_dir} \
                                           ${working_dir}"
 submit_job "${cmd}" genemark
-
-## run the Distance Method
-cmd="${init_command}; \
-      bash ${scripts_dir}/run_hgtector.sh ${distance_method_install_dir} \
-                                          ${query_species_coding_seqs_fp} \
-                                          ${target_proteomes_dir} \
-                                          ${stdout}.dm.txt \
-                                          ${stderr}.dm.txt \
-                                          ${working_dir} \
-                                          ${threads}"
-submit_job "${cmd}" distance_method
