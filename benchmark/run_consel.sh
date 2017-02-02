@@ -10,29 +10,21 @@
 
 # usage: run CONSEL software
 set -eu
+source $(dirname "$0")/utils.sh
 args=(
-  working_dir
-  gene_tree_dir
-  species_tree_fp
-  gene_msa_dir
-  input_file_nwk
-  output_file
-  output_fp
-  scripts_dir
-  stdout
-  stderr
-  verbose
+    working_dir
+    gene_tree_dir
+    species_tree_fp
+    gene_msa_dir
+    input_file_nwk
+    output_file
+    output_fp
+    scripts_dir
+    stdout
+    stderr
+    verbose
 )
-arg_str=$(IFS=,; echo "${args[*]/%/:}" | tr '_' '-')
-TEMP=`getopt -o "" -l $arg_str -n "$0" -- "$@"`
-eval set -- "$TEMP"
-while true ; do
-  case "$1" in
-    --?*) eval $(echo ${1:2} | tr '-' '_')=$2 ; shift 2 ;;
-    --) shift ; break ;;
-    *) echo "Internal error!" ; exit 1 ;;
-  esac
-done
+get_args "$@"
 
 TIMEFORMAT='%U %R'
 total_user_time_consel="0.0"
