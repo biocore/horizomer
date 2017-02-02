@@ -50,7 +50,7 @@ ln -s ${phylophlan_install_dir}/data
 ln -s ${input_faa_dir} input/genomes
 
 # command
-cmd="${phylophlan_install_dir}/phylophlan.py -i input --nproc $threads --c_dat temp"
+cmd="${phylophlan_install_dir}/phylophlan.py -u input --nproc $threads --c_dat temp"
 if [ "$verbose" == "true" ]
 then
     echo "Command:"$'\n'"  $cmd"
