@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 
 # usage: run DIAMOND to perform protein sequence similarity search
-set -eu
+# set -eu
 source $(dirname "$0")/utils.sh
 args=(
     query_faa_fp

@@ -15,6 +15,7 @@ function get_args() {
     # convert arguments to --long-options
     # (e.g., input_file => --input-file)
     arg_str=$(IFS=,; echo "${args[*]/%/:}" | tr '_' '-')
+
     # use GNU getopt to retrieve arguments
     TEMP=`getopt -o "" -l "${arg_str}" -n "$0" -- "$@"`
     eval set -- "$TEMP"
@@ -26,6 +27,15 @@ function get_args() {
             --) shift ; break ;;
             *) echo "Internal error!" ; exit 1 ;;
         esac
+    done
+
+    # set undefined arguments to None
+    for arg in ${args[@]}
+    do
+        if [ -z "$(echo ${!arg})" ]
+        then
+            eval $(echo $arg)=None
+        fi
     done
 }
 
