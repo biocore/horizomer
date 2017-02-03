@@ -24,14 +24,19 @@ args=(
 )
 get_args "$@"
 
-TIMEFORMAT='%U %R'
-total_user_time_trex="0.0"
-total_wall_time_trex="0.0"
-i=0
+$verbose && echo "Running T-REX .."
+cmd="${trex_install_dir}/hgt3.4 -inputfile=${input_file_nwk}"
+$verbose && echo "Command:"$'\n'"  $cmd"
 
 printf "#TREX\n" >> $output_fp
 touch ${stdout%.*}.total_results.txt
+
+TIMEFORMAT='%U %R'
+total_user_time_trex="0.0"
+total_wall_time_trex="0.0"
+
 # search for HGTs in each gene tree
+i=0
 for gene_tree in $gene_tree_dir/*.nwk
 do
     gene_tree_file=$(basename $gene_tree)
@@ -42,9 +47,7 @@ do
                                             --gene-tree-fp $gene_tree \
                                             --species-tree-fp $species_tree_fp \
                                             --output-tree-fp $input_file_nwk
-    cp $input_file_nwk $trex_install_dir
-    base_input_file_nwk=$(basename $input_file_nwk)
-    TIME="$( time (cd $trex_install_dir; ./hgt3.4 -inputfile=${base_input_file_nwk} 1>$stdout 2>>$stderr) 2>&1)"
+    TIME="$( time ($cmd 1>$stdout 2>>$stderr) 2>&1)"
     python ${scripts_dir}/parse_output.py --hgt-results-fp $stdout --method 'trex' >> $output_fp
     echo "#!#Gene $i" >> ${stdout%.*}.total_results.txt
     cat $stdout >> ${stdout%.*}.total_results.txt
