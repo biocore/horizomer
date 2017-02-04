@@ -65,6 +65,7 @@ echo "Total user time PhyloPhlAn: ${user_time}" >> $stderr
 echo "Total wall time PhyloPhlAn: ${wall_time}" >> $stderr
 
 # tear down
+rm -rf temp
 cd $PWD
 
 # output genome tree will be:
