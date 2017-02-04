@@ -39,7 +39,6 @@ total_wall_time_trex="0.0"
 i=0
 for gene_tree in $gene_tree_dir/*.nwk
 do
-    gene_tree_file=$(basename $gene_tree)
     gene_number=$(echo $gene_tree_file | sed 's/[^0-9]*//g')
     printf "$i\t$gene_number\t" >> $output_fp
 
