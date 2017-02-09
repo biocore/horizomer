@@ -14,14 +14,27 @@ conda install -c biocore scikit-bio
 
 Install third-party applications using conda:
 ```
-conda install -c bioconda blast blast-legacy diamond fasttree mafft mcl muscle orthofinder prodigal=2.6.2 raxml t_coffee trimal
+conda install -c bioconda diamond fasttree mafft mcl muscle prodigal=2.6.2 raxml t_coffee trimal
+```
+
+Exit the environment when done.
+```
+source deactivate
+```
+
+For applications that require Python 2, create another conda environment and install them:
+```
+conda create -n wgshgt_py2 python=2.7
+source activate wgshgt_py2
+conda install -c bioconda orthofinder
+source deactivate
 ```
 
 Install more third-party applications:
 
 If you are a Ubuntu user, do:
 ```
-sudo apt install phyml kalign
+sudo apt-get install phyml kalign
 ```
 Otherwise, download and install these programs manually. See the application list below.
 
@@ -56,6 +69,7 @@ conda install -c etetoolkit ete3_external_apps
 | [MUSCLE](http://drive5.com/muscle/) | [3.8.31](http://www.drive5.com/muscle/downloads3.8.31/muscle3.8.31_i86linux64.tar.gz) | sequence alignment | yes | yes | [15034147](https://www.ncbi.nlm.nih.gov/pubmed/15034147) |
 | [KAlign](http://www.ebi.ac.uk/Tools/msa/kalign/) | [2.03](http://msa.sbc.su.se/downloads/kalign/current.tar.gz) | sequence alignment | no | yes | [16343337](https://www.ncbi.nlm.nih.gov/pubmed/16343337) |
 | [T-Coffee](http://www.tcoffee.org/) | [11.00.8cbe486](http://www.tcoffee.org/Packages/Stable/Latest/T-COFFEE_distribution_Version_11.00.8cbe486.tar.gz) | alignment combining | yes | yes | [10964570](https://www.ncbi.nlm.nih.gov/pubmed/10964570)
+| [trimAl](http://trimal.cgenomics.org/) | [1.4.1](https://github.com/scapella/trimal/archive/v1.4.1.tar.gz) | alignment trimming | yes | yes | [19505945](https://www.ncbi.nlm.nih.gov/pubmed/19505945)
 ||
 | [RAxML](http://sco.h-its.org/exelixis/web/software/raxml/index.html) | [8.2.9](https://github.com/stamatak/standard-RAxML/archive/v8.2.9.tar.gz) | tree building | yes | yes | [24451623](https://www.ncbi.nlm.nih.gov/pubmed/24451623) |
 | [PhyML](http://www.atgc-montpellier.fr/phyml/) | [3.2.20160530](https://github.com/stephaneguindon/phyml/archive/v3.2.20160530.tar.gz) | tree building | yes | yes | [20525638](https://www.ncbi.nlm.nih.gov/pubmed/20525638) |
