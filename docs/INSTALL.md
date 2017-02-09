@@ -2,11 +2,12 @@
 
 #### Recommended installation order
 
-Have [Miniconda](https://conda.io/miniconda.html) or [Anaconda](https://anaconda.org/) installed in the system. The Python 3 version is recommended.
+Have [Miniconda](https://conda.io/miniconda.html) or [Anaconda](https://anaconda.org/) installed in the system. The Python 3 version is preferable.
 
 Create conda environment and install required libraries:
 ```
 conda create -n wgshgt python=3.5
+source activate wgshgt
 conda install click biopython
 conda install -c biocore scikit-bio
 ```
@@ -64,6 +65,7 @@ conda install -c etetoolkit ete3_external_apps
 | [Prodigal](http://prodigal.ornl.gov/) | [2.6.3](https://github.com/hyattpd/Prodigal/archive/v2.6.3.tar.gz) | gene calling | yes | yes | [20211023](https://www.ncbi.nlm.nih.gov/pubmed/20211023) |
 
 #### Conda install
+
 The following programs can be installed directly from conda:
 
 Available in [bioconda](https://anaconda.org/bioconda):
@@ -87,5 +89,6 @@ Available in [biocore](https://anaconda.org/biocore):
 * diamond=0.7.10
 
 #### Cross-dependencies
+
 * OrthoFinder requires MCL, FastTree, Blast+ and MAFFT
 * Phylomizer requires Blast Legacy, KAlign, MAFFT, MUSCLE, T-Coffee, PhyML
