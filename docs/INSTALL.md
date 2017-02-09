@@ -17,7 +17,7 @@ Install third-party applications using conda:
 conda install -c bioconda diamond fasttree mafft mcl muscle prodigal=2.6.2 raxml t_coffee trimal
 ```
 
-Exit the environment when done.
+Exit the conda environment when done.
 ```
 source deactivate
 ```
