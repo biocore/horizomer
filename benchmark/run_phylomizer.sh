@@ -14,6 +14,7 @@
 set -eu
 source $(dirname "$0")/utils.sh
 args=(
+    working_dir
     gene_fa_dir  # protein sequences in multi-fasta format (*.fa), one file per gene family
     gene_tree_dir  # output gene trees will be saved to this directory
     output_fp

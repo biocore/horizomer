@@ -29,12 +29,18 @@ function get_args() {
         esac
     done
 
-    # set undefined arguments to None
+    # manipulate arguments
     for arg in ${args[@]}
     do
+        # set undefined arguments to None
         if [ -z "$(echo ${!arg})" ]
         then
             eval $(echo $arg)=None
+
+        # convert files and directories to full paths
+        elif [[ "$arg" == *_fp || "$arg" == *_dir ]]
+        then
+            eval $(echo $arg)=$(readlink -m ${!arg})
         fi
     done
 }
