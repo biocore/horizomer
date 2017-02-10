@@ -37,9 +37,11 @@ For applications that require Python 2 (specifically: **OrthoFinder**), create a
 conda create -n wgshgt_py2 python=2.7 -c bioconda orthofinder
 ```
 
-The rest applications have to be installed manually. Please refer to the table below for details.
+The remaining applications have to be installed manually. Please refer to the table below for details.
 
 ### List of required external applications
+
+(Note: those with "how to install" = "conda" are already installed if you have run the aforementioned commands.)
 
 | Name | Tested Version | Purpose | How to install | PMID |
 | --- | --- | --- | --- | --- |
