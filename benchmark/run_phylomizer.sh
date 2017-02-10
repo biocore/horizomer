@@ -109,9 +109,7 @@ do
     total_user_time=$(echo $total_user_time + $user_time | bc)
     total_wall_time=$(echo $total_wall_time + $wall_time | bc)
 
-    # tear down
     cd ..
-
     i=$((i+1))
 done
 
