@@ -41,12 +41,12 @@ then
     echo "
     verbose             parameter    1
     residue_datatype    parameter    protein
-    force_seed_sequence parameter	   True
+    force_seed_sequence parameter    True
     alignment           mode         kalign muscle mafft
     consensus           mode         m_coffee
     trimming            mode         trimal
-    both_direction      parameter	   True
-    min_seqs            parameter	   10
+    both_direction      parameter    True
+    min_seqs            parameter    10
     in_letter           parameter    U:B
     in_letter           parameter    O:Z
     muscle              binary
@@ -67,7 +67,7 @@ then
     tree_approach       mode         ml
     ml                  parameter    -b -2 -o tlr
     phyml               binary
-    phyml_params        parameter	   -d aa -f e -v e -a e -c 4 --no_memory_check
+    phyml_params        parameter    -d aa -f e -v e -a e -c 4 --no_memory_check
     " > ${phylomizer_config_fp}
 fi
 $verbose && echo "Configuration file:"$'\n'"  ${phylomizer_config_fp}"
@@ -87,7 +87,8 @@ cd ${working_dir}/phylomizer
 for gene_fa in $gene_fa_dir/*.fa
 do
     # set up
-    gene=${gene_fa%.fa}
+    gene=$(basename $gene_fa)
+    gene=${gene%.fa}
     mkdir -p $gene
     cd $gene
     ln -s ${gene_fa} input.fa
