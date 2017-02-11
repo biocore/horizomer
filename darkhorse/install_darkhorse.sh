@@ -1,10 +1,20 @@
 #!/bin/bash
 
+# ----------------------------------------------------------------------------
+# Copyright (c) 2015--, The WGS-HGT Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+# ----------------------------------------------------------------------------
+
+# usage: automated installation script for DarkHorse2
 # this script will install:
 #   MySQL 5.7.17
-#   NCBI nr, taxdump and prot.accession2taxid
+#   NCBI nr, taxdump and prot.accession2taxid (up-to-date)
 #   DarkHorse 2.0_rev05
 
+set -eu
 appdir=$(readlink -m $1)
 
 # download and compile MySQL source code
@@ -41,11 +51,8 @@ mysqld --basedir=$appdir/mysql \
        --socket=$appdir/mysql/mysql.sock \
        --port=3307 &
 
-# One may connect to the MySQL server with:
-#  mysql -S $appdir/mysql/mysql.sock -u root --skip-password
-
 # create DarkHorse database
-mysql -u root --skip-password -e "CREATE DATABASE Darkhorse2_01;"
+mysql -S $appdir/mysql/mysql.sock -u root --skip-password -e "CREATE DATABASE Darkhorse2_01;"
 
 # stop MySQL service
 mysqladmin -S $appdir/mysql/mysql.sock -u root --skip-password
