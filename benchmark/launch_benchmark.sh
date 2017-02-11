@@ -85,9 +85,7 @@ args=(
 get_args "$@"
 
 # manipulate arguments
-working_dir=$(readlink -m $working_dir)
 mkdir -p $working_dir
-scripts_dir=$(readlink -m $scripts_dir)
 init_command="$init_command"
 if [ "${init_command}" == "None" ]
 then

@@ -24,6 +24,7 @@
 set -eu
 source $(dirname "$0")/utils.sh
 args=(
+    working_dir
     input_faa_dir
     scripts_dir
     phylophlan_install_dir
