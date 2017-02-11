@@ -34,28 +34,40 @@ cd ..
 rm mysql-boost-5.7.17.tar.gz
 rm -rf mysql-5.7.17
 
+# create MySQL configuration file
+#   the default MySQL port is 3306.
+#   to avoid conflict with the system-wide MySQL, 3307 is used here.
+mkdir -p $appdir/mysql/etc
+echo "
+[client]
+port           = 3307
+socket         = $appdir/mysql/mysql.sock
+
+[mysqld]
+port           = 3307
+socket         = $appdir/mysql/mysql.sock
+basedir        = $appdir/mysql
+datadir        = $appdir/mysql/data
+
+[mysqld_safe]
+log-error      = $appdir/mysql/data/mysql.err
+pid-file       = $appdir/mysql/mysql.pid
+" > $appdir/mysql/etc/my.cnf
+
 export PATH=$appdir/mysql/bin:$PATH
 
 # initialize MySQL serivce
 #   username: root, password: (no password)
-mysqld --initialize-insecure \
-       --datadir=$appdir/mysql/data
+mysqld --initialize-insecure
 
 # start MySQL serivce
-#   3306 is the default MySQL port.
-#   to avoid conflict with the system-wide MySQL, 3307 is used here.
-mysqld --basedir=$appdir/mysql \
-       --datadir=$appdir/mysql/data \
-       --log-error=$appdir/mysql/data/mysql.err \
-       --pid-file=$appdir/mysql/mysql.pid \
-       --socket=$appdir/mysql/mysql.sock \
-       --port=3307 &
+mysqld &
 
 # create DarkHorse database
-mysql -S $appdir/mysql/mysql.sock -u root --skip-password -e "CREATE DATABASE Darkhorse2_01;"
+mysql -u root --skip-password -e "CREATE DATABASE Darkhorse2_01;"
 
 # stop MySQL service
-mysqladmin -S $appdir/mysql/mysql.sock -u root --skip-password
+mysqladmin -u root --skip-password
 
 # download NCBI database
 mkdir -p $appdir/ncbi
