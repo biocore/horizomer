@@ -188,7 +188,7 @@ class SimulateHGTsTests(TestCase):
         """Test parsing OrthoFinder results.
         """
         launch_orthofinder(self.proteomes_dir, self.working_dir, 1)
-        results_dir = join(self.working_dir, "orthofinder", "WorkingDirectory")
+        results_dir = join(self.working_dir, "orthofinder")
         species_ids, sequence_ids, orthogroups_act =\
             parse_orthofinder(results_dir)
         species_ids_exp = {'1': 'seqs_prot_2.fasta', '0': 'seqs_prot_1.fasta'}

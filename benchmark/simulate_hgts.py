@@ -532,7 +532,7 @@ def simulate_hgts(seq_donor,
         if verbose:
             sys.stdout.write("\tSimulate orthologous replacement HGTs ...\n")
         launch_orthofinder(proteomes_dir, output_dir, threads, verbose=True)
-        results_dir = join(output_dir, "orthofinder", "WorkingDirectory")
+        results_dir = join(output_dir, "orthofinder")
         species_ids, sequence_ids, orthologous_groups =\
             parse_orthofinder(results_dir)
         # no orthologs found, exit orthologous replacement simulation
