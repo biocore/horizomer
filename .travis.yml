@@ -35,17 +35,17 @@ before_install:
   - unzip PhyML-3.1.zip
   - mv ./PhyML-3.1/PhyML-3.1_linux64 ./PhyML-3.1/phyml
   - export PATH=$PWD/PhyML-3.1/phyml:$PATH
-  # Install MCL
-  - wget http://micans.org/mcl/src/mcl-14-137.tar.gz
-  - tar zxvf mcl-14-137.tar.gz
-  - mkdir mcl-14-137-install
-  - export MCL_INSTALL_DIR=$PWD/mcl-14-137-install
-  - cd mcl-14-137
-  - ./configure --prefix=$MCL_INSTALL_DIR
-  - make
-  - make install
-  - cd ..
-  - export PATH=$MCL_INSTALL_DIR/bin:$PATH
+  ## Install MCL
+  # - wget http://micans.org/mcl/src/mcl-14-137.tar.gz
+  # - tar zxvf mcl-14-137.tar.gz
+  # - mkdir mcl-14-137-install
+  # - export MCL_INSTALL_DIR=$PWD/mcl-14-137-install
+  # - cd mcl-14-137
+  # - ./configure --prefix=$MCL_INSTALL_DIR
+  # - make
+  # - make install
+  # - cd ..
+  # - export PATH=$MCL_INSTALL_DIR/bin:$PATH
   # Install RANGER
   - wget http://compbio.mit.edu/ranger-dtl/ranger-dtl-linux.tar.gz
   - tar zxvf ranger-dtl-linux.tar.gz
@@ -60,12 +60,14 @@ install:
   - source activate test_env
   - pip install -r ci/pip_requirements.txt
   - pip install .
-  # Install OrthoFinder (python 3 script, requires before_install dependencies)
-  - wget https://github.com/ekopylova/OrthoFinder/archive/0.4.python3.tar.gz
-  - tar zxvf 0.4.python3.tar.gz
-  - chmod 744 OrthoFinder-0.4.python3/orthofinder.py
-  - export PATH=$PWD/OrthoFinder-0.4.python3:$PATH
-  - orthofinder.py --help
+  # Install OrthoFinder (latest version, requires Python 2)
+  - conda create -n wgshgt_py2 -c bioconda python=2 orthofinder
+  ## Install OrthoFinder (python 3 script, requires before_install dependencies)
+  # - wget https://github.com/ekopylova/OrthoFinder/archive/0.4.python3.tar.gz
+  # - tar zxvf 0.4.python3.tar.gz
+  # - chmod 744 OrthoFinder-0.4.python3/orthofinder.py
+  # - export PATH=$PWD/OrthoFinder-0.4.python3:$PATH
+  # - orthofinder.py --help
 script:
   - nosetests --with-doctest --with-coverage
   - flake8 benchmark/*.py benchmark/tests/*.py distance-method/*.py

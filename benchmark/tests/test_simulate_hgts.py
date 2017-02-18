@@ -169,16 +169,14 @@ class SimulateHGTsTests(TestCase):
     def test_launch_orthofinder(self):
         """Test running OrthoFinder.
         """
-        launch_orthofinder(self.proteomes_dir, 1, verbose=True)
-        date = time.strftime("%c").split()
-        day = date[2].zfill(2)
-        results_dir = join(
-            self.proteomes_dir, "Results_%s%s" % (date[1], day))
+        launch_orthofinder(self.proteomes_dir, self.working_dir, 1,
+                           verbose=True)
+        results_dir = join(self.working_dir, "orthofinder")
         orthogroups_exp = [['YP_002468181.1', 'YP_004590122.1'],
                            ['YP_004590123.1', 'YP_002468184.1'],
                            ['YP_002468032.1', 'YP_004590028.1']]
         orthogroups_act = []
-        with open(join(results_dir, "OrthologousGroups.txt"), 'r') as o:
+        with open(join(results_dir, "Orthogroups.txt"), 'r') as o:
             orthogroups_act = [line.split()[1:] for line in o]
         orthogroups_act_sorted = [sorted(group) for group in orthogroups_act]
         orthogroups_exp_sorted = [sorted(group) for group in orthogroups_exp]
@@ -190,14 +188,8 @@ class SimulateHGTsTests(TestCase):
     def test_parse_orthofinder(self):
         """Test parsing OrthoFinder results.
         """
-        launch_orthofinder(self.proteomes_dir, 1)
-        date = time.strftime("%c").split()
-        day = date[2]
-        if int(day) < 10:
-            day = "0%s" % day
-        results_dir = join(
-            self.proteomes_dir, "Results_%s%s" % (date[1], day),
-            "WorkingDirectory")
+        launch_orthofinder(self.proteomes_dir, self.working_dir, 1)
+        results_dir = join(self.working_dir, "orthofinder", "WorkingDirectory")
         species_ids, sequence_ids, orthogroups_act =\
             parse_orthofinder(results_dir)
         species_ids_exp = {'1': 'seqs_prot_2.fasta', '0': 'seqs_prot_1.fasta'}
