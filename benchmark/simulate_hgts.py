@@ -678,5 +678,6 @@ def _main(donor_genbank_fp,
             threads=threads,
             verbose=verbose)
 
+
 if __name__ == "__main__":
     _main()
