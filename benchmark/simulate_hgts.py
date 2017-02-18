@@ -111,9 +111,6 @@ def launch_orthofinder(proteomes_dir, output_dir, threads, verbose=False):
                            '--stdout', '/dev/null',
                            '--stderr', '/dev/null',
                            '--verbose', 'false']
-#    orthofinder_command = ["orthofinder.py",
-#                           "-f", proteomes_dir,
-#                           "-t", str(threads)]
     proc = subprocess.Popen(orthofinder_command,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,
@@ -540,9 +537,6 @@ def simulate_hgts(seq_donor,
         date = time.strftime("%c").split()
         day = date[2].zfill(2)
         results_dir = join(output_dir, "orthofinder", "WorkingDirectory")
-#        results_dir = join(
-#            proteomes_dir, "Results_%s%s" % (date[1], day),
-#            "WorkingDirectory")
         species_ids, sequence_ids, orthologous_groups =\
             parse_orthofinder(results_dir)
         # no orthologs found, exit orthologous replacement simulation
