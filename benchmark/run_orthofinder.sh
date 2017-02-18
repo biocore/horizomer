@@ -21,7 +21,7 @@
 # to provide pre-computed BLAST results. Therefore, there is room for hacking
 # this process by providing DIAMOND results. It is to be further explored.
 
-set -eu
+set -e
 source $(dirname "$0")/utils.sh
 args=(
     working_dir
@@ -35,7 +35,6 @@ args=(
 get_args "$@"
 
 $verbose && echo "Running OrthoFinder .."
-[ -z $CONDA_PATH_BACKUP ] || CONDA_PATH_BACKUP=
 source activate ${py2_conda_env}
 
 # command
