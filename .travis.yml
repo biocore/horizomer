@@ -30,6 +30,7 @@ install:
   # Install Python packages and some external programs using conda + pip
   - conda create -n test_env python=$PYTHON_VERSION --file ci/conda_requirements.txt
   - source activate test_env
+  - conda install -c bioconda diamond
   - pip install -r ci/pip_requirements.txt
   - pip install .
   # Install OrthoFinder (requires Python 2)
