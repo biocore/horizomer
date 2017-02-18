@@ -37,7 +37,6 @@ import click
 from os import makedirs
 from os.path import exists, basename, join, splitext, dirname, realpath
 import subprocess
-import time
 import glob
 import random
 
