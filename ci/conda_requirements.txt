@@ -3,6 +3,3 @@ flake8
 scikit-bio
 sphinx
 blast-plus
-blast-legacy
-diamond
-mafft

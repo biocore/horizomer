@@ -28,7 +28,7 @@ from benchmark.reformat_input import (join_trees,
                                       reformat_egid)
 
 
-class workflowTests(TestCase):
+class ReformatInputTests(TestCase):
     """ Test WGS-HGT input reformatting functions """
 
     def setUp(self):
