@@ -11,7 +11,6 @@ from shutil import rmtree
 from tempfile import mkdtemp
 from os import makedirs, remove
 from os.path import join, dirname, abspath
-import time
 import copy
 from operator import itemgetter
 

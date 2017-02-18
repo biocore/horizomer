@@ -36,7 +36,6 @@ import sys
 import click
 from os import makedirs
 from os.path import exists, basename, join, splitext, dirname, realpath
-from shutil import move, rmtree
 import subprocess
 import time
 import glob
@@ -534,8 +533,6 @@ def simulate_hgts(seq_donor,
         if verbose:
             sys.stdout.write("\tSimulate orthologous replacement HGTs ...\n")
         launch_orthofinder(proteomes_dir, output_dir, threads, verbose=True)
-        date = time.strftime("%c").split()
-        day = date[2].zfill(2)
         results_dir = join(output_dir, "orthofinder", "WorkingDirectory")
         species_ids, sequence_ids, orthologous_groups =\
             parse_orthofinder(results_dir)
@@ -684,6 +681,7 @@ def _main(donor_genbank_fp,
             log_f=log_f,
             threads=threads,
             verbose=verbose)
+
 
 if __name__ == "__main__":
     _main()
