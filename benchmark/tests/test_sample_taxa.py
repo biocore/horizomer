@@ -9,7 +9,6 @@
 from unittest import TestCase, main
 from shutil import rmtree
 from tempfile import mkdtemp
-from os import remove
 from os.path import join, dirname, realpath
 
 from benchmark.sample_taxa import sample_taxa
@@ -31,25 +30,22 @@ class SampleTaxaTests(TestCase):
         self.hit_table_fp = join(datadir, 'CrDC.m8')
         self.prot2tax_dict_fp = join(datadir, 'prot2gcf.txt')
         self.exp_taxa_fp = join(datadir, 'CrDC.m8.taxa')
-        self.output_taxa_fp = join(self.working_dir, 'output.taxa')
-        self.files_to_remove = [self.output_taxa_fp]
 
     def tearDown(self):
-        for file in self.files_to_remove:
-            remove(file)
+        # there isn't any file to remove at the moment
+        # but in the future there will be
         rmtree(self.working_dir)
 
     def test_sample_taxa(self):
         """ Test sample taxa from hit table
         """
-        sample_taxa(self.hit_table_fp,
-                    self.prot2tax_dict_fp,
-                    self.output_taxa_fp)
-        with open(self.output_taxa_fp, 'r') as f:
-            obs = f.read()
+        obs = sample_taxa(self.hit_table_fp,
+                          self.prot2tax_dict_fp)
+        exp = set()
         with open(self.exp_taxa_fp, 'r') as f:
-            exp = f.read()
-        self.assertEqual(obs, exp)
+            for line in f:
+                exp.add(line.rstrip())
+        self.assertSetEqual(obs, exp)
 
 
 if __name__ == '__main__':
