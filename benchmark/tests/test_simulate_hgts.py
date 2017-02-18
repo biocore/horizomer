@@ -43,11 +43,11 @@ class SimulateHGTsTests(TestCase):
         makedirs(self.proteomes_dir)
 
         # seqs 1
-        self.seqs_prot_1_fp = join(self.proteomes_dir, "seqs_prot_1.fasta")
+        self.seqs_prot_1_fp = join(self.proteomes_dir, "seqs_prot_1.faa")
         with open(self.seqs_prot_1_fp, 'w') as tmp:
             tmp.write(seqs_prot_1)
         # seqs 2
-        self.seqs_prot_2_fp = join(self.proteomes_dir, "seqs_prot_2.fasta")
+        self.seqs_prot_2_fp = join(self.proteomes_dir, "seqs_prot_2.faa")
         with open(self.seqs_prot_2_fp, 'w') as tmp:
             tmp.write(seqs_prot_2)
 
@@ -191,7 +191,7 @@ class SimulateHGTsTests(TestCase):
         results_dir = join(self.working_dir, "orthofinder")
         species_ids, sequence_ids, orthogroups_act =\
             parse_orthofinder(results_dir)
-        species_ids_exp = {'1': 'seqs_prot_2.fasta', '0': 'seqs_prot_1.fasta'}
+        species_ids_exp = {'1': 'seqs_prot_2.faa', '0': 'seqs_prot_1.faa'}
         seq_ids_exp = {'1_2': 'YP_004590028.1', '1_1': 'YP_004590123.1',
                        '1_0': 'YP_004590122.1', '0_2': 'YP_002468032.1',
                        '0_0': 'YP_002468181.1', '0_1': 'YP_002468184.1'}
