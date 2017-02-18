@@ -15,8 +15,7 @@ import pandas as pd
 
 
 def sample_taxa(hit_table_fp,
-                prot2tax_dict_fp,
-                output_taxa_fp):
+                prot2tax_dict_fp):
     """ Select taxa (genomes) from BLASTP/DIAMOND hit table
 
     Parameters
@@ -25,8 +24,11 @@ def sample_taxa(hit_table_fp,
         sequence similarity search hit table in standard tabular format
     prot2tax_dict_fp : str
         protein to taxon (genome) dictionary file
-    output_taxa_fp : str
-        output list of selected taxa
+
+    Return
+    ------
+    set of str
+        IDs of sampled taxa (genomes)
 
     Notes
     -----
@@ -88,10 +90,7 @@ def sample_taxa(hit_table_fp,
             prot, taxon_list = line.rstrip().split('\t')
             if prot in prots:
                 taxa.update(taxon_list.split(','))
-    # write selected taxon IDs
-    with open(output_taxa_fp, 'w') as f:
-        for taxon in sorted(taxa):
-            f.write('%s\n' % taxon)
+    return taxa
 
 
 @click.command()
@@ -113,9 +112,11 @@ def _main(hit_table_fp,
           output_taxa_fp):
     """ Select taxa for subsequent analyses
     """
-    sample_taxa(hit_table_fp,
-                prot2tax_dict_fp,
-                output_taxa_fp)
+    taxa = sample_taxa(hit_table_fp, prot2tax_dict_fp)
+    # write selected taxon IDs
+    with open(output_taxa_fp, 'w') as f:
+        for taxon in sorted(taxa):
+            f.write('%s\n' % taxon)
 
 
 if __name__ == "__main__":
