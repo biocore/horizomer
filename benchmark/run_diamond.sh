@@ -23,17 +23,16 @@ args=(
 )
 get_args "$@"
 
-if [ "$verbose" == "true" ]
-then
-    echo "Running DIAMOND .."
-fi
+$verbose && echo "Running DIAMOND .."
 mkdir -p ${working_dir}/diamond
 
 # build DIAMOND database if doesn't exist
 if [ "${database_dmnd_fp}" == "None" ]
 then
     database_dmnd_fp=${working_dir}/diamond/$(basename ${database_faa_fp%.*})
-    diamond makedb --in ${database_faa_fp} -d ${database_dmnd_fp} --threads $threads
+    diamond makedb --in ${database_faa_fp} \
+                   --db ${database_dmnd_fp} \
+                   --threads $threads
 fi
 
 # run DIAMOND
@@ -44,16 +43,7 @@ diamond blastp --db ${database_dmnd_fp} \
                --evalue 1e-5 \
                --max-target-seqs 500 \
                --threads ${threads} \
-               --daa ${diamond_output}.daa \
+               --out ${output_hit_table} \
                --sensitive
 
-# convert output to tab delimited format
-#   note: newer versions of DIAMOND can generate tabular output directly. The
-#   current script is backward compatible with DIAMOND 7.10-.
-diamond view --daa ${diamond_output}.daa -f tab -o ${output_hit_table}.m8
-rm ${output_hit_table}.daa
-hit_table_fp=${output_hit_table}.m8
-if [ "$verbose" == "true" ]
-then
-    echo "Done"
-fi
+$verbose && echo "Done"

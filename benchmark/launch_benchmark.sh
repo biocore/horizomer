@@ -58,11 +58,15 @@ args=(
     # (e.g., BLAST -outfmt 6 or DIAMOND tab)
     hit_table_fp
 
-    ## reference databases
+    ## reference genome database
     # reference protein sequence database compiled by DIAMOND
     database_dmnd_fp
     # reference protein sequence database in Fasta format
     database_faa_fp
+    # directory to reference protein sequences, one genome per file
+    database_faa_dir
+    # protein ID to taxon (genome) ID(s) dictionary
+    prot2tax_dict_fp
 
     ## application installation directories
     # Darkhorse
@@ -93,22 +97,33 @@ then
 fi
 bash_config="$bash_config"
 
-## Step 1:
-##    Align with DIAMOND query vs. reference database (e.g., NCBI nr)
+## step 1:
+##    align with DIAMOND query vs. reference database
 if [ "${hit_table_fp}" == "None" ]
 then
-    filename=$(basename "${species_faa_fp}")
-    diamond_output=${working_dir}/diamond/$filename
+    hit_table_fp=${working_dir}/diamond/$(basename ${species_faa_fp%.*}).m8
     bash ${scripts_dir}/run_diamond.sh --query-faa-fp ${species_faa_fp} \
                                        --database-faa-fp ${database_faa_fp} \
                                        --database-dmnd-fp ${database_dmnd_fp} \
-                                       --output-hit-table ${diamond_output} \
+                                       --output-hit-table ${hit_table_fp} \
                                        --working-dir ${working_dir} \
                                        --scripts-dir ${scripts_dir} \
                                        --threads ${threads} \
                                        --verbose ${verbose}
-    hit_table_fp=${diamond_output}.m8
 fi
+
+## step 2:
+##    select reference genomes containing homology with query genome
+python ${scripts_dir}/sample_taxa.py --hit-table-fp CrDC.m8 ${hit_table_fp} \
+                                     --prot2tax-dict-fp ${prot2tax_dict_fp} \
+                                     --output-taxa-fp ${working_dir}/sampled_taxa.txt
+# soft link selected protein sequence files to output directory
+mkdir -p ${working_dir}/sampled_faa
+ln -s ${species_faa_fp} ${working_dir}/sampled_faa/query.faa
+while read taxon
+do
+    ln -s ${database_faa_dir}/$taxon.faa ${working_dir}/sampled_faa/$taxon.faa
+done < ${working_dir}/sampled_taxa.txt
 
 # load submit_job function
 . $scripts_dir/utils.sh
