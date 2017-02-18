@@ -41,8 +41,9 @@ def sample_taxa(hit_table_fp,
     be included.
 
     In the following example, the phylogenetic tree of gene family A is
-    displayed, by which an HGT from genus 2 to genus 1 is evidently suggested
-    (note the position of species 2.2 ***).
+    displayed, by which a horizontal transfer of gene A from some member of
+    genus 1 (likely species 1.3) to species 2.2 (***) of genus 2 is evidently
+    suggested.
 
                                       /---species 1.1
                                  /---|
@@ -53,8 +54,8 @@ def sample_taxa(hit_table_fp,
                  |         |     /--|   \-species 1.3
                  |         |    |   |
                  |          \---|    \----species 1.4
-        ---------|              |
-                 |              |     /---species 1.5
+                 |              |
+        ---------|              |     /---species 1.5
                  |               \---|
                  |                    \---species 1.6
                  |
