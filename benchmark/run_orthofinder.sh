@@ -42,7 +42,7 @@ isp=-1  # index of current species
 iseq=0  # index of current sequence
 for sp in ${input_faa_dir}/*.faa
 do
-    ((isp++))
+    isp=$((isp+1))
     echo $isp': '$(basename $sp) >> $ofdir/SpeciesIDs.txt
     iseq=0
     while read line
@@ -51,14 +51,14 @@ do
         then
             echo $isp'_'$iseq': '${line#>} >> $ofdir/SequenceIDs.txt
             echo '>'$isp'_'$iseq >> $ofdir/Species$isp.fa
-            ((iseq++))
+            iseq=$((iseq+1))
         else
             echo $line >> $ofdir/Species$isp.fa
         fi
     done < $sp
     diamond makedb --in $ofdir/Species$isp.fa \
                    --db $ofdir/Species$isp \
-                   --threads $threads
+                   --threads $threads \
                    --quiet
 done
 $verbose && echo "Done"
@@ -73,7 +73,7 @@ do
                        --db $ofdir/Species$j \
                        --evalue 0.001 \
                        --out $ofdir/Blast$i'_'$j.txt \
-                       --threads $threads
+                       --threads $threads \
                        --quiet
     done
 done
