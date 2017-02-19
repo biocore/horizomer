@@ -41,6 +41,8 @@ class SimulateHGTsTests(TestCase):
         makedirs(self.simulated_dir)
         self.proteomes_dir = join(self.working_dir, "proteomes")
         makedirs(self.proteomes_dir)
+        self.orthofinder_dir = join(self.working_dir, "orthofinder")
+        makedirs(self.orthofinder_dir)
 
         # seqs 1
         self.seqs_prot_1_fp = join(self.proteomes_dir, "seqs_prot_1.faa")
@@ -170,12 +172,11 @@ class SimulateHGTsTests(TestCase):
         """
         launch_orthofinder(self.proteomes_dir, self.working_dir, 1,
                            verbose=True)
-        results_dir = join(self.working_dir, "orthofinder")
         orthogroups_exp = [['YP_002468181.1', 'YP_004590122.1'],
                            ['YP_004590123.1', 'YP_002468184.1'],
                            ['YP_002468032.1', 'YP_004590028.1']]
         orthogroups_act = []
-        with open(join(results_dir, "Orthogroups.txt"), 'r') as o:
+        with open(join(self.orthofinder_dir, "Orthogroups.txt"), 'r') as o:
             orthogroups_act = [line.split()[1:] for line in o]
         orthogroups_act_sorted = [sorted(group) for group in orthogroups_act]
         orthogroups_exp_sorted = [sorted(group) for group in orthogroups_exp]
@@ -188,9 +189,8 @@ class SimulateHGTsTests(TestCase):
         """Test parsing OrthoFinder results.
         """
         launch_orthofinder(self.proteomes_dir, self.working_dir, 1)
-        results_dir = join(self.working_dir, "orthofinder")
         species_ids, sequence_ids, orthogroups_act =\
-            parse_orthofinder(results_dir)
+            parse_orthofinder(self.orthofinder_dir)
         species_ids_exp = {'1': 'seqs_prot_2.faa', '0': 'seqs_prot_1.faa'}
         seq_ids_exp = {'1_2': 'YP_004590028.1', '1_1': 'YP_004590123.1',
                        '1_0': 'YP_004590122.1', '0_2': 'YP_002468032.1',

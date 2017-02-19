@@ -34,7 +34,7 @@ get_args "$@"
 
 $verbose && echo "Preparing files for OrthoFinder .."
 ofdir=${working_dir}/orthofinder
-mkdir -p ${ofdir}
+mkdir -p $ofdir
 
 # convert species names and sequence names into incremental numbers, as
 # required by OrthoFinder
@@ -59,6 +59,7 @@ do
     diamond makedb --in $ofdir/Species$isp.fa \
                    --db $ofdir/Species$isp \
                    --threads $threads
+                   --quiet
 done
 $verbose && echo "Done"
 
@@ -73,6 +74,7 @@ do
                        --evalue 0.001 \
                        --out $ofdir/Blast$i'_'$j.txt \
                        --threads $threads
+                       --quiet
     done
 done
 $verbose && echo "Done"
@@ -81,7 +83,7 @@ $verbose && echo "Running OrthoFinder .."
 source activate ${py2_conda_env}
 
 # command
-cmd="orthofinder -b $ofdir -t $threads"
+cmd="orthofinder --blast $ofdir --threads $threads"
 $verbose && echo "Command:"$'\n'"  $cmd"
 
 # run OrthoFinder and record time
