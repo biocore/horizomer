@@ -2,4 +2,3 @@ click
 flake8
 scikit-bio
 sphinx
-blast-plus

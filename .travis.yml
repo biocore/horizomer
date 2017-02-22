@@ -13,60 +13,28 @@ before_install:
   - conda config --add channels https://conda.anaconda.org/biocore
   - conda update -q conda
   - conda info -a
-  ## Install KALIGN
-  ## Install MUSCLE
-  # - wget http://www.drive5.com/muscle/downloads3.8.31/muscle3.8.31_i86linux64.tar.gz
-  # - tar zxvf muscle3.8.31_i86linux64.tar.gz
-  # - mkdir muscle
-  # - mv muscle3.8.31_i86linux64 muscle/muscle
-  # - export PATH=$PWD/muscle:$PATH
-  ## Install T-COFFEE
-  # - wget http://www.tcoffee.org/Packages/Stable/Latest/linux/T-COFFEE_installer_Version_11.00.8cbe486_linux_x64.tar.gz
-  # - tar zxvf T-COFFEE_installer_Version_11.00.8cbe486_linux_x64.tar.gz
-  # - export PATH=$PWD/T-COFFEE_installer_Version_11.00.8cbe486_linux_x64/bin:$PATH
-  ## Install TRIMAL
-  # - wget https://github.com/scapella/trimal/archive/v1.4.1.tar.gz
-  # - tar zxvf v1.4.1.tar.gz
-  # - cd trimal-1.4.1/source
-  # - make
-  # - export PATH=$PWD:$PATH
-  # - cd ../..
   ## Install PHYML
   # - wget http://www.atgc-montpellier.fr/download/binaries/phyml/PhyML-3.1.zip
   # - unzip PhyML-3.1.zip
   # - mv ./PhyML-3.1/PhyML-3.1_linux64 ./PhyML-3.1/phyml
   # - export PATH=$PWD/PhyML-3.1/phyml:$PATH
-  # Install MCL
-  - wget http://micans.org/mcl/src/mcl-14-137.tar.gz
-  - tar zxvf mcl-14-137.tar.gz
-  - mkdir mcl-14-137-install
-  - export MCL_INSTALL_DIR=$PWD/mcl-14-137-install
-  - cd mcl-14-137
-  - ./configure --prefix=$MCL_INSTALL_DIR
-  - make
-  - make install
-  - cd ..
-  - export PATH=$MCL_INSTALL_DIR/bin:$PATH
   ## Install RANGER
   # - wget http://compbio.mit.edu/ranger-dtl/ranger-dtl-linux.tar.gz
   # - tar zxvf ranger-dtl-linux.tar.gz
   # - export PATH=$PWD/ranger-dtl-linux:$PATH
   ## Install Java goodies
   # - mkdir java-files
-  # Install PhyloNet
+  ## Install PhyloNet
   # - wget http://bioinfo.cs.rice.edu/sites/g/files/bxs266/f/kcfinder/files/PhyloNet_3.5.7.jar -O java-files/PhyloNet_3.5.7.jar --no-check-certificate
 install:
   # Install Python packages and some external programs using conda + pip
   - conda create -n test_env python=$PYTHON_VERSION --file ci/conda_requirements.txt
   - source activate test_env
+  - conda install -c bioconda diamond
   - pip install -r ci/pip_requirements.txt
   - pip install .
-  # Install OrthoFinder (python 3 script, requires before_install dependencies)
-  - wget https://github.com/ekopylova/OrthoFinder/archive/0.4.python3.tar.gz
-  - tar zxvf 0.4.python3.tar.gz
-  - chmod 744 OrthoFinder-0.4.python3/orthofinder.py
-  - export PATH=$PWD/OrthoFinder-0.4.python3:$PATH
-  - orthofinder.py --help
+  # Install OrthoFinder (requires Python 2)
+  - conda create -n wgshgt_py2 -c bioconda python=2 orthofinder
 script:
   - nosetests --with-doctest --with-coverage
   - flake8 benchmark/*.py benchmark/tests/*.py distance-method/*.py

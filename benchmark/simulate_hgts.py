@@ -35,9 +35,8 @@
 import sys
 import click
 from os import makedirs
-from os.path import exists, basename, join, splitext
+from os.path import exists, basename, join, splitext, dirname, realpath
 import subprocess
-import time
 import glob
 import random
 
@@ -85,13 +84,15 @@ def extract_genbank(genbank_fp, verbose=False):
     return seq, genes
 
 
-def launch_orthofinder(proteomes_dir, threads, verbose=False):
+def launch_orthofinder(proteomes_dir, output_dir, threads, verbose=False):
     """Launch OrthoFinder to report orthologous gene groups for two genomes.
 
     Parameters
     ----------
     proteomes_dir: string
         directory path storing FASTA coding sequences for complete genomes
+    output_dir: string
+        directory path storing OrthoFinder output files
     threads: integer
         number of threads to use
     verbose: boolean
@@ -99,9 +100,15 @@ def launch_orthofinder(proteomes_dir, threads, verbose=False):
     """
     if verbose:
         sys.stdout.write("\tLaunch OrthoFinder ..\n")
-    orthofinder_command = ["orthofinder.py",
-                           "-f", proteomes_dir,
-                           "-t", str(threads)]
+    orthofinder_command = ['bash', join(dirname(realpath(__file__)),
+                                        'run_orthofinder.sh'),
+                           '--working-dir', output_dir,
+                           '--input-faa-dir', proteomes_dir,
+                           '--py2-conda-env', 'wgshgt_py2',
+                           '--threads', str(threads),
+                           '--stdout', '/dev/null',
+                           '--stderr', '/dev/null',
+                           '--verbose', 'false']
     proc = subprocess.Popen(orthofinder_command,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,
@@ -524,12 +531,8 @@ def simulate_hgts(seq_donor,
     if orthologous_rep_prob > 0.0:
         if verbose:
             sys.stdout.write("\tSimulate orthologous replacement HGTs ...\n")
-        launch_orthofinder(proteomes_dir, threads, verbose=True)
-        date = time.strftime("%c").split()
-        day = date[2].zfill(2)
-        results_dir = join(
-            proteomes_dir, "Results_%s%s" % (date[1], day),
-            "WorkingDirectory")
+        launch_orthofinder(proteomes_dir, output_dir, threads, verbose=True)
+        results_dir = join(output_dir, "orthofinder")
         species_ids, sequence_ids, orthologous_groups =\
             parse_orthofinder(results_dir)
         # no orthologs found, exit orthologous replacement simulation
