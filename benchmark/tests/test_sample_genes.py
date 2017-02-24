@@ -10,8 +10,10 @@ from unittest import TestCase, main
 from shutil import rmtree
 from tempfile import mkdtemp
 from os.path import join, dirname, realpath
+from click.testing import CliRunner
 
-from benchmark.sample_genes import sample_genes
+from benchmark.sample_genes import (sample_genes,
+                                    _main)
 
 
 class SampleGenesTests(TestCase):
@@ -48,6 +50,13 @@ class SampleGenesTests(TestCase):
         # invalid cutoff
         self.assertRaises(ValueError, sample_genes, self.ortho_groups_fp,
                           min_taxa_cutoff=-1)
+
+    def test__main(self):
+        params = ['--ortho-groups-fp', self.ortho_groups_fp,
+                  '--min-taxa-cutoff', 4.0]
+        res = CliRunner().invoke(_main, params)
+        self.assertEqual(res.exit_code, 0)
+        self.assertEqual(res.output, 'Number of gene families sampled: 6.\n')
 
 
 if __name__ == '__main__':

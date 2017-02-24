@@ -83,7 +83,7 @@ def _main(ortho_groups_fp,
     """ Select gene families from OrthoFinder result and write to files
     """
     genes = sample_genes(ortho_groups_fp, min_taxa_cutoff)
-    sys.stdout.write(str(genes))
+    sys.stdout.write('Number of gene families sampled: %s.\n' % len(genes))
 
 
 if __name__ == "__main__":
