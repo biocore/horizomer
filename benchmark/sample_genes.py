@@ -29,13 +29,18 @@ def sample_genes(ortho_groups_fp,
         minimum number (if > 1) or fraction (if <= 1) of taxa that contain
         one or more homologs of the query gene. default: 10.0
 
-    Return
-    ------
+    Returns
+    -------
     dict of dict of set of str
         { ogid : { taxon : set(protein(s)) }
             ogid: ID of the orthologous group (assigned by OrthoFinder)
             taxon: ID of the taxon (genome)
             protein: ID of the protein
+
+    Raises
+    ------
+    ValueError
+        minimum number of taxa cutoff is not a positive number
 
     Notes
     -----
