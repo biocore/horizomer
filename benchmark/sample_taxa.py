@@ -79,7 +79,7 @@ def sample_taxa(hit_table_fp,
     # column names in standard BLAST tabular format
     m8cols = ['qseqid', 'sseqid', 'pident', 'length', 'mismatch', 'gapopen',
               'qstart', 'qend', 'sstart', 'send', 'evalue', 'bitscore']
-    df = pd.read_table(hit_table_fp, index_col=None, names=m8cols)
+    df = pd.read_table(hit_table_fp, index_col=None, names=m8cols, comment='#')
     # get all subject protein IDs mentioned in the hit table
     prots = set(df['sseqid'])
     # get IDs of taxa hosting subject proteins, based on a dictionary

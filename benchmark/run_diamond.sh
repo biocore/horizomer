@@ -15,6 +15,10 @@ args=(
     query_faa_fp
     database_faa_fp
     database_dmnd_fp
+    evalue
+    pident
+    qcovs
+    max_target_seqs
     output_hit_table
     working_dir
     scripts_dir
@@ -40,8 +44,10 @@ filename=$(basename "${query_faa_fp}")
 diamond_output=${working_dir}/diamond/$filename
 diamond blastp --db ${database_dmnd_fp} \
                --query ${query_faa_fp} \
-               --evalue 1e-5 \
-               --max-target-seqs 500 \
+               --evalue ${evalue} \
+               --id ${pident} \
+               --query-cover ${qcovs} \
+               --max-target-seqs ${max_target_seqs} \
                --threads ${threads} \
                --out ${output_hit_table} \
                --sensitive

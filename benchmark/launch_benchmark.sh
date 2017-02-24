@@ -68,6 +68,16 @@ args=(
     # protein ID to taxon (genome) ID(s) dictionary
     prot2tax_dict_fp
 
+    ## sequence similarity search parameters (BLAST / DIAMOND)
+    # maximum E-value cutoff
+    evalue
+    # minimum identity cutoff (%)
+    pident
+    # minimum query coverage cutoff (%)
+    qcovs
+    # maximum number of target sequences to report
+    max_target_seqs
+
     ## application installation directories
     # Darkhorse
     darkhorse_install_dir
@@ -105,6 +115,10 @@ then
     bash ${scripts_dir}/run_diamond.sh --query-faa-fp ${species_faa_fp} \
                                        --database-faa-fp ${database_faa_fp} \
                                        --database-dmnd-fp ${database_dmnd_fp} \
+                                       --evalue ${evalue} \
+                                       --pident ${pident} \
+                                       --qcovs ${qcovs} \
+                                       --max-target-seqs ${max_target_seqs} \
                                        --output-hit-table ${hit_table_fp} \
                                        --working-dir ${working_dir} \
                                        --scripts-dir ${scripts_dir} \
@@ -114,16 +128,36 @@ fi
 
 ## step 2:
 ##    select reference genomes containing homology with query genome
-python ${scripts_dir}/sample_taxa.py --hit-table-fp CrDC.m8 ${hit_table_fp} \
+python ${scripts_dir}/sample_taxa.py --hit-table-fp ${hit_table_fp} \
                                      --prot2tax-dict-fp ${prot2tax_dict_fp} \
                                      --output-taxa-fp ${working_dir}/sampled_taxa.txt
 # soft link selected protein sequence files to output directory
-mkdir -p ${working_dir}/sampled_faa
-ln -s ${species_faa_fp} ${working_dir}/sampled_faa/query.faa
+mkdir -p ${working_dir}/sampled_taxa_faa
+ln -s ${species_faa_fp} ${working_dir}/sampled_taxa_faa/query.faa
 while read taxon
 do
-    ln -s ${database_faa_dir}/$taxon.faa ${working_dir}/sampled_faa/$taxon.faa
+    ln -s ${database_faa_dir}/$taxon.faa ${working_dir}/sampled_taxa_faa/$taxon.faa
 done < ${working_dir}/sampled_taxa.txt
+
+## step 3:
+##    cluster protein sequences to identify gene families (orthologous groups)
+##    using OrthoFinder
+bash ${scripts_dir}/run_orthofinder.sh --working-dir ${working_dir} \
+                                       --input-faa-dir ${working_dir}/sampled_taxa_faa \
+                                       --py2-conda-env wgshgt_py2 \
+                                       --threads ${threads} \
+                                       --stdout /dev/null \
+                                       --stderr /dev/null \
+                                       --verbose ${verbose}
+
+## step 4:
+##    select gene families with adequate taxon sampling for HGT detection
+mkdir -p ${working_dir}/sampled_genes_fa
+python ${scripts_dir}/sample_genes.py --ortho-groups-fp ${working_dir}/orthofinder/Orthogroups.csv \
+                                      --hit-table-fp ${hit_table_fp} \
+                                      --input-faa-dir ${working_dir}/sampled_taxa_faa \
+                                      --output-fa-dir ${working_dir}/sampled_genes_fa \
+                                      --output-genes-fp ${working_dir}/sampled_genes.txt
 
 # load submit_job function
 . $scripts_dir/utils.sh

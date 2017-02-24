@@ -49,7 +49,8 @@ do
     do
       	if [[ $line == '>'* ]]
         then
-            echo $isp'_'$iseq': '${line#>} >> $ofdir/SequenceIDs.txt
+            seqid=$(echo ${line#>} | cut -f1 -d' ')
+            echo $isp'_'$iseq': '$seqid >> $ofdir/SequenceIDs.txt
             echo '>'$isp'_'$iseq >> $ofdir/Species$isp.fa
             iseq=$((iseq+1))
         else
