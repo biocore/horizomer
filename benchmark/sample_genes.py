@@ -113,11 +113,11 @@ def write_genes(genes,
     #   so complicated because OrthoFinder trims off the version number from
     #   an NCBI-style accession (e.g., GCF_012345.1 becomes GCF_012345)
     taxon2file = {}
-    for file in os.listdir(input_faa_dir):
-        if file.endswith('.faa'):
-            taxon = file.split('.')[0]
+    for fname in os.listdir(input_faa_dir):
+        if fname.endswith('.faa'):
+            taxon = fname.split('.')[0]
             if taxon in prots:
-                taxon2file[taxon] = file
+                taxon2file[taxon] = fname
     # read protein sequences
     seqs = {}
     for taxon in taxon2file:
