@@ -451,7 +451,8 @@ def prototype_selection_constructive_pMedian(dm, num_prototypes):
     return [dm.ids[idx] for idx in prototypes]
 
 
-def prototype_selection_destructive_maxdist(dm, num_prototypes):
+def prototype_selection_destructive_maxdist(dm, num_prototypes,
+                                            seedset=set([])):
     '''Heuristically select k prototypes for given distance matrix.
 
        Prototype selection is NP-hard. This is an implementation of a greedy
@@ -469,6 +470,12 @@ def prototype_selection_destructive_maxdist(dm, num_prototypes):
         Must be >= 2, since a single prototype is useless.
         Must be smaller than the number of elements in the distance matrix,
         otherwise no reduction is necessary.
+    seedset: set(ids)
+        A set of element IDs that are preferably selected for the resulting
+        set. All get selected first, if num_prototype >= len(seedset),
+        otherwise a random sub-selected of seedset is returned.
+        Warning: It will most likely violate the global objective function to
+        pre-select elements.
 
     Returns
     -------
@@ -485,7 +492,7 @@ def prototype_selection_destructive_maxdist(dm, num_prototypes):
 
     Notes
     -----
-    Timing: %timeit -n 100 prototype_selection_constructive_maxdist(dm, 100)
+    Timing: %timeit -n 100 prototype_selection_destructive_maxdist(dm, 100)
             100 loops, best of 3: 2.1 s per loop
             where the dm holds 27,398 elements
     function signature with type annotation for future use with python >= 3.5:
@@ -507,6 +514,12 @@ def prototype_selection_destructive_maxdist(dm, num_prototypes):
 
     # distances from each element to all others
     currDists = dm.data.sum(axis=1)
+
+    # a dirty hack to ensure that all elements of the seedset will be selected
+    # last and thus make it into the resulting set
+    maxVal = currDists.max()
+    for e in seedset:
+        currDists[dm.index(e)] = maxVal*2
 
     # the element to remove first is the one that has smallest distance to all
     # other. "Removing" works by tagging its distance-sum as infinity. Plus, we

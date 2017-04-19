@@ -480,6 +480,41 @@ class prototypeSelection(TestCase):
             res)
         self.assertAlmostEqual(100.32727028, distance_sum(res, self.dm100))
 
+    def test_seedset(self):
+        # test seedset function, first include elements that are supposed to
+        # be selected, to see if result is identical
+        seedset = set(['A', 'P'])
+        res = prototype_selection_destructive_maxdist(self.dm20, 5, seedset)
+        self.assertCountEqual(('A', 'P', 'T', 'C', 'O'), res)
+        self.assertAlmostEqual(5.4494, distance_sum(res, self.dm20))
+
+        # then include different elements, to see result changes, and score
+        # (sum of distances) slightly drops.
+        seedset = ['G', 'I']
+        res = prototype_selection_destructive_maxdist(self.dm20, 5, seedset)
+        self.assertCountEqual(('A', 'G', 'I', 'K', 'T'), res)
+        self.assertAlmostEqual(5.3082, distance_sum(res, self.dm20))
+
+        seedset = ['550.L1S18.s.1.sequence', '550.L1S142.s.1.sequence',
+                   '550.L1S176.s.1.sequence']
+        res = prototype_selection_destructive_maxdist(self.dm100, 10, seedset)
+        self.assertCountEqual(
+            ('550.L1S1.s.1.sequence', '550.L1S15.s.1.sequence',
+             '550.L1S18.s.1.sequence', '550.L1S129.s.1.sequence',
+             '550.L1S132.s.1.sequence', '550.L1S136.s.1.sequence',
+             '550.L1S142.s.1.sequence', '550.L1S147.s.1.sequence',
+             '550.L1S176.s.1.sequence', '550.L1S189.s.1.sequence'),
+            res)
+        self.assertAlmostEqual(26.7457727563, distance_sum(res, self.dm100))
+
+        self.assertRaisesRegex(
+            MissingIDError,
+            "The ID 'X' is not in the dissimilarity matrix.",
+            prototype_selection_destructive_maxdist,
+            self.dm20,
+            5,
+            set(['A', 'X']))
+
 
 if __name__ == '__main__':
     main()
