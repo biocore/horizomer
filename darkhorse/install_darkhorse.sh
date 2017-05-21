@@ -105,10 +105,16 @@ rm $dhv.tar.gz
 # patch DarkHorse scripts
 #   let DarkHorse connect MySQL via a custom socket
 before='my $db_path = "DBI:$db_program:$db_name:$db_host:";'
-after='my $db_path = "DBI:$db_program:$db_name:$db_host;mysql_socket=".$config_params{db_socket};'
-find $appdir/darkhorse/2-$dhv -name "*.pl" -type f \
-     -exec chmod +x {} \; \
-     -exec sed -i "s/$before/$after/g" {} \;
+after1='my $db_path = "DBI:$db_program:$db_name:$db_host;mysql_socket=".$config_params{db_socket};'
+after2='my $db_path = "DBI:$db_program:$db_name:$db_host;mysql_socket=".$dh_config{db_socket};'
+cd $appdir/darkhorse/2-$dhv
+while read pl
+do
+    chmod +x $pl
+    grep -q "%config_params" $pl \
+         && sed -i "s/$before/$after1/g" $pl \
+         || sed -i "s/$before/$after2/g" $pl
+done <<< "$(find . -name '*.pl' -type f)"
 
 # create DarkHorse configuration file
 echo "
@@ -126,7 +132,7 @@ echo "
 [db_user]=root
 [db_user_password]=password
 [db_socket]=$appdir/mysql/mysql.sock
-[max_lines_per_packet]=32000
+[max_lines_per_packet]=4000
 [min_lineage_terms]=2
 [min_align_coverage]=0.7
 " > $appdir/darkhorse/config.txt
@@ -135,9 +141,7 @@ echo "
 mysql -u root -ppassword -e "CREATE DATABASE dh2nr;"
 
 # run DarkHorse installation script
-cd 2-$dhv
 perl install_darkhorse2.pl -c $appdir/darkhorse/config.txt
-cd ..
 
 # stop MySQL service
 mysqladmin -u root -ppassword shutdown
