@@ -8,21 +8,30 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
-# usage: automate the installation of DarkHorse2
+# automated installation script for DarkHorse2
 # this script will install:
 #   MySQL 5.7.18
 #   NCBI nr, taxdump and prot.accession2taxid (up-to-date)
-#   DarkHorse 2.0_rev06
+#   DarkHorse 2.0_rev07
 # the whole system (including MySQL) will run in a local directory and won't
 # affect anything outside
+# usage:
+#   bash install_darkhorse.sh /target/directory/to/install
 
 set -eu
+
+# confirm target install directory
+if [ $# -eq 0 ]
+then
+    echo "usage: bash install_darkhorse.sh /target/install/directory"
+    exit 1
+fi
 appdir=$(readlink -m $1)
 
 # download and compile MySQL source code
 mkdir -p $appdir/mysql
-wget https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-boost-5.7.18.tar.gz
-tar xvf mysql-boost-5.7.18.tar.gz
+url=https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-boost-5.7.18.tar.gz; wget $url || curl -O $url
+tar -zxvf mysql-boost-5.7.18.tar.gz
 cd mysql-5.7.18
 cmake -D MYSQL_DATADIR=$appdir/mysql/data \
       -D SYSCONFDIR=$appdir/mysql/etc \
@@ -79,12 +88,12 @@ mysql -u root --skip-password -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'p
 # download NCBI database
 mkdir -p $appdir/ncbi
 cd $appdir/ncbi
-wget ftp://ftp.ncbi.nih.gov/blast/db/FASTA/nr.gz
-wget ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz
-wget ftp://ftp.ncbi.nih.gov/pub/taxonomy/accession2taxid/prot.accession2taxid.gz
+url=ftp://ftp.ncbi.nih.gov/blast/db/FASTA/nr.gz; wget $url || curl -O $url
+url=ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz; wget $url || curl -O $url
+url=ftp://ftp.ncbi.nih.gov/pub/taxonomy/accession2taxid/prot.accession2taxid.gz; wget $url || curl -O $url
 gunzip nr.gz
 mkdir -p taxdump
-tar xvf taxdump.tar.gz -C taxdump
+tar -zxvf taxdump.tar.gz -C taxdump
 rm taxdump.tar.gz
 gunzip prot.accession2taxid.gz
 
@@ -93,12 +102,12 @@ export PERL_MM_USE_DEFAULT=1
 perl -MCPAN -e 'install App::cpanminus'
 cpanm DBI DBD::mysql
 
-# download DarkHorse 2-rev06
-dhv=rev06
+# download DarkHorse 2-rev07
+dhv=rev07
 mkdir -p $appdir/darkhorse
 cd $appdir/darkhorse
-wget https://github.com/spodell/Darkhorse2/archive/$dhv.tar.gz
-tar xvf $dhv.tar.gz
+url=https://github.com/spodell/Darkhorse2/archive/$dhv.tar.gz; wget $url || curl -O $url
+tar -zxvf $dhv.tar.gz
 mv Darkhorse2-$dhv 2-$dhv
 rm $dhv.tar.gz
 
