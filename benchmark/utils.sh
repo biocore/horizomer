@@ -33,7 +33,7 @@ function get_args() {
     for arg in ${args[@]}
     do
         # set undefined arguments to None
-        if [ -z "$(echo ${!arg})" ]
+        if [ -z "${!arg+x}" ]
         then
             eval $(echo $arg)=None
 

@@ -99,7 +99,7 @@ do
 
     # report the best aa substitution model and the -log likelihood of the tree
     best_tree=$(head -n1 input.tree.phyml.rank.ml)
-    best_model=$(echo ${best_tree} | cut -f1)
+    best_model=$(echo "${best_tree}" | cut -f1)
     printf "$i\t$gene\t${best_tree}\n" >> $output_fp
 
     # copy the best tree to the gene tree directory
