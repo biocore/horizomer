@@ -13,7 +13,7 @@ from shutil import rmtree
 from tempfile import mkdtemp
 from os.path import join, dirname, realpath
 
-from benchmark.sample_taxa import sample_taxa
+from horizomer.benchmark.sample_taxa import sample_taxa
 
 
 class SampleTaxaTests(TestCase):

@@ -16,9 +16,10 @@ from os.path import join, dirname, realpath
 from skbio import io
 from click.testing import CliRunner
 
-from benchmark.sample_genes import (sample_genes,
-                                    write_genes,
-                                    _main)
+from horizomer.benchmark.sample_genes import (
+    sample_genes,
+    write_genes,
+    _main)
 
 
 class SampleGenesTests(TestCase):

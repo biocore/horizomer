@@ -14,13 +14,14 @@ from tempfile import mkdtemp
 from os import remove
 from os.path import join
 
-from benchmark.parse_output import (parse_hgts,
-                                    parse_consel,
-                                    parse_output,
-                                    parse_darkhorse,
-                                    parse_hgtector,
-                                    parse_egid,
-                                    parse_genemark)
+from horizomer.benchmark.parse_output import (
+    parse_hgts,
+    parse_consel,
+    parse_output,
+    parse_darkhorse,
+    parse_hgtector,
+    parse_egid,
+    parse_genemark)
 
 
 class ParseOutputTests(TestCase):

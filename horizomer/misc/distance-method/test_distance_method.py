@@ -22,14 +22,15 @@ import pandas as pd
 from skbio.util import remove_files
 import skbio.io
 
-from distance_method import (preprocess_data,
-                             parse_blast,
-                             normalize_distances,
-                             cluster_distances,
-                             detect_outlier_genes,
-                             launch_blast,
-                             launch_diamond,
-                             distance_method)
+from horizomer.distance_method import (
+    preprocess_data,
+    parse_blast,
+    normalize_distances,
+    cluster_distances,
+    detect_outlier_genes,
+    launch_blast,
+    launch_diamond,
+    distance_method)
 
 
 class DistanceMethodTests(TestCase):

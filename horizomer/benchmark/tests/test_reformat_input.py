@@ -16,18 +16,19 @@ from os.path import join
 
 from skbio import TreeNode, TabularMSA, Protein
 
-from benchmark.reformat_input import (join_trees,
-                                      trim_gene_tree_leaves,
-                                      species_gene_mapping,
-                                      remove_branch_lengths,
-                                      id_mapper,
-                                      reformat_rangerdtl,
-                                      reformat_trex,
-                                      reformat_riatahgt,
-                                      reformat_jane4,
-                                      reformat_treepuzzle,
-                                      reformat_genemark,
-                                      reformat_egid)
+from horizomer.benchmark.reformat_input import (
+    join_trees,
+    trim_gene_tree_leaves,
+    species_gene_mapping,
+    remove_branch_lengths,
+    id_mapper,
+    reformat_rangerdtl,
+    reformat_trex,
+    reformat_riatahgt,
+    reformat_jane4,
+    reformat_treepuzzle,
+    reformat_genemark,
+    reformat_egid)
 
 
 class ReformatInputTests(TestCase):

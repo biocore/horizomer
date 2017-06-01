@@ -14,9 +14,10 @@ from tempfile import mkdtemp
 from os import remove
 from os.path import join
 
-from benchmark.compute_accuracy import (parse_expected_transfers,
-                                        parse_observed_transfers,
-                                        compute_accuracy)
+from horizomer.benchmark.compute_accuracy import (
+    parse_expected_transfers,
+    parse_observed_transfers,
+    compute_accuracy)
 
 
 class ComputeAccuracyTests(TestCase):
