@@ -1,7 +1,9 @@
+#!/usr/bin/env python
+
 # ----------------------------------------------------------------------------
-# Copyright (c) 2015, The WGS-HGT Development Team.
+# Copyright (c) 2015--, The Horizomer Development Team.
 #
-# Distributed under the terms of the BSD 3-clause License.
+# Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
@@ -104,7 +106,7 @@ def launch_orthofinder(proteomes_dir, output_dir, threads, verbose=False):
                                         'run_orthofinder.sh'),
                            '--working-dir', output_dir,
                            '--input-faa-dir', proteomes_dir,
-                           '--py2-conda-env', 'wgshgt_py2',
+                           '--py2-conda-env', 'horizomer_py2',
                            '--threads', str(threads),
                            '--stdout', '/dev/null',
                            '--stderr', '/dev/null',

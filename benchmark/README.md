@@ -25,7 +25,7 @@
 
 ### Running benchmark
 
-See [INSTALL.md](https://github.com/biocore/WGS-HGT/blob/master/benchmark/INSTALL.md)
+See [INSTALL.md](https://github.com/biocore/horizomer/blob/master/benchmark/INSTALL.md)
 for the dependencies list.
 
 ### Additional information

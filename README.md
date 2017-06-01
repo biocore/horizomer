@@ -1,4 +1,4 @@
-### WGS-HGT
+### Horizomer
 
 [![Build Status](https://travis-ci.org/biocore/WGS-HGT.png?branch=master)](https://travis-ci.org/biocore/WGS-HGT)
 [![Coverage Status](https://coveralls.io/repos/biocore/WGS-HGT/badge.svg?branch=master&service=github)](https://coveralls.io/github/biocore/WGS-HGT?branch=master)

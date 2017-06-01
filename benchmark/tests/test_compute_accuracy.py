@@ -1,7 +1,9 @@
+#!/usr/bin/env python
+
 # ----------------------------------------------------------------------------
-# Copyright (c) 2015, The WGS-HGT Development Team.
+# Copyright (c) 2015--, The Horizomer Development Team.
 #
-# Distributed under the terms of the BSD 3-clause License.
+# Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------

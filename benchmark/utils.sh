@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # ----------------------------------------------------------------------------
-# Copyright (c) 2015--, The WGS-HGT Development Team.
+# Copyright (c) 2015--, The Horizomer Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
-# The full license is in the file COPYING.txt, distributed with this software.
+# The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
 # usage: contains multiple functions used by other scripts
@@ -40,7 +40,8 @@ function get_args() {
         # convert files and directories to full paths
         elif [[ "$arg" == *_fp || "$arg" == *_dir ]]
         then
-            eval $(echo $arg)=$(readlink -m ${!arg})
+            # for Mac OS compatibility
+            eval $(echo $arg)=$(readlink -m ${!arg} || greadlink -m ${!arg})
         fi
     done
 }

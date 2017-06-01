@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # ----------------------------------------------------------------------------
-# Copyright (c) 2015--, The WGS-HGT Development Team.
+# Copyright (c) 2015--, The Horizomer Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
-# The full license is in the file COPYING.txt, distributed with this software.
+# The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
 # automated installation script for DarkHorse2
@@ -127,7 +127,7 @@ done <<< "$(find . -name '*.pl' -type f)"
 
 # create DarkHorse configuration file
 echo "
-# DarkHorse2 configuration file for the WGS-HGT pipeline
+# DarkHorse2 configuration file for the Horizomer pipeline
 # installation parameters
 [program_directory]=$appdir/darkhorse/2-$dhv
 [genbank_nr_fasta_path]=$appdir/ncbi/nr

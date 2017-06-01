@@ -1,11 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env python
 
 # ----------------------------------------------------------------------------
-# Copyright (c) 2015--, The WGS-HGT Development Team.
+# Copyright (c) 2015--, The Horizomer Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
-# The full license is in the file COPYING.txt, distributed with this software.
+# The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
 # purpose: simulate genomes with ALF
@@ -73,7 +73,7 @@ do
                     sed -i "s/\[&&NHX:D=N\]//g" $file
                     # remove empty lines
                     sed -i "/^$/d" $file
-                done 
+                done
                 i=$((i+1))
             done
         done

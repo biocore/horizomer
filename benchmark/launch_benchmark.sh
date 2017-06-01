@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # ----------------------------------------------------------------------------
-# Copyright (c) 2015--, The WGS-HGT Development Team.
+# Copyright (c) 2015--, The Horizomer Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
-# The full license is in the file COPYING.txt, distributed with this software.
+# The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
 # This script will preprocess files (determine orthologous genes, compute
@@ -144,7 +144,7 @@ done < ${working_dir}/sampled_taxa.txt
 ##    using OrthoFinder
 bash ${scripts_dir}/run_orthofinder.sh --working-dir ${working_dir} \
                                        --input-faa-dir ${working_dir}/sampled_taxa_faa \
-                                       --py2-conda-env wgshgt_py2 \
+                                       --py2-conda-env horizomer_py2 \
                                        --threads ${threads} \
                                        --stdout /dev/null \
                                        --stderr /dev/null \
