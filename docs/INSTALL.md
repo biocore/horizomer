@@ -2,11 +2,11 @@
 
 (updated on 2/9/2017)
 
-The WGS-HGT pipeline relies on multiple external applications. We are working to simplify the installation process. Please follow the instructions in this document.
+The Horizomer pipeline relies on multiple external applications. We are working to simplify the installation process. Please follow the instructions in this document.
 
 ### Operating system
 
-A Unix-like operating system (e.g., Linux or Mac OS) is required to run WGS-HGT.
+A Unix-like operating system (e.g., Linux or Mac OS) is required to run Horizomer.
 
 Note: The pipeline has been tested on CentOS 6.6, Ubuntu 16.04, and Mac OS 10.11.
 
@@ -16,8 +16,8 @@ Have [Miniconda](https://conda.io/miniconda.html) or [Anaconda](https://anaconda
 
 Create a conda environment and install required libraries:
 ```
-conda create -n wgshgt python=3.5
-source activate wgshgt
+conda create -n horizomer python=3.5
+source activate horizomer
 conda install click biopython
 conda install -c biocore scikit-bio
 ```
@@ -34,7 +34,7 @@ source deactivate
 
 For applications that require Python 2 (specifically: **OrthoFinder**), create another conda environment and install them:
 ```
-conda create -n wgshgt_py2 python=2.7 -c bioconda orthofinder
+conda create -n horizomer_py2 python=2.7 -c bioconda orthofinder
 ```
 
 The remaining applications have to be installed manually. Please refer to the table below for details.
@@ -132,7 +132,7 @@ Available from the default Ubuntu 16.04 LTS repository (universe):
 
 #### Additional notes
 
-The [ETE team](http://etetoolkit.org/) has released a conda package: [ete3_external_apps](https://anaconda.org/etetoolkit/ete3_external_apps), which wraps up multiple popular phylogenetics applications (including PhyML and Kalign). This is not required for WGS-HGT, but if you wish to install, do:
+The [ETE team](http://etetoolkit.org/) has released a conda package: [ete3_external_apps](https://anaconda.org/etetoolkit/ete3_external_apps), which wraps up multiple popular phylogenetics applications (including PhyML and Kalign). This is not required for Horizomer, but if you wish to install, do:
 ```
 conda install -c etetoolkit ete3_external_apps
 ```

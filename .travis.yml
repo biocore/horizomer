@@ -1,5 +1,8 @@
-language: python
 sudo: false
+language: python
+os:
+  - linux
+  # - osx
 env:
   - PYTHON_VERSION="3.4"
   - PYTHON_VERSION="3.5"
@@ -34,9 +37,10 @@ install:
   - pip install -r ci/pip_requirements.txt
   - pip install .
   # Install OrthoFinder (requires Python 2)
-  - conda create -n wgshgt_py2 -c bioconda python=2 orthofinder
+  - conda create -n horizomer_py2 -c bioconda python=2 orthofinder
 script:
-  - nosetests --with-doctest --with-coverage
-  - flake8 benchmark/*.py benchmark/tests/*.py distance-method/*.py
+  - WITH_COVERAGE=TRUE make all
+  # - nosetests --with-doctest --with-coverage
+  # - flake8 .
 after_success:
   - coveralls

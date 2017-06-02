@@ -2,11 +2,11 @@
 
 [run]
 omit =
-    */test*
+    */tests*
     */__init__.py
-source = benchmark,distance-method,phylogeny
+source = horizomer
 branch = True
-include = */*
+include = */horizomer/*
 
 [report]
 exclude_lines =
@@ -15,5 +15,5 @@ exclude_lines =
     raise NotImplementedError
     if __name__ == .__main__.:
 omit =
-    */test*
+    */tests*
     */__init__.py
