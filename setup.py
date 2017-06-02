@@ -8,7 +8,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from setuptools import setup
+from setuptools import setup, find_packages
 from glob import glob
 
 
@@ -34,12 +34,15 @@ long_description = ("Horizomer: workflow for whole genome HGT detection.")
 
 classifiers = [s.strip() for s in classes.split('\n') if s]
 
+keywords = 'horizontal gene transfer, whole genome'
+
 setup(name='horizomer',
       version=__version__,
       long_description=long_description,
       license="BSD",
       description='Horizomer',
       classifiers=classifiers,
+      keywords=keywords,
       author="Horizomer development team",
       author_email="jenya.kopylov@gmail.com",
       maintainer="Horizomer development team",
