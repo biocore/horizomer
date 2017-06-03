@@ -45,10 +45,10 @@ mkdir -p input
 mkdir -p output
 mkdir -p temp
 ln -s ${phylophlan_install_dir}/data
-ln -s ${input_faa_dir} input/faa
+ln -s ${input_faa_dir} input/all
 
 # command
-cmd="${phylophlan_install_dir}/phylophlan.py -u faa --nproc $threads --c_dat temp"
+cmd="${phylophlan_install_dir}/phylophlan.py -u all --nproc $threads --c_dat temp"
 $verbose && echo "Command:"$'\n'"  $cmd"
 
 # run PhyloPhlAn and record time
