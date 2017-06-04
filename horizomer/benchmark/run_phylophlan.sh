@@ -11,15 +11,13 @@
 # usage: run PhyloPhlAn to build phylogenetic tree of whole genomes
 
 # prerequisites:
-# one needs to install the development version of PhyloPhlAn:
-#   hg clone https://bitbucket.org/nsegata/phylophlan
-#   cd phylophlan
-#   hg up dev
+# one needs to install a certain development version of PhyloPhlAn:
+#   hg clone https://bitbucket.org/nsegata/phylophlan -r 2c0e61a
+# one needs a Python 2 conda environment with biopython installed
 # one needs the follow programs installed and callable from $PATH:
 #   usearch
 #   muscle
 #   FastTree
-# one also needs biopython installed
 
 set -eu
 source $(dirname "$0")/utils.sh
@@ -27,6 +25,7 @@ args=(
     working_dir
     input_faa_dir
     scripts_dir
+    py2_conda_env
     phylophlan_install_dir
     threads
     stdout
@@ -35,10 +34,8 @@ args=(
 )
 get_args "$@"
 
-if [ "$verbose" == "true" ]
-then
-    echo "Running PhyloPhlAn .."
-fi
+$verbose && echo "Running PhyloPhlAn .."
+source activate ${py2_conda_env}
 
 # set up
 mkdir -p ${working_dir}/phylophlan
@@ -48,14 +45,11 @@ mkdir -p input
 mkdir -p output
 mkdir -p temp
 ln -s ${phylophlan_install_dir}/data
-ln -s ${input_faa_dir} input/genomes
+ln -s ${input_faa_dir} input/all
 
 # command
-cmd="${phylophlan_install_dir}/phylophlan.py -u input --nproc $threads --c_dat temp"
-if [ "$verbose" == "true" ]
-then
-    echo "Command:"$'\n'"  $cmd"
-fi
+cmd="${phylophlan_install_dir}/phylophlan.py -u all --nproc $threads --c_dat temp"
+$verbose && echo "Command:"$'\n'"  $cmd"
 
 # run PhyloPhlAn and record time
 TIMEFORMAT='%U %R'
@@ -68,6 +62,8 @@ echo "Total wall time PhyloPhlAn: ${wall_time}" >> $stderr
 # tear down
 rm -rf temp
 cd $PWD
+source deactivate
+$verbose && echo "Done"
 
 # output genome tree will be:
 # ${working_dir}/phylophlan/output/genomes.tree.nwk
