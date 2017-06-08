@@ -32,9 +32,9 @@ Exit the conda environment when done.
 source deactivate
 ```
 
-For applications that require Python 2 (specifically: **OrthoFinder**), create another conda environment and install them:
+For applications that require Python 2 (specifically: **PhyloPhlAn** and **OrthoFinder**), create another conda environment and install them:
 ```
-conda create -n horizomer_py2 python=2.7 -c bioconda orthofinder
+conda create -n horizomer_py2 -c bioconda python=2.7 biopython orthofinder
 ```
 
 The remaining applications have to be installed manually. Please refer to the table below for details.

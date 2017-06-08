@@ -182,9 +182,9 @@ def parse_egid(input_f, genbank_fp):
     """
     genes = {}
     gb = Sequence.read(genbank_fp, format='genbank')
-    for feature in gb.interval_metadata._intervals:
+    for feature in gb.interval_metadata.query(metadata={'type': 'CDS'}):
         m = feature.metadata
-        if m['type'] == 'CDS' and 'protein_id' in m:
+        if 'protein_id' in m:
             protein_id = m['protein_id'].replace('\"', '')
             if protein_id not in genes:
                 # in scikit-bio, this number is the start location - 1

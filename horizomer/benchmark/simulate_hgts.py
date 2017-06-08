@@ -68,9 +68,9 @@ def extract_genbank(genbank_fp, verbose=False):
     seq = Sequence.read(genbank_fp, format='genbank')
     if verbose:
         sys.stdout.write('\t\tDone.\n')
-    for feature in seq.interval_metadata._intervals:
+    for feature in seq.interval_metadata.query(metadata={'type': 'CDS'}):
         m = feature.metadata
-        if m['type'] == 'CDS':
+        if 'protein_id' in m:
             protein_id = m['protein_id']
             translation = m['translation']
             strand = m['strand']
@@ -470,7 +470,7 @@ def write_results(genes_donor,
     seq_donor.write(donor_genome_gb_fp, format='genbank')
     if 'LOCUS' in seq_recip.metadata:
         seq_recip.metadata['LOCUS']['size'] = len(str(seq_recip))
-    seq_recip.interval_metadata._intervals = []
+    # seq_recip.interval_metadata._intervals = []
     for (gene, l) in sorted(genes_recip.items(), key=lambda x: x[1][1]):
         location = str(l[1]) + '..' + str(l[2])
         if l[3] == '-':
