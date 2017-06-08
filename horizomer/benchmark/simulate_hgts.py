@@ -68,9 +68,9 @@ def extract_genbank(genbank_fp, verbose=False):
     seq = Sequence.read(genbank_fp, format='genbank')
     if verbose:
         sys.stdout.write('\t\tDone.\n')
-    for feature in seq.interval_metadata._intervals:
+    for feature in seq.interval_metadata.query(metadata={'type': 'CDS'}):
         m = feature.metadata
-        if m['type'] == 'CDS':
+        if 'protein_id' in m:
             protein_id = m['protein_id']
             translation = m['translation']
             strand = m['strand']

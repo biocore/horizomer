@@ -370,9 +370,9 @@ def _merge_genbank_seqs(genbank_fp):
         size = gb.metadata['LOCUS']['size']
         loci.append([locus_name, size])
         nucl_seq += str(gb)
-        for feature in gb.interval_metadata._intervals:
+        for feature in gb.interval_metadata.query(metadata={'type': 'CDS'}):
             m = feature.metadata
-            if m['type'] == 'CDS' and 'protein_id' in m:
+            if 'protein_id' in m:
                 protein_id = m['protein_id'].replace('\"', '')
                 if protein_id not in genes:
                     translation = m['translation'].replace(' ', '') \
