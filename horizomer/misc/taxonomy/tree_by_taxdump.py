@@ -11,8 +11,8 @@ with open(sys.argv[1], 'r') as f:
     for line in f:
         # format of nodes.dmp:
         # taxid <tab> | <tab> parent taxid <tab> | <tab> more info...
-        l = line.rstrip('\r\n').split('\t|\t')
-        taxdump[l[0]] = {'parent': l[1], 'children': set()}
+        x = line.rstrip('\r\n').split('\t|\t')
+        taxdump[x[0]] = {'parent': x[1], 'children': set()}
 
 # identify root of the tree and children of all nodes
 root = None
@@ -55,7 +55,7 @@ for g, tid in g2tid.items():
         tid2gs[tid] = set([g])
     else:
         tid2gs[tid].add(g)
-tids = set(tid2gs.keys())  # TaxIDs to be retained
+tids = set(tid2gs)  # TaxIDs to be retained
 print('The dataset has %d genomes assigned to %d TaxIDs.'
       % (len(g2tid), len(tids)))
 

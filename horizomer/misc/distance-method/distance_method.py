@@ -79,7 +79,7 @@ class Command(object):
                 self.process = subprocess.Popen(self.command, **kwargs)
                 self.output, self.error = self.process.communicate()
                 self.status = self.process.returncode
-            except:
+            except subprocess.CalledProcessError:
                 self.error = traceback.format_exc()
                 self.status = -1
         # default stdout and stderr

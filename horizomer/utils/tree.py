@@ -78,17 +78,17 @@ def read_taxdump(nodes_fp, names_fp=None):
     # format of nodes.dmp: taxid | parent taxid | rank | more info...
     with open(nodes_fp, 'r') as f:
         for line in f:
-            l = line.rstrip('\r\n').replace('\t|', '').split('\t')
-            taxdump[l[0]] = {'parent': l[1], 'rank': l[2], 'name': '',
+            x = line.rstrip('\r\n').replace('\t|', '').split('\t')
+            taxdump[x[0]] = {'parent': x[1], 'rank': x[2], 'name': '',
                              'children': set()}
 
     # format of names.dmp: taxid | name | unique name | name class |
     if names_fp is not None:
         with open(names_fp, 'r') as f:
             for line in f:
-                l = line.rstrip('\r\n').replace('\t|', '').split('\t')
-                if l[3] == 'scientific name':
-                    taxdump[l[0]]['name'] = l[1]
+                x = line.rstrip('\r\n').replace('\t|', '').split('\t')
+                if x[3] == 'scientific name':
+                    taxdump[x[0]]['name'] = x[1]
 
     # identify children taxids
     for tid in taxdump:
@@ -114,7 +114,6 @@ def build_taxdump_tree(taxdump):
     skbio.TreeNode
         a tree representing taxdump
     """
-
     # create the tree from root
     tree = TreeNode('1')
 
