@@ -568,9 +568,9 @@ def normalize_distances(phylip_fp,
     for species in missing_species:
         orig_order_labels.append("%s_X" % species)
         # indicate missing gene for current species
-        l = list(bitvector_gene)
-        l[int(species)] = 'O'
-        bitvector_gene = ''.join(l)
+        x = list(bitvector_gene)
+        x[int(species)] = 'O'
+        bitvector_gene = ''.join(x)
 
     # update species set counts
     if bitvector_gene not in species_set_dict:
