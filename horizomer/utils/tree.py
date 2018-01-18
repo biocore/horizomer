@@ -68,10 +68,16 @@ def read_taxdump(nodes_fp, names_fp=None):
     Returns
     -------
     dict of dict
-        {TaxID : {'parent' : parent TaxID,
-            'rank' : taxonomic rank,
-            'name' : taxon name, empty if names_fp is None,
-            'children' : set of (child TaxIDs)}}
+        taxid : {
+            'parent' : str
+                parent taxid
+            'rank' : str
+                taxonomic rank
+            'name' : str
+                taxon name, empty if names_fp is None
+            'children' : set of str
+                child taxids
+        }
     """
     taxdump = {}
 
@@ -93,9 +99,7 @@ def read_taxdump(nodes_fp, names_fp=None):
     # identify children taxids
     for tid in taxdump:
         pid = taxdump[tid]['parent']
-        if pid not in taxdump:
-            raise ValueError('TaxID %s is not defined.' % pid)
-        if tid != pid:
+        if tid != pid:  # skip root whose taxid equals its parent
             taxdump[pid]['children'].add(tid)
 
     return taxdump
@@ -107,7 +111,7 @@ def build_taxdump_tree(taxdump):
     Parameters
     ----------
     taxdump : dict of dict
-        attributes of each TaxID, see read_taxdump
+        attributes of each taxid, see read_taxdump
 
     Returns
     -------
