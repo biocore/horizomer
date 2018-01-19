@@ -47,11 +47,9 @@ def compare_topology(node1, node2):
             return False
 
         # recursively test all children
-        res = []
-        for child1, child2 in zip(children1, children2):
-            res.append(compare_topology(child1, child2))
-        if res.count(True) < len(res):
-            return False
+        return all([compare_topology(child1, child2) for (child1, child2)
+                   in zip(children1, children2)])
+
     return True
 
 
