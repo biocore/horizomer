@@ -15,8 +15,9 @@
 from skbio import TreeNode
 
 
-def compare_topology(node1, node2):
-    """Test whether the topologies of two trees are identical.
+def compare_topology(tree1, tree2):
+    """Test whether the topologies of two trees with all nodes assigned
+    unique IDs are identical.
 
     Parameters
     ----------
@@ -32,25 +33,15 @@ def compare_topology(node1, node2):
 
     Notes
     -----
-    Flipping child nodes does not change topology.
-    Branch lengths are ignored.
+    Given all nodes (internal nodes or tips) have unique IDs, one just needs
+    to check if all node-to-parent pairs are identical.
+    Flipping child nodes does not change topology. Branch lengths are ignored
+    when comparing topology.
     """
-    if len(node1.children) != len(node2.children):
-        return False
-    elif len(node1.children) > 0:
-        # check if sorted child names are identical
-        children1 = sorted(node1.children, key=lambda x: x.name)
-        children2 = sorted(node2.children, key=lambda x: x.name)
-        taxa1 = [x.name for x in children1]
-        taxa2 = [x.name for x in children2]
-        if taxa1 != taxa2:
-            return False
-
-        # recursively test all children
-        return all([compare_topology(child1, child2) for (child1, child2)
-                   in zip(children1, children2)])
-
-    return True
+    n2p1, n2p2 = ({node.name: node.parent.name
+                  for node in tree.traverse() if not node.is_root()}
+                  for tree in (tree1, tree2))
+    return n2p1 == n2p2
 
 
 def read_taxdump(nodes_fp, names_fp=None):
