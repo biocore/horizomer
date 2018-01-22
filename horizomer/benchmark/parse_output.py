@@ -122,12 +122,12 @@ def parse_darkhorse(input_f, output_fp, low_lpi=0.0, high_lpi=0.6):
     hgts = []
     # skip header
     next(input_f)
-    for l in input_f:
-        l = l.strip('\r\n').split('\t')
-        best_hit_ids.add(l[3])
-        if low_lpi < float(l[5]) < high_lpi:
-            hgt = '\t'.join((l[0], l[3], l[12], l[13], l[14],
-                             l[6], l[9], l[4]))
+    for line in input_f:
+        x = line.strip('\r\n').split('\t')
+        best_hit_ids.add(x[3])
+        if low_lpi < float(x[5]) < high_lpi:
+            hgt = '\t'.join((x[0], x[3], x[12], x[13], x[14],
+                             x[6], x[9], x[4]))
             hgts.append(hgt)
     if output_fp:
         with open(output_fp, 'w') as output_f:
@@ -152,9 +152,9 @@ def parse_hgtector(input_f):
     """
     hgts = []
     for line in input_f:
-        l = line.strip('\r\n').split('\t')
-        if (len(l) == 15) and (l[7] == '1'):
-            hgt = '\t'.join((l[0], l[12], l[13], l[14], l[10], l[11]))
+        x = line.strip('\r\n').split('\t')
+        if (len(x) == 15) and (x[7] == '1'):
+            hgt = '\t'.join((x[0], x[12], x[13], x[14], x[10], x[11]))
             hgts.append(hgt)
     return '\n'.join(hgts)
 
@@ -193,12 +193,12 @@ def parse_egid(input_f, genbank_fp):
                 genes[protein_id] = (start, end)
     genes_in_gi = {}
     for line in input_f:
-        l = line.strip().split()
+        x = line.strip().split()
         # a valid GI definition should have at least 2 columns
-        if len(l) < 2:
+        if len(x) < 2:
             continue
-        start = int(l[0])
-        end = int(l[1])
+        start = int(x[0])
+        end = int(x[1])
         for (gene, pos) in genes.items():
             if (pos[0] >= start and pos[1] <= end):
                 if gene not in genes_in_gi:
@@ -241,16 +241,16 @@ def parse_genemark(input_f, genbank_fp):
     atypical_genes = []
     reading = False
     for line in input_f:
-        l = line.strip().split()
-        if len(l) == 2 and l == ['#', 'Length']:
+        x = line.strip().split()
+        if len(x) == 2 and x == ['#', 'Length']:
             reading = True
         # atypical genes have class '2' in the 6th column
-        elif reading and len(l) == 6 and l[5] == '2':
-            (start, end, strand) = (int(l[2].lstrip('<>')),
-                                    int(l[3].lstrip('<>')),
-                                    l[1])
-            for (gene, l) in genes.items():
-                if l[0] == start and l[1] == end and l[2] == strand:
+        elif reading and len(x) == 6 and x[5] == '2':
+            (start, end, strand) = (int(x[2].lstrip('<>')),
+                                    int(x[3].lstrip('<>')),
+                                    x[1])
+            for (gene, x) in genes.items():
+                if x[0] == start and x[1] == end and x[2] == strand:
                     atypical_genes.append(gene)
     return '\n'.join(sorted(atypical_genes))
 
