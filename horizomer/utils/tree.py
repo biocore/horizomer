@@ -15,6 +15,25 @@
 from skbio import TreeNode
 
 
+def has_duplicates(tree):
+    """Test whether there are duplicated taxa (tip names) in a tree.
+
+    Parameters
+    ----------
+    tree : skbio.TreeNode
+        tree for check for duplicates
+
+    Returns
+    -------
+    bool
+        whether there are duplicates
+    """
+    taxa = [tip.name for tip in tree.tips()]
+    if '' in taxa or None in taxa:
+        raise ValueError('Empty taxon name(s) found.')
+    return len(set(taxa)) < len(taxa)
+
+
 def compare_topology(tree1, tree2):
     """Test whether the topologies of two trees with all nodes assigned
     unique IDs are identical.
@@ -42,6 +61,34 @@ def compare_topology(tree1, tree2):
                   for node in tree.traverse() if not node.is_root()}
                   for tree in (tree1, tree2))
     return n2p1 == n2p2
+
+
+def intersect_trees(tree1, tree2):
+    """Shrink two trees to contain only overlapping taxa.
+
+    Parameters
+    ----------
+    tree1 : skbio.TreeNode
+        first tree to intersect
+    tree2 : skbio.TreeNode
+        second tree to intersect
+
+    Returns
+    -------
+    tuple of two TreeNodes
+        resulting trees containing only overlapping taxa
+    """
+    for tree in (tree1, tree2):
+        if has_duplicates(tree):
+            raise ValueError('Either tree has duplicated taxa.')
+    taxa1 = set([tip.name for tip in tree1.tips()])
+    taxa2 = set([tip.name for tip in tree2.tips()])
+    taxa_lap = taxa1.intersection(taxa2)
+    if len(taxa_lap) == 0:
+        raise ValueError('Trees have no overlapping taxa.')
+    tree1_lap = tree1.shear(taxa_lap)
+    tree2_lap = tree2.shear(taxa_lap)
+    return (tree1_lap, tree2_lap)
 
 
 def read_taxdump(nodes_fp, names_fp=None):
