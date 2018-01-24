@@ -15,6 +15,7 @@ from os.path import join, dirname, realpath
 from skbio import TreeNode
 
 from horizomer.utils.tree import (compare_topology,
+                                  intersect_trees,
                                   read_taxdump,
                                   build_taxdump_tree)
 
@@ -84,6 +85,42 @@ class TreeTests(TestCase):
         tree2 = '(((4,1)8)7,(6,3)2)5;'
         obs = compare_topology(TreeNode.read([tree1]), TreeNode.read([tree2]))
         self.assertFalse(obs)
+
+    def test_intersect_trees(self):
+        """Test intersecting two trees."""
+        # test trees with identical taxa
+        tree1 = '((a,b),(c,d));'
+        tree2 = '(a,(b,c,d));'
+        obs = intersect_trees(TreeNode.read([tree1]), TreeNode.read([tree2]))
+        exp = (TreeNode.read([tree1]), TreeNode.read([tree2]))
+        for i in range(2):
+            self.assertEqual(obs[i].compare_subsets(exp[i]), 0.0)
+
+        # test trees with partially different taxa
+        tree1 = '((a,b),(c,d));'
+        tree2 = '((a,b),(c,e));'
+        obs = intersect_trees(TreeNode.read([tree1]), TreeNode.read([tree2]))
+        tree1_lap = '((a,b),c);'
+        tree2_lap = '((a,b),e);'
+        exp = (TreeNode.read([tree1_lap]), TreeNode.read([tree2_lap]))
+        for i in range(2):
+            self.assertEqual(obs[i].compare_subsets(exp[i]), 0.0)
+
+        tree1 = '(((a,b),(c,d)),((e,f,g),h));'
+        tree2 = '(a,((b,x),(d,y,(f,g,h))));'
+        obs = intersect_trees(TreeNode.read([tree1]), TreeNode.read([tree2]))
+        tree1_lap = '(((a,b),d),((f,g),h));'
+        tree2_lap = '(a,(b,(d,(f,g,h))));'
+        exp = (TreeNode.read([tree1_lap]), TreeNode.read([tree2_lap]))
+        for i in range(2):
+            self.assertEqual(obs[i].compare_subsets(exp[i]), 0.0)
+
+        # test trees with completely different taxa
+        tree1 = '((a,b),(c,d));'
+        tree2 = '((e,f),(g,h));'
+        errmsg = 'Trees have no overlapping taxa.'
+        with self.assertRaisesRegex(ValueError, errmsg):
+            intersect_trees(TreeNode.read([tree1]), TreeNode.read([tree2]))
 
     def test_read_taxdump(self):
         """Test reading NCBI taxdump."""

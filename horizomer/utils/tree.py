@@ -44,6 +44,31 @@ def compare_topology(tree1, tree2):
     return n2p1 == n2p2
 
 
+def intersect_trees(tree1, tree2):
+    """Shrink two trees to contain only overlapping taxa.
+
+    Parameters
+    ----------
+    tree1 : skbio.TreeNode
+        first tree to intersect
+    tree2 : skbio.TreeNode
+        second tree to intersect
+
+    Returns
+    -------
+    tuple of two TreeNodes
+        resulting trees containing only overlapping taxa
+    """
+    taxa1 = set([tip.name for tip in tree1.tips()])
+    taxa2 = set([tip.name for tip in tree2.tips()])
+    taxa_lap = taxa1.intersection(taxa2)
+    if len(taxa_lap) == 0:
+        raise ValueError('Trees have no overlapping taxa.')
+    tree1_lap = tree1.shear(taxa_lap)
+    tree2_lap = tree2.shear(taxa_lap)
+    return (tree1_lap, tree2_lap)
+
+
 def read_taxdump(nodes_fp, names_fp=None):
     """Read NCBI taxdump.
 
