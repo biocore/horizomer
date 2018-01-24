@@ -15,6 +15,25 @@
 from skbio import TreeNode
 
 
+def has_duplicates(tree):
+    """Test whether there are duplicated taxa (tip names) in a tree.
+
+    Parameters
+    ----------
+    tree : skbio.TreeNode
+        tree for check for duplicates
+
+    Returns
+    -------
+    bool
+        whether there are duplicates
+    """
+    taxa = [tip.name for tip in tree.tips()]
+    if '' in taxa or None in taxa:
+        raise ValueError('Empty taxon name(s) found.')
+    return len(set(taxa)) < len(taxa)
+
+
 def compare_topology(tree1, tree2):
     """Test whether the topologies of two trees with all nodes assigned
     unique IDs are identical.
@@ -59,6 +78,9 @@ def intersect_trees(tree1, tree2):
     tuple of two TreeNodes
         resulting trees containing only overlapping taxa
     """
+    for tree in (tree1, tree2):
+        if has_duplicates(tree):
+            raise ValueError('Either tree has duplicated taxa.')
     taxa1 = set([tip.name for tip in tree1.tips()])
     taxa2 = set([tip.name for tip in tree2.tips()])
     taxa_lap = taxa1.intersection(taxa2)

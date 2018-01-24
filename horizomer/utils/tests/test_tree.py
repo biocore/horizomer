@@ -14,10 +14,9 @@ from tempfile import mkdtemp
 from os.path import join, dirname, realpath
 from skbio import TreeNode
 
-from horizomer.utils.tree import (compare_topology,
-                                  intersect_trees,
-                                  read_taxdump,
-                                  build_taxdump_tree)
+from horizomer.utils.tree import (
+    has_duplicates, compare_topology, intersect_trees, read_taxdump,
+    build_taxdump_tree)
 
 
 class TreeTests(TestCase):
@@ -39,6 +38,28 @@ class TreeTests(TestCase):
         # there isn't any file to remove at the moment
         # but in the future there will be
         rmtree(self.working_dir)
+
+    def test_has_duplicates(self):
+        """Test checking for duplicated taxa."""
+        # test tree without duplicates
+        tree = '((a,b),(c,d));'
+        obs = has_duplicates(TreeNode.read([tree]))
+        self.assertFalse(obs)
+
+        # test tree with duplicates
+        tree = '((a,a),(c,a));'
+        obs = has_duplicates(TreeNode.read([tree]))
+        self.assertTrue(obs)
+
+        tree = '((1,(2,x)),4,(5,(6,x,8)));'
+        obs = has_duplicates(TreeNode.read([tree]))
+        self.assertTrue(obs)
+
+        # test tree with empty taxon names
+        tree = '((1,(2,,)),4,(5,(6,,8)));'
+        msg = 'Empty taxon name\(s\) found.'
+        with self.assertRaisesRegex(ValueError, msg):
+            has_duplicates(TreeNode.read([tree]))
 
     def test_compare_topology(self):
         """Test comparing topologies of two trees."""
@@ -118,8 +139,15 @@ class TreeTests(TestCase):
         # test trees with completely different taxa
         tree1 = '((a,b),(c,d));'
         tree2 = '((e,f),(g,h));'
-        errmsg = 'Trees have no overlapping taxa.'
-        with self.assertRaisesRegex(ValueError, errmsg):
+        msg = 'Trees have no overlapping taxa.'
+        with self.assertRaisesRegex(ValueError, msg):
+            intersect_trees(TreeNode.read([tree1]), TreeNode.read([tree2]))
+
+        # test trees with duplicated taxa
+        tree1 = '((a,b),(c,d));'
+        tree2 = '((a,a),(b,c));'
+        msg = 'Either tree has duplicated taxa.'
+        with self.assertRaisesRegex(ValueError, msg):
             intersect_trees(TreeNode.read([tree1]), TreeNode.read([tree2]))
 
     def test_read_taxdump(self):
