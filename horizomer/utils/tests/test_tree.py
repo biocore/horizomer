@@ -15,8 +15,9 @@ from os.path import join, dirname, realpath
 from skbio import TreeNode
 
 from horizomer.utils.tree import (
-    has_duplicates, compare_topology, intersect_trees, read_taxdump,
-    build_taxdump_tree)
+    support, collapse, has_duplicates, compare_topology, intersect_trees,
+    collapse_short_branches, collapse_low_support_nodes,
+    read_taxdump, build_taxdump_tree)
 
 
 class TreeTests(TestCase):
@@ -39,6 +40,53 @@ class TreeTests(TestCase):
         # but in the future there will be
         rmtree(self.working_dir)
 
+    def test_support(self):
+        """Test getting support value of a node."""
+        # test nodes with support alone as label
+        tree = TreeNode.read(['((a,b)75,(c,d)90);'])
+        node1, node2 = tree.children
+        self.assertEqual(support(node1), 75.0)
+        self.assertEqual(support(node2), 90.0)
+
+        # test nodes with support and branch length
+        tree = TreeNode.read(['((a,b)0.85:1.23,(c,d)0.95:4.56);'])
+        node1, node2 = tree.children
+        self.assertEqual(support(node1), 0.85)
+        self.assertEqual(support(node2), 0.95)
+
+        # test nodes with support and extra label (not a common scenario but
+        # can happen)
+        tree = TreeNode.read(['((a,b)\'80:X\',(c,d)\'60:Y\');'])
+        node1, node2 = tree.children
+        self.assertEqual(support(node1), 80.0)
+        self.assertEqual(support(node2), 60.0)
+
+        # test nodes without label, with non-numeric label, and with branch
+        # length only
+        tree = TreeNode.read(['((a,b),(c,d)x,(e,f):1.0);'])
+        for node in tree.children:
+            self.assertIsNone(support(node))
+
+    def test_collapse(self):
+        """Test collapsing an internal node."""
+        # test collapsing a node without branch length
+        tree = TreeNode.read(['((c,d)a,(e,f)b);'])
+        collapse(tree.find('b'))
+        exp = '((c,d)a,e,f);\n'
+        self.assertEqual(str(tree), exp)
+
+        # test collapsing a node with branch length
+        tree = TreeNode.read(['((c:2.0,d:3.0)a:1.0,(e:2.0,f:1.0)b:2.0);'])
+        collapse(tree.find('b'))
+        exp = '((c:2.0,d:3.0)a:1.0,e:4.0,f:3.0);'
+        self.assertEqual(str(tree).rstrip(), exp)
+
+        # test attempting to collapse root
+        tree = TreeNode.read(['((d,e)b,(f,g)c)a;'])
+        msg = 'Cannot collapse root.'
+        with self.assertRaisesRegex(ValueError, msg):
+            collapse(tree.find('a'))
+
     def test_has_duplicates(self):
         """Test checking for duplicated taxa."""
         # test tree without duplicates
@@ -55,7 +103,8 @@ class TreeTests(TestCase):
         obs = has_duplicates(TreeNode.read([tree]))
         self.assertTrue(obs)
 
-        # test tree with empty taxon names
+        # test tree with empty taxon names (not a common scenario but can
+        # happen)
         tree = '((1,(2,,)),4,(5,(6,,8)));'
         msg = 'Empty taxon name\(s\) found.'
         with self.assertRaisesRegex(ValueError, msg):
@@ -149,6 +198,72 @@ class TreeTests(TestCase):
         msg = 'Either tree has duplicated taxa.'
         with self.assertRaisesRegex(ValueError, msg):
             intersect_trees(TreeNode.read([tree1]), TreeNode.read([tree2]))
+
+    def test_collapse_short_branches(self):
+        """Test collapsing short branches."""
+        # collapse internal nodes with branch length < 1.01
+        # (will collapse node 'a', but not tip 'e')
+        # (will add the branch length of 'a' to its child nodes 'c' and 'd')
+        tree = TreeNode.read(['((c:2,d:3)a:1,(e:1,f:2)b:2);'])
+        obs = str(collapse_short_branches(tree, 1.01)).rstrip()
+        exp = '((e:1.0,f:2.0)b:2.0,c:3.0,d:4.0);'
+        self.assertEqual(obs, exp)
+
+        # collapse internal nodes with branch length < 2.01
+        # (will collapse both 'a' and 'b')
+        obs = str(collapse_short_branches(tree, 2.01)).rstrip()
+        exp = '(c:3.0,d:4.0,e:3.0,f:4.0);'
+        self.assertEqual(obs, exp)
+
+        # collapse two nested nodes 'a' and 'c' simultaneously
+        tree = TreeNode.read(['(((e:3,f:2)c:1,d:3)a:1,b:4);'])
+        obs = str(collapse_short_branches(tree, 2.01)).rstrip()
+        exp = '(b:4.0,d:4.0,e:5.0,f:4.0);'
+        self.assertEqual(obs, exp)
+
+        # collapse internal node 'a' which has no branch length
+        tree = TreeNode.read(['((c:2,d:3)a,(e:1,f:2)b:2);'])
+        obs = str(collapse_short_branches(tree, 1.01)).rstrip()
+        exp = '((e:1.0,f:2.0)b:2.0,c:2.0,d:3.0);'
+        self.assertEqual(obs, exp)
+
+        # test a complicated scenario (collapsing nodes 'g', 'h' and 'm')
+        tree = TreeNode.read(['(((a:1.04,b:2.32,c:1.44)d:3.20,'
+                              '(e:3.91,f:2.47)g:1.21)h:1.75,'
+                              '(i:4.14,(j:2.06,k:1.58)l:3.32)m:0.77);'])
+        obs = str(collapse_short_branches(tree, 2.01)).rstrip()
+        exp = ('((a:1.04,b:2.32,c:1.44)d:4.95,e:6.87,f:5.43,i:4.91,'
+               '(j:2.06,k:1.58)l:4.09);')
+        self.assertEqual(obs, exp)
+
+    def test_collapse_low_support_nodes(self):
+        """Test collapsing low-support nodes."""
+        # collapse nodes with support < 75
+        tree = TreeNode.read(['(((a,b)85,(c,d)78)75,(e,(f,g)64)80);'])
+        obs = str(collapse_low_support_nodes(tree, 75)).rstrip()
+        exp = '(((a,b)85,(c,d)78)75,(e,f,g)80);'
+        self.assertEqual(obs, exp)
+
+        # collapse nodes with support < 85
+        obs = str(collapse_low_support_nodes(tree, 85)).rstrip()
+        exp = '((a,b)85,c,d,e,f,g);'
+        self.assertEqual(obs, exp)
+
+        # collapse nodes with support < 0.95
+        tree = TreeNode.read(['(((a,b)0.97,(c,d)0.98)1.0,(e,(f,g)0.88)0.96);'])
+        obs = str(collapse_low_support_nodes(tree, 0.95)).rstrip()
+        exp = '(((a,b)0.97,(c,d)0.98)1.0,(e,f,g)0.96);'
+        self.assertEqual(obs, exp)
+
+        # test a case where there are branch lengths, none support values add
+        # node labels
+        tree = TreeNode.read(['(((a:1.02,b:0.33)85:0.12,(c:0.86,d:2.23)'
+                              '70:3.02)75:0.95,(e:1.43,(f:1.69,g:1.92)64:0.20)'
+                              'node:0.35)root;'])
+        obs = str(collapse_low_support_nodes(tree, 75)).rstrip()
+        exp = ('(((a:1.02,b:0.33)85:0.12,c:3.88,d:5.25)75:0.95,'
+               '(e:1.43,f:1.89,g:2.12)node:0.35)root;')
+        self.assertEqual(obs, exp)
 
     def test_read_taxdump(self):
         """Test reading NCBI taxdump."""

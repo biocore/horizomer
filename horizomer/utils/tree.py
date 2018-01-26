@@ -15,6 +15,59 @@
 from skbio import TreeNode
 
 
+def support(node):
+    """Get support value of a node.
+
+    Parameters
+    ----------
+    node : skbio.TreeNode
+        node to get support value of
+
+    Returns
+    -------
+    float or None
+        support value of the node, or None if not available
+
+    Notes
+    -----
+    A "support value" is defined as the numeric form of a whole node label
+    without ":", or the part preceding the first ":" in the node label.
+    - For examples: "(a,b)1.0", "(a,b)1.0:2.5", and "(a,b)'1.0:species_A'". In
+    these cases the support values are all 1.0.
+    - For examples: "(a,b):1.0" and "(a,b)species_A". In these cases there are
+    no support values.
+    """
+    try:
+        return float(node.name.split(':')[0])
+    except (ValueError, AttributeError):
+        return None
+
+
+def collapse(node):
+    """Collapse an internal node of a tree.
+
+    Parameters
+    ----------
+    node : skbio.TreeNode
+        node to collapse
+
+    Notes
+    -----
+    This function sequentially: 1) elongates child nodes by branch length of
+    self (omit if there is no branch length), 2) removes self from parent node,
+    and 3) grafts child nodes to parent node.
+    """
+    if node.is_root():
+        raise ValueError('Cannot collapse root.')
+    parent = node.parent
+    blen = (node.length or 0.0)
+    for child in node.children:
+        clen = (child.length or 0.0)
+        child.length = (clen + blen or None)
+    parent.remove(node)
+    parent.extend(node.children)
+
+
 def has_duplicates(tree):
     """Test whether there are duplicated taxa (tip names) in a tree.
 
@@ -89,6 +142,66 @@ def intersect_trees(tree1, tree2):
     tree1_lap = tree1.shear(taxa_lap)
     tree2_lap = tree2.shear(taxa_lap)
     return (tree1_lap, tree2_lap)
+
+
+def collapse_short_branches(tree, cutoff):
+    """Collapse internal nodes with branch length below cutoff.
+
+    Parameters
+    ----------
+    tree : skbio.TreeNode
+        tree to search for nodes to collapse
+    cutoff : int or float
+        branch length cutoff under which node should be collapsed
+
+    Returns
+    -------
+    skbio.TreeNode
+        resulting tree with short branches collapsed
+
+    Notes
+    -------
+    Nodes without branch length are considered as having zero branch length and
+    will be collapsed.
+    """
+    tcopy = tree.copy()
+    nodes_to_collapse = []
+    for node in tcopy.non_tips():
+        if (node.length or 0.0) < cutoff:
+            nodes_to_collapse.append(node)
+    for node in nodes_to_collapse:
+        collapse(node)
+    return tcopy
+
+
+def collapse_low_support_nodes(tree, cutoff):
+    """Collapse internal nodes with support value below cutoff.
+
+    Parameters
+    ----------
+    tree : skbio.TreeNode
+        tree to search for nodes to collapse
+    cutoff : int or float
+        node support value cutoff under which it should be collapsed
+
+    Returns
+    -------
+    skbio.TreeNode
+        resulting tree with low-support nodes collapsed
+
+    Notes
+    -------
+    Nodes without support value will NOT be collapsed.
+    """
+    tcopy = tree.copy()
+    nodes_to_collapse = []
+    for node in tcopy.non_tips():
+        spt = support(node)
+        if spt is not None and spt < cutoff:
+            nodes_to_collapse.append(node)
+    for node in nodes_to_collapse:
+        collapse(node)
+    return tcopy
 
 
 def read_taxdump(nodes_fp, names_fp=None):
