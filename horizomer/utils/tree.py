@@ -56,6 +56,24 @@ def collapse(node):
     This function sequentially: 1) elongates child nodes by branch length of
     self (omit if there is no branch length), 2) removes self from parent node,
     and 3) grafts child nodes to parent node.
+
+    Here is an illustration of the "collapse" operation:
+                /----a
+          /c---|
+         |      \--b
+    -----|
+         |        /---d
+          \f-----|
+                  \-e
+
+    Collapse node "c" and the tree becomes:
+          /---------a
+         |
+    -----|--------b
+         |
+         |        /---d
+          \f-----|
+                  \-e
     """
     if node.is_root():
         raise ValueError('Cannot collapse root.')
