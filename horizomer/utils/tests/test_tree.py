@@ -90,114 +90,116 @@ class TreeTests(TestCase):
     def test_has_duplicates(self):
         """Test checking for duplicated taxa."""
         # test tree without duplicates
-        tree = '((a,b),(c,d));'
-        obs = has_duplicates(TreeNode.read([tree]))
+        tree = TreeNode.read(['((a,b),(c,d));'])
+        obs = has_duplicates(tree)
         self.assertFalse(obs)
 
         # test tree with duplicates
-        tree = '((a,a),(c,a));'
-        obs = has_duplicates(TreeNode.read([tree]))
+        tree = TreeNode.read(['((a,a),(c,a));'])
+        obs = has_duplicates(tree)
         self.assertTrue(obs)
 
-        tree = '((1,(2,x)),4,(5,(6,x,8)));'
-        obs = has_duplicates(TreeNode.read([tree]))
+        tree = TreeNode.read(['((1,(2,x)),4,(5,(6,x,8)));'])
+        obs = has_duplicates(tree)
         self.assertTrue(obs)
 
         # test tree with empty taxon names (not a common scenario but can
         # happen)
-        tree = '((1,(2,,)),4,(5,(6,,8)));'
+        tree = TreeNode.read(['((1,(2,,)),4,(5,(6,,8)));'])
         msg = 'Empty taxon name\(s\) found.'
         with self.assertRaisesRegex(ValueError, msg):
-            has_duplicates(TreeNode.read([tree]))
+            has_duplicates(tree)
 
     def test_compare_topology(self):
         """Test comparing topologies of two trees."""
         # test identical Newick strings
-        tree1 = '(a,b)c;'
-        tree2 = '(a,b)c;'
-        obs = compare_topology(TreeNode.read([tree1]), TreeNode.read([tree2]))
+        tree1 = TreeNode.read(['(a,b)c;'])
+        tree2 = TreeNode.read(['(a,b)c;'])
+        obs = compare_topology(tree1, tree2)
         self.assertTrue(obs)
 
         # test identical topologies with different branch lengths
-        tree1 = '(a:1,b:2)c:3;'
-        tree2 = '(a:3,b:2)c:1;'
-        obs = compare_topology(TreeNode.read([tree1]), TreeNode.read([tree2]))
+        tree1 = TreeNode.read(['(a:1,b:2)c:3;'])
+        tree2 = TreeNode.read(['(a:3,b:2)c:1;'])
+        obs = compare_topology(tree1, tree2)
         self.assertTrue(obs)
 
         # test identical topologies with flipped child nodes
-        tree1 = '(a,b)c;'
-        tree2 = '(b,a)c;'
-        obs = compare_topology(TreeNode.read([tree1]), TreeNode.read([tree2]))
+        tree1 = TreeNode.read(['(a,b)c;'])
+        tree2 = TreeNode.read(['(b,a)c;'])
+        obs = compare_topology(tree1, tree2)
         self.assertTrue(obs)
 
-        tree1 = '((4,5)2,(6,7,8)3)1;'
-        tree2 = '((8,7,6)3,(5,4)2)1;'
-        obs = compare_topology(TreeNode.read([tree1]), TreeNode.read([tree2]))
+        tree1 = TreeNode.read(['((4,5)2,(6,7,8)3)1;'])
+        tree2 = TreeNode.read(['((8,7,6)3,(5,4)2)1;'])
+        obs = compare_topology(tree1, tree2)
         self.assertTrue(obs)
 
-        tree1 = '(((9,10)4,(11,12,13)5)2,((14)6,(15,16,17,18)7,(19,20)8)3)1;'
-        tree2 = '(((15,16,17,18)7,(14)6,(20,19)8)3,((12,13,11)5,(10,9)4)2)1;'
-        obs = compare_topology(TreeNode.read([tree1]), TreeNode.read([tree2]))
+        tree1 = TreeNode.read(['(((9,10)4,(11,12,13)5)2,((14)6,(15,16,17,18)7,'
+                               '(19,20)8)3)1;'])
+        tree2 = TreeNode.read(['(((15,16,17,18)7,(14)6,(20,19)8)3,((12,13,11)5'
+                               ',(10,9)4)2)1;'])
+        obs = compare_topology(tree1, tree2)
         self.assertTrue(obs)
 
         # test different topologies
-        tree1 = '(a,b)c;'
-        tree2 = '(a,c)b;'
-        obs = compare_topology(TreeNode.read([tree1]), TreeNode.read([tree2]))
+        tree1 = TreeNode.read(['(a,b)c;'])
+        tree2 = TreeNode.read(['(a,c)b;'])
+        obs = compare_topology(tree1, tree2)
         self.assertFalse(obs)
 
-        tree1 = '((4,5)2,(6,7,8)3)1;'
-        tree2 = '((4,5)3,(6,7,8)2)1;'
-        obs = compare_topology(TreeNode.read([tree1]), TreeNode.read([tree2]))
+        tree1 = TreeNode.read(['((4,5)2,(6,7,8)3)1;'])
+        tree2 = TreeNode.read(['((4,5)3,(6,7,8)2)1;'])
+        obs = compare_topology(tree1, tree2)
         self.assertFalse(obs)
 
-        tree1 = '((4,5)2,(6,7,8)3)1;'
-        tree2 = '(((4,1)8)7,(6,3)2)5;'
-        obs = compare_topology(TreeNode.read([tree1]), TreeNode.read([tree2]))
+        tree1 = TreeNode.read(['((4,5)2,(6,7,8)3)1;'])
+        tree2 = TreeNode.read(['(((4,1)8)7,(6,3)2)5;'])
+        obs = compare_topology(tree1, tree2)
         self.assertFalse(obs)
 
     def test_intersect_trees(self):
         """Test intersecting two trees."""
         # test trees with identical taxa
-        tree1 = '((a,b),(c,d));'
-        tree2 = '(a,(b,c,d));'
-        obs = intersect_trees(TreeNode.read([tree1]), TreeNode.read([tree2]))
-        exp = (TreeNode.read([tree1]), TreeNode.read([tree2]))
+        tree1 = TreeNode.read(['((a,b),(c,d));'])
+        tree2 = TreeNode.read(['(a,(b,c,d));'])
+        obs = intersect_trees(tree1, tree2)
+        exp = (tree1, tree2)
         for i in range(2):
             self.assertEqual(obs[i].compare_subsets(exp[i]), 0.0)
 
         # test trees with partially different taxa
-        tree1 = '((a,b),(c,d));'
-        tree2 = '((a,b),(c,e));'
-        obs = intersect_trees(TreeNode.read([tree1]), TreeNode.read([tree2]))
-        tree1_lap = '((a,b),c);'
-        tree2_lap = '((a,b),e);'
-        exp = (TreeNode.read([tree1_lap]), TreeNode.read([tree2_lap]))
+        tree1 = TreeNode.read(['((a,b),(c,d));'])
+        tree2 = TreeNode.read(['((a,b),(c,e));'])
+        obs = intersect_trees(tree1, tree2)
+        tree1_lap = TreeNode.read(['((a,b),c);'])
+        tree2_lap = TreeNode.read(['((a,b),e);'])
+        exp = (tree1_lap, tree2_lap)
         for i in range(2):
             self.assertEqual(obs[i].compare_subsets(exp[i]), 0.0)
 
-        tree1 = '(((a,b),(c,d)),((e,f,g),h));'
-        tree2 = '(a,((b,x),(d,y,(f,g,h))));'
-        obs = intersect_trees(TreeNode.read([tree1]), TreeNode.read([tree2]))
-        tree1_lap = '(((a,b),d),((f,g),h));'
-        tree2_lap = '(a,(b,(d,(f,g,h))));'
-        exp = (TreeNode.read([tree1_lap]), TreeNode.read([tree2_lap]))
+        tree1 = TreeNode.read(['(((a,b),(c,d)),((e,f,g),h));'])
+        tree2 = TreeNode.read(['(a,((b,x),(d,y,(f,g,h))));'])
+        obs = intersect_trees(tree1, tree2)
+        tree1_lap = TreeNode.read(['(((a,b),d),((f,g),h));'])
+        tree2_lap = TreeNode.read(['(a,(b,(d,(f,g,h))));'])
+        exp = (tree1_lap, tree2_lap)
         for i in range(2):
             self.assertEqual(obs[i].compare_subsets(exp[i]), 0.0)
 
         # test trees with completely different taxa
-        tree1 = '((a,b),(c,d));'
-        tree2 = '((e,f),(g,h));'
+        tree1 = TreeNode.read(['((a,b),(c,d));'])
+        tree2 = TreeNode.read(['((e,f),(g,h));'])
         msg = 'Trees have no overlapping taxa.'
         with self.assertRaisesRegex(ValueError, msg):
-            intersect_trees(TreeNode.read([tree1]), TreeNode.read([tree2]))
+            intersect_trees(tree1, tree2)
 
         # test trees with duplicated taxa
-        tree1 = '((a,b),(c,d));'
-        tree2 = '((a,a),(b,c));'
+        tree1 = TreeNode.read(['((a,b),(c,d));'])
+        tree2 = TreeNode.read(['((a,a),(b,c));'])
         msg = 'Either tree has duplicated taxa.'
         with self.assertRaisesRegex(ValueError, msg):
-            intersect_trees(TreeNode.read([tree1]), TreeNode.read([tree2]))
+            intersect_trees(tree1, tree2)
 
     def test_collapse_short_branches(self):
         """Test collapsing short branches."""
