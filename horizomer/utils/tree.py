@@ -43,13 +43,13 @@ def support(node):
         return None
 
 
-def collapse(node):
-    """Collapse an internal node of a tree.
+def unpack(node):
+    """Unpack an internal node of a tree.
 
     Parameters
     ----------
     node : skbio.TreeNode
-        node to collapse
+        node to unpack
 
     Notes
     -----
@@ -57,7 +57,7 @@ def collapse(node):
     self (omit if there is no branch length), 2) removes self from parent node,
     and 3) grafts child nodes to parent node.
 
-    Here is an illustration of the "collapse" operation:
+    Here is an illustration of the "unpack" operation:
                 /----a
           /c---|
          |      \--b
@@ -66,7 +66,7 @@ def collapse(node):
           \f-----|
                   \-e
 
-    Collapse node "c" and the tree becomes:
+    Unpack node "c" and the tree becomes:
           /---------a
          |
     -----|--------b
@@ -76,7 +76,7 @@ def collapse(node):
                   \-e
     """
     if node.is_root():
-        raise ValueError('Cannot collapse root.')
+        raise ValueError('Cannot unpack root.')
     parent = node.parent
     blen = (node.length or 0.0)
     for child in node.children:
@@ -162,63 +162,63 @@ def intersect_trees(tree1, tree2):
     return (tree1_lap, tree2_lap)
 
 
-def collapse_short_branches(tree, cutoff):
-    """Collapse internal nodes with branch length below cutoff.
+def unpack_short_branch_nodes(tree, cutoff):
+    """Unpack internal nodes with branch length below cutoff.
 
     Parameters
     ----------
     tree : skbio.TreeNode
-        tree to search for nodes to collapse
+        tree to search for nodes to unpack
     cutoff : int or float
-        branch length cutoff under which node should be collapsed
+        branch length cutoff under which node should be unpackd
 
     Returns
     -------
     skbio.TreeNode
-        resulting tree with short branches collapsed
+        resulting tree with short branches unpackd
 
     Notes
     -------
     Nodes without branch length are considered as having zero branch length and
-    will be collapsed.
+    will be unpackd.
     """
     tcopy = tree.copy()
-    nodes_to_collapse = []
+    nodes_to_unpack = []
     for node in tcopy.non_tips():
         if (node.length or 0.0) < cutoff:
-            nodes_to_collapse.append(node)
-    for node in nodes_to_collapse:
-        collapse(node)
+            nodes_to_unpack.append(node)
+    for node in nodes_to_unpack:
+        unpack(node)
     return tcopy
 
 
-def collapse_low_support_nodes(tree, cutoff):
-    """Collapse internal nodes with support value below cutoff.
+def unpack_low_support_nodes(tree, cutoff):
+    """Unpack internal nodes with support value below cutoff.
 
     Parameters
     ----------
     tree : skbio.TreeNode
-        tree to search for nodes to collapse
+        tree to search for nodes to unpack
     cutoff : int or float
-        node support value cutoff under which it should be collapsed
+        node support value cutoff under which it should be unpackd
 
     Returns
     -------
     skbio.TreeNode
-        resulting tree with low-support nodes collapsed
+        resulting tree with low-support nodes unpackd
 
     Notes
     -------
-    Nodes without support value will NOT be collapsed.
+    Nodes without support value will NOT be unpackd.
     """
     tcopy = tree.copy()
-    nodes_to_collapse = []
+    nodes_to_unpack = []
     for node in tcopy.non_tips():
         spt = support(node)
         if spt is not None and spt < cutoff:
-            nodes_to_collapse.append(node)
-    for node in nodes_to_collapse:
-        collapse(node)
+            nodes_to_unpack.append(node)
+    for node in nodes_to_unpack:
+        unpack(node)
     return tcopy
 
 
