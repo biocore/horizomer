@@ -16,7 +16,7 @@ from skbio import TreeNode
 
 from horizomer.utils.tree import (
     support, unpack, has_duplicates, compare_topology, intersect_trees,
-    unpack_short_branches, unpack_low_support_nodes,
+    unpack_short_branch_nodes, unpack_low_support_nodes,
     read_taxdump, build_taxdump_tree)
 
 
