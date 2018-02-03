@@ -15,6 +15,77 @@
 from skbio import TreeNode
 
 
+def support(node):
+    """Get support value of a node.
+
+    Parameters
+    ----------
+    node : skbio.TreeNode
+        node to get support value of
+
+    Returns
+    -------
+    float or None
+        support value of the node, or None if not available
+
+    Notes
+    -----
+    A "support value" is defined as the numeric form of a whole node label
+    without ":", or the part preceding the first ":" in the node label.
+    - For examples: "(a,b)1.0", "(a,b)1.0:2.5", and "(a,b)'1.0:species_A'". In
+    these cases the support values are all 1.0.
+    - For examples: "(a,b):1.0" and "(a,b)species_A". In these cases there are
+    no support values.
+    """
+    try:
+        return float(node.name.split(':')[0])
+    except (ValueError, AttributeError):
+        return None
+
+
+def unpack(node):
+    """Unpack an internal node of a tree.
+
+    Parameters
+    ----------
+    node : skbio.TreeNode
+        node to unpack
+
+    Notes
+    -----
+    This function sequentially: 1) elongates child nodes by branch length of
+    self (omit if there is no branch length), 2) removes self from parent node,
+    and 3) grafts child nodes to parent node.
+
+    Here is an illustration of the "unpack" operation:
+                /----a
+          /c---|
+         |      \--b
+    -----|
+         |        /---d
+          \f-----|
+                  \-e
+
+    Unpack node "c" and the tree becomes:
+          /---------a
+         |
+    -----|--------b
+         |
+         |        /---d
+          \f-----|
+                  \-e
+    """
+    if node.is_root():
+        raise ValueError('Cannot unpack root.')
+    parent = node.parent
+    blen = (node.length or 0.0)
+    for child in node.children:
+        clen = (child.length or 0.0)
+        child.length = (clen + blen or None)
+    parent.remove(node)
+    parent.extend(node.children)
+
+
 def has_duplicates(tree):
     """Test whether there are duplicated taxa (tip names) in a tree.
 
@@ -89,6 +160,32 @@ def intersect_trees(tree1, tree2):
     tree1_lap = tree1.shear(taxa_lap)
     tree2_lap = tree2.shear(taxa_lap)
     return (tree1_lap, tree2_lap)
+
+
+def unpack_by_func(tree, func):
+    """Unpack internal nodes that meet certain criteria.
+
+    Parameters
+    ----------
+    tree : skbio.TreeNode
+        tree to search for nodes to unpack
+    func : function
+        a function that accepts a TreeNode and returns `True` or `False`,
+        where `True` indicates the node is to be unpacked
+
+    Returns
+    -------
+    skbio.TreeNode
+        resulting tree with nodes meeting criteria unpacked
+    """
+    tcopy = tree.copy()
+    nodes_to_unpack = []
+    for node in tcopy.non_tips():
+        if func(node):
+            nodes_to_unpack.append(node)
+    for node in nodes_to_unpack:
+        unpack(node)
+    return tcopy
 
 
 def read_taxdump(nodes_fp, names_fp=None):
