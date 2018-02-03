@@ -188,66 +188,6 @@ def unpack_by_func(tree, func):
     return tcopy
 
 
-def unpack_short_branch_nodes(tree, cutoff):
-    """Unpack internal nodes with branch length below cutoff.
-
-    Parameters
-    ----------
-    tree : skbio.TreeNode
-        tree to search for nodes to unpack
-    cutoff : int or float
-        branch length cutoff under which node should be unpackd
-
-    Returns
-    -------
-    skbio.TreeNode
-        resulting tree with short branches unpackd
-
-    Notes
-    -------
-    Nodes without branch length are considered as having zero branch length and
-    will be unpackd.
-    """
-    tcopy = tree.copy()
-    nodes_to_unpack = []
-    for node in tcopy.non_tips():
-        if (node.length or 0.0) < cutoff:
-            nodes_to_unpack.append(node)
-    for node in nodes_to_unpack:
-        unpack(node)
-    return tcopy
-
-
-def unpack_low_support_nodes(tree, cutoff):
-    """Unpack internal nodes with support value below cutoff.
-
-    Parameters
-    ----------
-    tree : skbio.TreeNode
-        tree to search for nodes to unpack
-    cutoff : int or float
-        node support value cutoff under which it should be unpackd
-
-    Returns
-    -------
-    skbio.TreeNode
-        resulting tree with low-support nodes unpackd
-
-    Notes
-    -------
-    Nodes without support value will NOT be unpackd.
-    """
-    tcopy = tree.copy()
-    nodes_to_unpack = []
-    for node in tcopy.non_tips():
-        spt = support(node)
-        if spt is not None and spt < cutoff:
-            nodes_to_unpack.append(node)
-    for node in nodes_to_unpack:
-        unpack(node)
-    return tcopy
-
-
 def read_taxdump(nodes_fp, names_fp=None):
     """Read NCBI taxdump.
 

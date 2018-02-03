@@ -16,8 +16,7 @@ from skbio import TreeNode
 
 from horizomer.utils.tree import (
     support, unpack, has_duplicates, compare_topology, intersect_trees,
-    unpack_by_func, unpack_short_branch_nodes, unpack_low_support_nodes,
-    read_taxdump, build_taxdump_tree)
+    unpack_by_func, read_taxdump, build_taxdump_tree)
 
 
 class TreeTests(TestCase):
@@ -265,72 +264,6 @@ class TreeTests(TestCase):
                               '70:3.02)75:0.95,(e:1.43,(f:1.69,g:1.92)64:0.20)'
                               'node:0.35)root;'])
         obs = str(unpack_by_func(tree, func)).rstrip()
-        exp = ('(((a:1.02,b:0.33)85:0.12,c:3.88,d:5.25)75:0.95,'
-               '(e:1.43,f:1.89,g:2.12)node:0.35)root;')
-        self.assertEqual(obs, exp)
-
-    def test_unpack_short_branch_nodes(self):
-        """Test unpacking short branches."""
-        # unpack internal nodes with branch length < 1.01
-        # (will unpack node 'a', but not tip 'e')
-        # (will add the branch length of 'a' to its child nodes 'c' and 'd')
-        tree = TreeNode.read(['((c:2,d:3)a:1,(e:1,f:2)b:2);'])
-        obs = str(unpack_short_branch_nodes(tree, 1.01)).rstrip()
-        exp = '((e:1.0,f:2.0)b:2.0,c:3.0,d:4.0);'
-        self.assertEqual(obs, exp)
-
-        # unpack internal nodes with branch length < 2.01
-        # (will unpack both 'a' and 'b')
-        obs = str(unpack_short_branch_nodes(tree, 2.01)).rstrip()
-        exp = '(c:3.0,d:4.0,e:3.0,f:4.0);'
-        self.assertEqual(obs, exp)
-
-        # unpack two nested nodes 'a' and 'c' simultaneously
-        tree = TreeNode.read(['(((e:3,f:2)c:1,d:3)a:1,b:4);'])
-        obs = str(unpack_short_branch_nodes(tree, 2.01)).rstrip()
-        exp = '(b:4.0,d:4.0,e:5.0,f:4.0);'
-        self.assertEqual(obs, exp)
-
-        # unpack internal node 'a' which has no branch length
-        tree = TreeNode.read(['((c:2,d:3)a,(e:1,f:2)b:2);'])
-        obs = str(unpack_short_branch_nodes(tree, 1.01)).rstrip()
-        exp = '((e:1.0,f:2.0)b:2.0,c:2.0,d:3.0);'
-        self.assertEqual(obs, exp)
-
-        # test a complicated scenario (unpacking nodes 'g', 'h' and 'm')
-        tree = TreeNode.read(['(((a:1.04,b:2.32,c:1.44)d:3.20,'
-                              '(e:3.91,f:2.47)g:1.21)h:1.75,'
-                              '(i:4.14,(j:2.06,k:1.58)l:3.32)m:0.77);'])
-        obs = str(unpack_short_branch_nodes(tree, 2.01)).rstrip()
-        exp = ('((a:1.04,b:2.32,c:1.44)d:4.95,e:6.87,f:5.43,i:4.91,'
-               '(j:2.06,k:1.58)l:4.09);')
-        self.assertEqual(obs, exp)
-
-    def test_unpack_low_support_nodes(self):
-        """Test unpacking low-support nodes."""
-        # unpack nodes with support < 75
-        tree = TreeNode.read(['(((a,b)85,(c,d)78)75,(e,(f,g)64)80);'])
-        obs = str(unpack_low_support_nodes(tree, 75)).rstrip()
-        exp = '(((a,b)85,(c,d)78)75,(e,f,g)80);'
-        self.assertEqual(obs, exp)
-
-        # unpack nodes with support < 85
-        obs = str(unpack_low_support_nodes(tree, 85)).rstrip()
-        exp = '((a,b)85,c,d,e,f,g);'
-        self.assertEqual(obs, exp)
-
-        # unpack nodes with support < 0.95
-        tree = TreeNode.read(['(((a,b)0.97,(c,d)0.98)1.0,(e,(f,g)0.88)0.96);'])
-        obs = str(unpack_low_support_nodes(tree, 0.95)).rstrip()
-        exp = '(((a,b)0.97,(c,d)0.98)1.0,(e,f,g)0.96);'
-        self.assertEqual(obs, exp)
-
-        # test a case where there are branch lengths, none support values add
-        # node labels
-        tree = TreeNode.read(['(((a:1.02,b:0.33)85:0.12,(c:0.86,d:2.23)'
-                              '70:3.02)75:0.95,(e:1.43,(f:1.69,g:1.92)64:0.20)'
-                              'node:0.35)root;'])
-        obs = str(unpack_low_support_nodes(tree, 75)).rstrip()
         exp = ('(((a:1.02,b:0.33)85:0.12,c:3.88,d:5.25)75:0.95,'
                '(e:1.43,f:1.89,g:2.12)node:0.35)root;')
         self.assertEqual(obs, exp)
