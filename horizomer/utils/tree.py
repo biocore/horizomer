@@ -162,6 +162,32 @@ def intersect_trees(tree1, tree2):
     return (tree1_lap, tree2_lap)
 
 
+def unpack_by_func(tree, func):
+    """Unpack internal nodes that meet certain criteria.
+
+    Parameters
+    ----------
+    tree : skbio.TreeNode
+        tree to search for nodes to unpack
+    func : function
+        a function that accepts a TreeNode and returns `True` or `False`,
+        where `True` indicates the node is to be unpacked
+
+    Returns
+    -------
+    skbio.TreeNode
+        resulting tree with nodes meeting criteria unpacked
+    """
+    tcopy = tree.copy()
+    nodes_to_unpack = []
+    for node in tcopy.non_tips():
+        if func(node):
+            nodes_to_unpack.append(node)
+    for node in nodes_to_unpack:
+        unpack(node)
+    return tcopy
+
+
 def unpack_short_branch_nodes(tree, cutoff):
     """Unpack internal nodes with branch length below cutoff.
 
