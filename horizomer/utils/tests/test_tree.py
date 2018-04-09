@@ -16,7 +16,7 @@ from skbio import TreeNode
 
 from horizomer.utils.tree import (
     support, unpack, has_duplicates, compare_topology, intersect_trees,
-    unpack_by_func, read_taxdump, build_taxdump_tree)
+    unpack_by_func, read_taxdump, build_taxdump_tree, order_nodes)
 
 
 class TreeTests(TestCase):
@@ -326,6 +326,40 @@ class TreeTests(TestCase):
         exp = TreeNode.read(['(((9,10)4,(11,12,13)5)2,((14)6,(15,16,17,18)7,'
                              '(19,20)8)3)1;'])
         self.assertTrue(compare_topology(obs, exp))
+
+    # test node ordering in increase and decrease orders
+    def test_order_nodes(self):
+        """Test order nodes"""
+        tree1 = TreeNode.read(['(((a,b),(c,d,i)),((e,g),h));'])
+        tree1_ordered = order_nodes(tree1, True)
+        for node in tree1_ordered.postorder():
+            if node.is_tip():
+                node.n = 1
+            else:
+                node.n = sum(x.n for x in node.children)
+        prev = tree1_ordered.root().n
+        for node in tree1_ordered.levelorder():
+            if not node.is_tip():
+                cur = node.n
+                self.assertTrue(prev >= cur)
+                prev = cur
+
+        # test decrease ordering
+        tree1_decrease = order_nodes(tree1, False)
+        for node in tree1_decrease.postorder():
+            if node.is_tip():
+                node.n = 1
+            else:
+                node.n = sum(x.n for x in node.children)
+        p = tree1_decrease.root()
+        prev = p.n
+        for node in tree1_decrease.levelorder():
+            s = [p.siblings()]
+            if node in s:
+                cur = node.n
+                self.assertTrue(prev <= cur)
+            else:
+                p = node
 
 
 if __name__ == '__main__':
