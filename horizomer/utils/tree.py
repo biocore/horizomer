@@ -15,21 +15,6 @@
 from skbio import TreeNode
 
 
-# Re-arrange tree in increasing or decreasing node order
-# Usage: python me.py input.nwk 0/1 output.nwk
-# 0 - increasing, 1 - decreasing
-
-from sys import argv
-#from skbio import TreeNode
-
-
-def main():
-    tree = TreeNode.read(argv[1])
-    increase = True if argv[2] == '0' else False
-    out = order_nodes(tree, increase)
-    out.write(argv[3])
-
-
 def order_nodes(tree, increase=True):
     """Restore ordering of nodes in one tree based on another tree.
 
@@ -62,9 +47,43 @@ def order_nodes(tree, increase=True):
     return res
 
 
-if __name__ == "__main__":
-    main()
+# replace siblings using children would cause ordering problems
+# assign prev to None for non_tips() would ignore root
+def is_nodes_ordered(tree, increase = True):
+    """Returns 'True' if the tree is ordered.
 
+    Parameters
+    ----------
+    tree : skbio.TreeNode
+        tree to check ordering
+    increase : bool, optional
+        check if nodes in increasing (True) or decreasing (False) order
+
+    Returns
+    -------
+    bool
+        'True' if the tree is ordered
+    """
+    tree_copy = tree.copy()
+    for node in tree_copy.postorder():
+        if node.is_tip():
+            node.n = 1
+        else:
+            node.n = sum(x.n for x in node.children)
+
+    p = tree_copy.root()
+    prev = p.n
+    for node in tree_copy.levelorder():
+        s = [x for x in p.siblings()]
+        if node in s:
+            cur = node.n
+            if prev < cur if increase else prev > cur:
+                return False
+            prev = cur
+        else:
+            p = node
+            prev = p.n
+    return True
 
 
 def support(node):

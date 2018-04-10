@@ -16,7 +16,8 @@ from skbio import TreeNode
 
 from horizomer.utils.tree import (
     support, unpack, has_duplicates, compare_topology, intersect_trees,
-    unpack_by_func, read_taxdump, build_taxdump_tree, order_nodes)
+    unpack_by_func, read_taxdump, build_taxdump_tree, order_nodes,
+    is_nodes_ordered)
 
 
 class TreeTests(TestCase):
@@ -327,39 +328,41 @@ class TreeTests(TestCase):
                              '(19,20)8)3)1;'])
         self.assertTrue(compare_topology(obs, exp))
 
-    # test node ordering in increase and decrease orders
+
+    # test node ordering in increase and decrease orders using is_node_ordered
+    # function
     def test_order_nodes(self):
         """Test order nodes"""
-        tree1 = TreeNode.read(['(((a,b),(c,d,i)),((e,g),h));'])
-        tree1_ordered = order_nodes(tree1, True)
-        for node in tree1_ordered.postorder():
-            if node.is_tip():
-                node.n = 1
-            else:
-                node.n = sum(x.n for x in node.children)
-        prev = tree1_ordered.root().n
-        for node in tree1_ordered.levelorder():
-            if not node.is_tip():
-                cur = node.n
-                self.assertTrue(prev >= cur)
-                prev = cur
+        tree1 = TreeNode.read(['(((a,b),(c,d,i)j),((e,g),h));'])
+        # test increase ordering
+        tree1_increase = order_nodes(tree1, True)
+        self.assertTrue(is_nodes_ordered(tree1_increase))
 
         # test decrease ordering
         tree1_decrease = order_nodes(tree1, False)
-        for node in tree1_decrease.postorder():
-            if node.is_tip():
-                node.n = 1
-            else:
-                node.n = sum(x.n for x in node.children)
-        p = tree1_decrease.root()
-        prev = p.n
-        for node in tree1_decrease.levelorder():
-            s = [p.siblings()]
-            if node in s:
-                cur = node.n
-                self.assertTrue(prev <= cur)
-            else:
-                p = node
+        self.assertTrue(is_nodes_ordered(tree1_decrease, False))
+
+
+    # test is_node_ordered
+    def test_is_nodes_ordered(self):
+        """Test if a tree is ordered"""
+        tree1 = TreeNode.read(['((i,j)a,b)c;'])
+        self.assertTrue(is_nodes_ordered(tree1))
+        self.assertTrue(is_nodes_ordered(tree1, True))
+        self.assertFalse(is_nodes_ordered(tree1, False))
+
+        tree2 = TreeNode.read(['(a, b);'])
+        self.assertTrue(is_nodes_ordered(tree2))
+
+        tree3 = TreeNode.read(['(((a,b),(c,d,x,y,z)),((e,g),h));'])
+        self.assertFalse(is_nodes_ordered(tree3, True))
+        self.assertFalse(is_nodes_ordered(tree3, False))
+        tree4 = order_nodes(tree3, False)
+        self.assertTrue(is_nodes_ordered(tree4, False))
+
+
+        tree5 = TreeNode.read(['(a)b;'])
+        self.assertTrue(is_nodes_ordered(tree5))
 
 
 if __name__ == '__main__':
