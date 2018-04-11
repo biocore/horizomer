@@ -341,20 +341,25 @@ class TreeTests(TestCase):
 
     def test_is_ordered(self):
         """Test if a tree is ordered"""
+        # test tree in increasing order
         tree1 = TreeNode.read(['((i,j)a,b)c;'])
         self.assertTrue(is_ordered(tree1))
         self.assertTrue(is_ordered(tree1, True))
         self.assertFalse(is_ordered(tree1, False))
 
+        # test tree in both increasing and decreasing order
         tree2 = TreeNode.read(['(a, b);'])
         self.assertTrue(is_ordered(tree2))
+        self.assertTrue(is_ordered(tree2, False))
 
+        # test an unordered tree
         tree3 = TreeNode.read(['(((a,b),(c,d,x,y,z)),((e,g),h));'])
         self.assertFalse(is_ordered(tree3, True))
         self.assertFalse(is_ordered(tree3, False))
 
-        tree5 = TreeNode.read(['(a)b;'])
-        self.assertTrue(is_ordered(tree5))
+        # test tree in decreasing order
+        tree5 = TreeNode.read(['((h,(e,g)),((a,b),(c,d,i)j));'])
+        self.assertTrue(is_ordered(tree5, False))
 
 
 if __name__ == '__main__':
