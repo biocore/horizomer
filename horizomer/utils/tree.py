@@ -47,9 +47,7 @@ def order_nodes(tree, increase=True):
     return res
 
 
-# replace siblings using children would cause ordering problems
-# assign prev to None for non_tips() would ignore root
-def is_nodes_ordered(tree, increase = True):
+def is_ordered(tree, increase=True):
     """Returns 'True' if the tree is ordered.
 
     Parameters
@@ -64,16 +62,16 @@ def is_nodes_ordered(tree, increase = True):
     bool
         'True' if the tree is ordered
     """
-    tree_copy = tree.copy()
-    for node in tree_copy.postorder():
+    tcopy = tree.copy()
+    for node in tcopy.postorder():
         if node.is_tip():
             node.n = 1
         else:
             node.n = sum(x.n for x in node.children)
 
-    p = tree_copy.root()
+    p = tcopy.root()
     prev = p.n
-    for node in tree_copy.levelorder():
+    for node in tcopy.levelorder():
         s = [x for x in p.siblings()]
         if node in s:
             cur = node.n
