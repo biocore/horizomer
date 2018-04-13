@@ -84,6 +84,41 @@ def is_ordered(tree, increase=True):
     return True
 
 
+def cladistic(tree, taxa):
+    """Determines the cladistic property of the given taxon set.
+
+    Parameters
+    ----------
+    tree : skbio.TreeNode
+        tree for taxa comparison
+    taxa : iterable of str
+        taxon names
+
+    Returns
+    -------
+    str
+        'uni' if input taxon is a single tip in given tree
+        'mono' if input taxa are monophyletic in given tree
+        'poly' if input taxa are polyphyletic in given tree
+
+    Raises
+    ------
+    ValueError
+        if one or more taxon names are not present in the tree
+    """
+    tips = []
+    taxa = set(taxa)
+    for tip in tree.tips():
+        if tip.name in taxa:
+            tips.append(tip)
+    n = len(taxa)
+    if len(tips) < n:
+        raise ValueError('Taxa not found in the tree.')
+    return ('uni' if n == 1 else
+            ('mono' if len(tree.lca(tips).subset()) == n else
+             'poly'))
+
+
 def support(node):
     """Get support value of a node.
 
