@@ -15,6 +15,75 @@
 from skbio import TreeNode
 
 
+def order_nodes(tree, increase=True):
+    """Restore ordering of nodes in one tree based on another tree.
+
+    Parameters
+    ----------
+    tree : skbio.TreeNode
+        tree to order
+    increase : bool, optional
+        order nodes in increasing (True) or decreasing (False) order
+
+    Returns
+    -------
+    skbio.TreeNode
+        resulting ordered tree
+    """
+    res = tree.copy()
+    for node in res.postorder():
+        if node.is_tip():
+            node.n = 1
+        else:
+            node.n = sum(x.n for x in node.children)
+    for node in res.postorder():
+        if not node.is_tip():
+            child2n = {x: x.n for x in node.children}
+            node.children = []
+            for child in sorted(child2n, key=child2n.get, reverse=increase):
+                node.append(child)
+    for node in res.postorder():
+        delattr(node, 'n')
+    return res
+
+
+def is_ordered(tree, increase=True):
+    """Returns 'True' if the tree is ordered.
+
+    Parameters
+    ----------
+    tree : skbio.TreeNode
+        tree to check ordering
+    increase : bool, optional
+        check if nodes in increasing (True) or decreasing (False) order
+
+    Returns
+    -------
+    bool
+        'True' if the tree is ordered
+    """
+    tcopy = tree.copy()
+    for node in tcopy.postorder():
+        if node.is_tip():
+            node.n = 1
+        else:
+            node.n = sum(x.n for x in node.children)
+
+    p = tcopy.root()
+    prev = p.n
+    for node in tcopy.levelorder():
+        s = [x for x in p.siblings()]
+        if node in s:
+            cur = node.n
+            if prev < cur if increase else prev > cur:
+                return False
+            prev = cur
+        else:
+            p = node
+            prev = p.n
+    return True
+
+
 def support(node):
     """Get support value of a node.
 

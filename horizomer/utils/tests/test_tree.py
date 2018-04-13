@@ -16,7 +16,8 @@ from skbio import TreeNode
 
 from horizomer.utils.tree import (
     support, unpack, has_duplicates, compare_topology, intersect_trees,
-    unpack_by_func, read_taxdump, build_taxdump_tree)
+    unpack_by_func, read_taxdump, build_taxdump_tree, order_nodes,
+    is_ordered)
 
 
 class TreeTests(TestCase):
@@ -326,6 +327,39 @@ class TreeTests(TestCase):
         exp = TreeNode.read(['(((9,10)4,(11,12,13)5)2,((14)6,(15,16,17,18)7,'
                              '(19,20)8)3)1;'])
         self.assertTrue(compare_topology(obs, exp))
+
+    def test_order_nodes(self):
+        """Test order nodes"""
+        tree1 = TreeNode.read(['(((a,b),(c,d,i)j),((e,g),h));'])
+        # test increase ordering
+        tree1_increase = order_nodes(tree1, True)
+        self.assertTrue(is_ordered(tree1_increase))
+
+        # test decrease ordering
+        tree1_decrease = order_nodes(tree1, False)
+        self.assertTrue(is_ordered(tree1_decrease, False))
+
+    def test_is_ordered(self):
+        """Test if a tree is ordered"""
+        # test tree in increasing order
+        tree1 = TreeNode.read(['((i,j)a,b)c;'])
+        self.assertTrue(is_ordered(tree1))
+        self.assertTrue(is_ordered(tree1, True))
+        self.assertFalse(is_ordered(tree1, False))
+
+        # test tree in both increasing and decreasing order
+        tree2 = TreeNode.read(['(a, b);'])
+        self.assertTrue(is_ordered(tree2))
+        self.assertTrue(is_ordered(tree2, False))
+
+        # test an unordered tree
+        tree3 = TreeNode.read(['(((a,b),(c,d,x,y,z)),((e,g),h));'])
+        self.assertFalse(is_ordered(tree3, True))
+        self.assertFalse(is_ordered(tree3, False))
+
+        # test tree in decreasing order
+        tree5 = TreeNode.read(['((h,(e,g)),((a,b),(c,d,i)j));'])
+        self.assertTrue(is_ordered(tree5, False))
 
 
 if __name__ == '__main__':
