@@ -29,6 +29,22 @@ def order_nodes(tree, increase=True):
     -------
     skbio.TreeNode
         resulting ordered tree
+
+    See Also
+    --------
+    is_ordered
+
+    Examples
+    --------
+    >>> from skbio import TreeNode
+    >>> tree = TreeNode.read(['(((a,b),(c,d,e)),((f,g),h));'])
+    >>> print(tree)
+    (((a,b),(c,d,e)),((f,g),h));
+    <BLANKLINE>
+    >>> tree_ordered = order_nodes(tree, False)
+    >>> print(tree_ordered)
+    ((h,(f,g)),((a,b),(c,d,e)));
+    <BLANKLINE>
     """
     res = tree.copy()
     for node in res.postorder():
@@ -61,6 +77,18 @@ def is_ordered(tree, increase=True):
     -------
     bool
         'True' if the tree is ordered
+
+    See Also
+    --------
+    order_nodes
+
+    Examples
+    --------
+    >>> from skbio import TreeNode
+    >>> tree = TreeNode.read(['((a,b)c,d)e;'])
+    >>> is_ordered(tree)
+    True
+    <BLANKLINE>
     """
     tcopy = tree.copy()
     for node in tcopy.postorder():
@@ -105,6 +133,20 @@ def cladistic(tree, taxa):
     ------
     ValueError
         if one or more taxon names are not present in the tree
+
+    Examples
+    --------
+    >>> from skbio import TreeNode
+    >>> tree = TreeNode.read(['((a,b)c,d)e;'])
+    >>> cladistic(tree, ['a'])
+    uni
+    <BLANKLINE>
+    >>> cladistic(tree, ['a', 'b'])
+    mono
+    <BLANKLINE>
+    >>> cladistic(tree, ['a', 'd'])
+    poly
+    <BLANKLINE>
     """
     tips = []
     taxa = set(taxa)
