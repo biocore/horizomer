@@ -220,6 +220,11 @@ def unpack(node):
          |        /---d
           \f-----|
                   \-e
+
+    Raises
+    ------
+    ValueError
+        if input node is root
     """
     if node.is_root():
         raise ValueError('Cannot unpack root.')
@@ -244,6 +249,11 @@ def has_duplicates(tree):
     -------
     bool
         whether there are duplicates
+
+    Raises
+    ------
+    ValueError
+        if taxon is empty
     """
     taxa = [tip.name for tip in tree.tips()]
     if '' in taxa or None in taxa:
