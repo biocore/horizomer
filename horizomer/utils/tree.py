@@ -129,6 +129,31 @@ def cladistic(tree, taxa):
         'mono' if input taxa are monophyletic in given tree
         'poly' if input taxa are polyphyletic in given tree
 
+    Notes
+    -----
+    In the following tree example:
+                                  /-a
+                        /--------|
+                       |          \-b
+              /--------|
+             |         |          /-c
+             |         |         |
+             |          \--------|--d
+    ---------|                   |
+             |                    \-e
+             |
+             |                    /-f
+             |          /--------|
+              \--------|          \-g
+                       |
+                        \-h
+    ['a'] returns 'uni'
+    ['c', 'd', 'e'] returns 'mono'
+    ['a', 'c', 'f'] returns 'poly'
+    ['f', 'h'] returns 'poly'
+    Paraphyly, which is programmably indistinguishable from polyphyly, returns
+    poly here.
+
     Raises
     ------
     ValueError
