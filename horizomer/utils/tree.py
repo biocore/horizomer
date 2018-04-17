@@ -29,6 +29,22 @@ def order_nodes(tree, increase=True):
     -------
     skbio.TreeNode
         resulting ordered tree
+
+    See Also
+    --------
+    is_ordered
+
+    Examples
+    --------
+    >>> from skbio import TreeNode
+    >>> tree = TreeNode.read(['(((a,b),(c,d,e)),((f,g),h));'])
+    >>> print(tree)
+    (((a,b),(c,d,e)),((f,g),h));
+    <BLANKLINE>
+    >>> tree_ordered = order_nodes(tree, False)
+    >>> print(tree_ordered)
+    ((h,(f,g)),((a,b),(c,d,e)));
+    <BLANKLINE>
     """
     res = tree.copy()
     for node in res.postorder():
@@ -61,6 +77,18 @@ def is_ordered(tree, increase=True):
     -------
     bool
         'True' if the tree is ordered
+
+    See Also
+    --------
+    order_nodes
+
+    Examples
+    --------
+    >>> from skbio import TreeNode
+    >>> tree = TreeNode.read(['((a,b)c,d)e;'])
+    >>> is_ordered(tree)
+    True
+    <BLANKLINE>
     """
     tcopy = tree.copy()
     for node in tcopy.postorder():
@@ -82,6 +110,80 @@ def is_ordered(tree, increase=True):
             p = node
             prev = p.n
     return True
+
+
+def cladistic(tree, taxa):
+    """Determines the cladistic property of the given taxon set.
+
+    Parameters
+    ----------
+    tree : skbio.TreeNode
+        tree for taxa comparison
+    taxa : iterable of str
+        taxon names
+
+    Returns
+    -------
+    str
+        'uni' if input taxon is a single tip in given tree
+        'mono' if input taxa are monophyletic in given tree
+        'poly' if input taxa are polyphyletic in given tree
+
+    Notes
+    -----
+    In the following tree example:
+                                  /-a
+                        /--------|
+                       |          \-b
+              /--------|
+             |         |          /-c
+             |         |         |
+             |          \--------|--d
+    ---------|                   |
+             |                    \-e
+             |
+             |                    /-f
+             |          /--------|
+              \--------|          \-g
+                       |
+                        \-h
+    ['a'] returns 'uni'
+    ['c', 'd', 'e'] returns 'mono'
+    ['a', 'c', 'f'] returns 'poly'
+    ['f', 'h'] returns 'poly'
+    Paraphyly, which is programmably indistinguishable from polyphyly, returns
+    poly here.
+
+    Raises
+    ------
+    ValueError
+        if one or more taxon names are not present in the tree
+
+    Examples
+    --------
+    >>> from skbio import TreeNode
+    >>> tree = TreeNode.read(['((a,b)c,d)e;'])
+    >>> cladistic(tree, ['a'])
+    uni
+    <BLANKLINE>
+    >>> cladistic(tree, ['a', 'b'])
+    mono
+    <BLANKLINE>
+    >>> cladistic(tree, ['a', 'd'])
+    poly
+    <BLANKLINE>
+    """
+    tips = []
+    taxa = set(taxa)
+    for tip in tree.tips():
+        if tip.name in taxa:
+            tips.append(tip)
+    n = len(taxa)
+    if len(tips) < n:
+        raise ValueError('Taxa not found in the tree.')
+    return ('uni' if n == 1 else
+            ('mono' if len(tree.lca(tips).subset()) == n else
+             'poly'))
 
 
 def support(node):
@@ -143,6 +245,11 @@ def unpack(node):
          |        /---d
           \f-----|
                   \-e
+
+    Raises
+    ------
+    ValueError
+        if input node is root
     """
     if node.is_root():
         raise ValueError('Cannot unpack root.')
@@ -167,6 +274,11 @@ def has_duplicates(tree):
     -------
     bool
         whether there are duplicates
+
+    Raises
+    ------
+    ValueError
+        if taxon is empty
     """
     taxa = [tip.name for tip in tree.tips()]
     if '' in taxa or None in taxa:

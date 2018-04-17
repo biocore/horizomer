@@ -17,7 +17,7 @@ from skbio import TreeNode
 from horizomer.utils.tree import (
     support, unpack, has_duplicates, compare_topology, intersect_trees,
     unpack_by_func, read_taxdump, build_taxdump_tree, order_nodes,
-    is_ordered)
+    is_ordered, cladistic)
 
 
 class TreeTests(TestCase):
@@ -360,6 +360,22 @@ class TreeTests(TestCase):
         # test tree in decreasing order
         tree5 = TreeNode.read(['((h,(e,g)),((a,b),(c,d,i)j));'])
         self.assertTrue(is_ordered(tree5, False))
+
+    def test_cladistic(self):
+        tree1 = TreeNode.read(['((i,j)a,b)c;'])
+        self.assertEqual('uni', cladistic(tree1, ['i']))
+        self.assertEqual('mono', cladistic(tree1, ['i', 'j']))
+        self.assertEqual('poly', cladistic(tree1, ['i', 'b']))
+        msg = 'Taxa not found in the tree.'
+        with self.assertRaisesRegex(ValueError, msg):
+            cladistic(tree1, ['x', 'b'])
+
+        tree2 = TreeNode.read(['(((a,b),(c,d,x)),((e,g),h));'])
+        self.assertEqual('uni', cladistic(tree2, ['a']))
+        self.assertEqual('mono', cladistic(tree2, ['a', 'b', 'c', 'd', 'x']))
+        self.assertEqual('poly', cladistic(tree2, ['g', 'h']))
+        with self.assertRaisesRegex(ValueError, msg):
+            cladistic(tree2, ['y', 'b'])
 
 
 if __name__ == '__main__':
