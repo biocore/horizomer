@@ -16,7 +16,8 @@ from skbio import TreeNode
 
 
 def order_nodes(tree, increase=True):
-    """Restore ordering of nodes in one tree based on another tree.
+    """Rotate internal nodes of a tree so that child nodes are ordered by the
+    number of descendants.
 
     Parameters
     ----------
@@ -54,9 +55,9 @@ def order_nodes(tree, increase=True):
             node.n = sum(x.n for x in node.children)
     for node in res.postorder():
         if not node.is_tip():
-            child2n = {x: x.n for x in node.children}
+            children = node.children
             node.children = []
-            for child in sorted(child2n, key=child2n.get, reverse=increase):
+            for child in sorted(children, key=lambda x: x.n, reverse=increase):
                 node.append(child)
     for node in res.postorder():
         delattr(node, 'n')
@@ -64,7 +65,7 @@ def order_nodes(tree, increase=True):
 
 
 def is_ordered(tree, increase=True):
-    """Returns 'True' if the tree is ordered.
+    """Returns `True` if the tree is ordered.
 
     Parameters
     ----------
@@ -76,7 +77,7 @@ def is_ordered(tree, increase=True):
     Returns
     -------
     bool
-        'True' if the tree is ordered
+        `True` if the tree is ordered
 
     See Also
     --------
@@ -88,7 +89,6 @@ def is_ordered(tree, increase=True):
     >>> tree = TreeNode.read(['((a,b)c,d)e;'])
     >>> is_ordered(tree)
     True
-    <BLANKLINE>
     """
     tcopy = tree.copy()
     for node in tcopy.postorder():
@@ -164,14 +164,11 @@ def cladistic(tree, taxa):
     >>> from skbio import TreeNode
     >>> tree = TreeNode.read(['((a,b)c,d)e;'])
     >>> cladistic(tree, ['a'])
-    uni
-    <BLANKLINE>
+    'uni'
     >>> cladistic(tree, ['a', 'b'])
-    mono
-    <BLANKLINE>
+    'mono'
     >>> cladistic(tree, ['a', 'd'])
-    poly
-    <BLANKLINE>
+    'poly'
     """
     tips = []
     taxa = set(taxa)
@@ -203,10 +200,21 @@ def support(node):
     -----
     A "support value" is defined as the numeric form of a whole node label
     without ":", or the part preceding the first ":" in the node label.
+
     - For examples: "(a,b)1.0", "(a,b)1.0:2.5", and "(a,b)'1.0:species_A'". In
     these cases the support values are all 1.0.
+
     - For examples: "(a,b):1.0" and "(a,b)species_A". In these cases there are
     no support values.
+
+    Examples
+    --------
+    >>> from skbio import TreeNode
+    >>> tree = TreeNode.read(['((a,b)99,(c,d):1.0);'])
+    >>> support(tree.lca(['a', 'b']))
+    99.0
+    >>> support(tree.lca(['c', 'd'])) is None
+    True
     """
     try:
         return float(node.name.split(':')[0])
@@ -250,6 +258,15 @@ def unpack(node):
     ------
     ValueError
         if input node is root
+
+    Examples
+    --------
+    >>> from skbio import TreeNode
+    >>> tree = TreeNode.read(['((c:2.0,d:3.0)a:1.0,(e:2.0,f:1.0)b:2.0);'])
+    >>> unpack(tree.find('b'))
+    >>> print(tree)
+    ((c:2.0,d:3.0)a:1.0,e:4.0,f:3.0);
+    <BLANKLINE>
     """
     if node.is_root():
         raise ValueError('Cannot unpack root.')
@@ -358,6 +375,20 @@ def unpack_by_func(tree, func):
     -------
     skbio.TreeNode
         resulting tree with nodes meeting criteria unpacked
+
+    Examples
+    --------
+    >>> from skbio import TreeNode
+    >>> tree = TreeNode.read(['((c:2,d:3)a:1,(e:1,f:2)b:2);'])
+    >>> tree_unpacked = unpack_by_func(tree, lambda x: x.length <= 1)
+    >>> print(tree_unpacked)
+    ((e:1.0,f:2.0)b:2.0,c:3.0,d:4.0);
+    <BLANKLINE>
+    >>> tree = TreeNode.read(['(((a,b)85,(c,d)78)75,(e,(f,g)64)80);'])
+    >>> tree_unpacked = unpack_by_func(tree, lambda x: support(x) < 75)
+    >>> print(tree_unpacked)
+    (((a,b)85,(c,d)78)75,(e,f,g)80);
+    <BLANKLINE>
     """
     tcopy = tree.copy()
     nodes_to_unpack = []
