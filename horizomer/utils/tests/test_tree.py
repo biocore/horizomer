@@ -13,11 +13,12 @@ from shutil import rmtree
 from tempfile import mkdtemp
 from os.path import join, dirname, realpath
 from skbio import TreeNode
+from skbio.tree import MissingNodeError
 
 from horizomer.utils.tree import (
     support, unpack, has_duplicates, compare_topology, intersect_trees,
     unpack_by_func, read_taxdump, build_taxdump_tree, order_nodes,
-    is_ordered, cladistic)
+    is_ordered, cladistic, compare_length, compare_branch_length)
 
 
 class TreeTests(TestCase):
@@ -376,6 +377,57 @@ class TreeTests(TestCase):
         self.assertEqual('poly', cladistic(tree2, ['g', 'h']))
         with self.assertRaisesRegex(ValueError, msg):
             cladistic(tree2, ['y', 'b'])
+
+    def test_compare_length(self):
+        tree = TreeNode.read(['((a:1.000000001,(b:1.000000002,c:1):1):3,f)g;'])
+        self.assertTrue(compare_length(tree.find('f'), tree.find('g')))
+        self.assertTrue(compare_length(tree.find('a'), tree.find('b')))
+        self.assertTrue(compare_length(tree.find('c'), tree.find('c').parent))
+        self.assertFalse(compare_length(tree.find('c'), tree.find('a').parent))
+        self.assertFalse(compare_length(tree.find('a').parent, tree.find('f')))
+        self.assertFalse(compare_length(tree.find('f'), tree.find('a').parent))
+
+    def test_compare_branch_length(self):
+        tree1 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1)g:1;'])
+        tree2 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1)g:1.0000000001;'])
+        self.assertTrue(compare_branch_length(tree1, tree1))
+        self.assertTrue(compare_branch_length(tree1, tree2))
+
+        tree3 = TreeNode.read(['(f:1,((b:1,c:1)d:1,a:1)e:1)g:1;'])
+        self.assertTrue(compare_branch_length(tree1, tree3))
+        self.assertTrue(compare_branch_length(tree3, tree1))
+
+        tree4 = TreeNode.read(['((a:2,(b:1,c:1)d:1)e:1,f:1)g:1;'])
+        tree5 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e,f:1)g:1;'])
+        self.assertFalse(compare_branch_length(tree1, tree4))
+        self.assertFalse(compare_branch_length(tree4, tree1))
+        self.assertFalse(compare_branch_length(tree1, tree5))
+        self.assertFalse(compare_branch_length(tree5, tree1))
+
+        msg = 'Topologies do not match'
+        tree6 = TreeNode.read(['(f:1, ((a:1, b:1)c:1 ,d:1)e:1)g:1;'])
+        tree7 = TreeNode.read(['((a:1,(b:1,c:1):1)e:1,f:1)g:1;'])
+        tree8 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1):1;'])
+        tree9 = TreeNode.read(['(((a:1,b:1)c:1,(d:1,e:1)f:1)g:1,h:1)i:1;'])
+        tree10 = TreeNode.read(['(((a:1,b:1)c:1,(d:1,e:1)g:1)f:1,h:1)i:1;'])
+        with self.assertRaisesRegex(ValueError, msg):
+            compare_branch_length(tree1, tree6)
+            compare_branch_length(tree6, tree1)
+            compare_branch_length(tree1, tree7)
+            compare_branch_length(tree7, tree1)
+            compare_branch_length(tree1, tree8)
+            compare_branch_length(tree8, tree1)
+            compare_branch_length(tree9, tree10)
+            compare_branch_length(tree10, tree9)
+
+        msg = 'Taxon sets do not match.'
+        tree11 = TreeNode.read(['((a:1,(x:1,c:1)d:1)e:1,f:1)g:1;'])
+        tree12 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,y:1)g:1;'])
+        with self.assertRaisesRegex(MissingNodeError, msg):
+            compare_branch_length(tree1, tree11)
+            compare_branch_length(tree11, tree1)
+            compare_branch_length(tree1, tree12)
+            compare_branch_length(tree12, tree1)
 
 
 if __name__ == '__main__':
