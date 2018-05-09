@@ -17,7 +17,7 @@ from math import isclose
 from skbio.tree import MissingNodeError
 
 
-def compare_length(node1, node2):
+def _compare_length(node1, node2):
     """Private function for compare_branch_length. Determines if lengths of the
     two nodes are same.
 
@@ -57,7 +57,7 @@ def compare_length(node1, node2):
     return True
 
 
-def compare_branch_length(tree1, tree2):
+def compare_branch_lengths(tree1, tree2):
     '''Returns `True` if each corresponding node in 2 trees has same length.
 
     Parameters
@@ -98,6 +98,7 @@ def compare_branch_length(tree1, tree2):
     tcopy1 = tree1.copy()
     tcopy2 = tree2.copy()
     stack = []
+    name = []
     count = 0
 
     for node in tcopy1.postorder(include_self=False):
@@ -106,35 +107,35 @@ def compare_branch_length(tree1, tree2):
                 cur = tcopy2.find(node.name)
             except MissingNodeError:
                 raise MissingNodeError('Taxon sets do not match.')
-            if node.name in stack:
+            if node.name in name:
                 raise ValueError('Topologies do not match.')
-            if compare_length(node, cur) is False:
+            if _compare_length(node, cur) is False:
                 return False
             if node.parent.name is None and cur.parent.name is None:
                 cur.parent.name = node.parent.name = str(count)
             elif ((node.parent.name is not None) ^
                   (cur.parent.name is not None)):
                 raise ValueError('Topologies do not match.')
-            if cur.parent.name not in stack:
-                stack.append(cur.parent.name)
+            if cur.parent.name not in name:
+                stack.append(cur.parent)
+                name.append(cur.parent.name)
 
         else:
-            if node.name == stack[-1]:
-                name = stack[-1]
-                tcopy2._tip_cache = {}
-                tcopy2._non_tip_cache = {}
-                cur = tcopy2.find(name)
+            if node.name == name[-1]:
+                cur = stack[-1]
                 stack.pop()
+                name.pop()
                 if node.parent.name is None and cur.parent.name is None:
                     cur.parent.name = node.parent.name = str(count)
                 elif ((node.parent.name is not None) ^
                       (cur.parent.name is not None)):
                     raise ValueError('Topologies do not match.')
-                if cur.parent.name not in stack:
-                    stack.append(cur.parent.name)
-                if compare_length(node, cur) is False:
+                if cur.parent.name not in name:
+                    stack.append(cur.parent)
+                    name.append(cur.parent.name)
+                if _compare_length(node, cur) is False:
                     return False
-            elif node.name in stack and node.name != stack[-1]:
+            elif node.name in name and node.name != name[-1]:
                 raise ValueError('Topologies do not match.')
             else:
                 stack.append(node.parent.name)
