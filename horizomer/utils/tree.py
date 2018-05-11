@@ -73,13 +73,6 @@ def compare_branch_lengths(tree1, tree2):
         `True` if two input trees have same topologies and branch lengths
         `False` otherwise
 
-    Raises
-    ------
-    ValueError
-        if topologies of the input trees are different
-    MissingNodeError
-        if taxons of the given trees do not match
-
     See Also
     --------
     compare_topology
@@ -97,8 +90,7 @@ def compare_branch_lengths(tree1, tree2):
     """
     tcopy1 = tree1.copy()
     tcopy2 = tree2.copy()
-    node_stack = [] # stack to store nodes in tree2
-    id_stack = [] # stack to store assigned id
+    stack = []  # stack to store nodes in tree2
     count = 0
 
     for node in tcopy1.postorder(include_self=False):
@@ -113,29 +105,24 @@ def compare_branch_lengths(tree1, tree2):
                 cur.parent.id = node.parent.id = str(count)
             elif (node.parent.id is not None) ^ (cur.parent.id is not None):
                 return False
-            if cur.parent.id not in id_stack:
-                node_stack.append(cur.parent)
-                id_stack.append(cur.parent.id)
+            if cur.parent not in stack:
+                stack.append(cur.parent)
 
         else:
-            if node.id == id_stack[-1]:
-                cur = node_stack[-1]
-                node_stack.pop()
-                id_stack.pop()
+            if node.id == stack[-1].id:
+                cur = stack[-1]
+                stack.pop()
                 if node.parent.id is None and cur.parent.id is None:
                     cur.parent.id = node.parent.id = str(count)
                 elif ((node.parent.id is not None) ^
                       (cur.parent.id is not None)):
                     return False
-                if cur.parent.id not in id_stack:
-                    node_stack.append(cur.parent)
-                    id_stack.append(cur.parent.id)
+                if cur.parent not in stack:
+                    stack.append(cur.parent)
                 if _compare_length(node, cur) is False:
                     return False
-            elif node.id in id_stack and node.id != id_stack[-1]:
-                return False
             else:
-                id_stack.append(node.parent.id)
+                return False
 
         count += 1
     return True

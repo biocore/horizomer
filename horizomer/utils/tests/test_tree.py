@@ -13,7 +13,6 @@ from shutil import rmtree
 from tempfile import mkdtemp
 from os.path import join, dirname, realpath
 from skbio import TreeNode
-from skbio.tree import MissingNodeError
 
 from horizomer.utils.tree import (
     support, unpack, has_duplicates, compare_topology, intersect_trees,
@@ -407,33 +406,25 @@ class TreeTests(TestCase):
         self.assertFalse(compare_branch_lengths(tree1, tree5))
         self.assertFalse(compare_branch_lengths(tree5, tree1))
 
+        tree7 = TreeNode.read(['((a:1,(b:1,c:1):1)e:1,f:1)g:1;'])
+        tree8 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1):1;'])
+        self.assertTrue(compare_branch_lengths(tree1, tree7))
+        self.assertTrue(compare_branch_lengths(tree7, tree1))
+        self.assertTrue(compare_branch_lengths(tree1, tree8))
+        self.assertTrue(compare_branch_lengths(tree8, tree1))
+
         tree6 = TreeNode.read(['(f:1, ((a:1, b:1)c:1 ,d:1)e:1)g:1;'])
         self.assertFalse(compare_branch_lengths(tree1, tree6))
         self.assertFalse(compare_branch_lengths(tree6, tree1))
-        """
-        tree7 = TreeNode.read(['((a:1,(b:1,c:1):1)e:1,f:1)g:1;'])
-        tree8 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1):1;'])
+
         tree9 = TreeNode.read(['(((a:1,b:1)c:1,(d:1,e:1)f:1)g:1,h:1)i:1;'])
         tree10 = TreeNode.read(['(((a:1,b:1)c:1,(d:1,e:1)g:1)f:1,h:1)i:1;'])
-        with self.assertRaisesRegex(ValueError, msg):
-            compare_branch_lengths(tree1, tree6)
-            compare_branch_lengths(tree6, tree1)
-            compare_branch_lengths(tree1, tree7)
-            compare_branch_lengths(tree7, tree1)
-            compare_branch_lengths(tree1, tree8)
-            compare_branch_lengths(tree8, tree1)
-            compare_branch_lengths(tree9, tree10)
-            compare_branch_lengths(tree10, tree9)
+        self.assertTrue(compare_branch_lengths(tree9, tree10))
+        self.assertTrue(compare_branch_lengths(tree10, tree9))
 
-        msg = 'Taxon sets do not match.'
         tree11 = TreeNode.read(['((a:1,(x:1,c:1)d:1)e:1,f:1)g:1;'])
-        tree12 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,y:1)g:1;'])
-        with self.assertRaisesRegex(MissingNodeError, msg):
-            compare_branch_lengths(tree1, tree11)
-            compare_branch_lengths(tree11, tree1)
-            compare_branch_lengths(tree1, tree12)
-            compare_branch_lengths(tree12, tree1)
-        """
+        self.assertFalse(compare_branch_lengths(tree1, tree11))
+        self.assertFalse(compare_branch_lengths(tree11, tree1))
 
 
 if __name__ == '__main__':
