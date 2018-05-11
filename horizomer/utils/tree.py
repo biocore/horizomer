@@ -18,15 +18,15 @@ from skbio.tree import MissingNodeError
 
 
 def _compare_length(node1, node2):
-    """Private function for compare_branch_length. Determines if lengths of the
+    """Private function for compare_branch_lengths. Determines if lengths of the
     two nodes are same.
 
     Parameters
     ----------
     node1: skbio.TreeNode
-        node to compare
+        first node to compare
     node2: skbio.TreeNode
-        node to compare
+        second node to compare
 
     Returns
     -------
@@ -63,9 +63,9 @@ def compare_branch_lengths(tree1, tree2):
     Parameters
     ----------
     tree1: skbio.TreeNode
-        tree to compare
+        first tree to compare
     tree2: skbio.TreeNode
-        tree to compare
+        second tree to compare
 
     Returns
     -------

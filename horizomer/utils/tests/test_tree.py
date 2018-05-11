@@ -422,6 +422,10 @@ class TreeTests(TestCase):
         self.assertTrue(compare_branch_lengths(tree9, tree10))
         self.assertTrue(compare_branch_lengths(tree10, tree9))
 
+        tree12 = TreeNode.read(['(((a:1,b:1):1,(h:1,e:1):1):1,d:1):1;'])
+        self.assertFalse(compare_branch_lengths(tree9, tree12))
+        self.assertFalse(compare_branch_lengths(tree12, tree9))
+
         tree11 = TreeNode.read(['((a:1,(x:1,c:1)d:1)e:1,f:1)g:1;'])
         self.assertFalse(compare_branch_lengths(tree1, tree11))
         self.assertFalse(compare_branch_lengths(tree11, tree1))
