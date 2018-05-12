@@ -42,9 +42,9 @@ def _compare_length(node1, node2):
     --------
     >>> from skbio import TreeNode
     >>> tree = TreeNode.read(["(a:1,b:1)c;"])
-    >>> print(compare_length(tree.find('a'), tree.find('b')))
+    >>> print(_compare_length(tree.find('a'), tree.find('b')))
     True
-    >>> print(compare_length(tree.find('a'), tree.find('c')))
+    >>> print(_compare_length(tree.find('a'), tree.find('c')))
     False
 
     """
@@ -82,10 +82,10 @@ def compare_branch_lengths(tree1, tree2):
     >>> from skbio import TreeNode
     >>> tree1 = TreeNode.read(['((a:1, c:1):2, b:1);'])
     >>> tree2 = TreeNode.read(['((a:1, c:1):2, b:1);'])
-    >>> print(compare_branch_length(tree1, tree2))
+    >>> print(compare_branch_lengths(tree1, tree2))
     True
     >>> tree3 = TreeNode.read(['((a:1, c:1):2, b);'])
-    >>> print(compare_branch_length(tree3, tree1))
+    >>> print(compare_branch_lengths(tree3, tree1))
     False
     """
     tcopy1 = tree1.copy()
@@ -277,11 +277,11 @@ def cladistic(tree, taxa):
     >>> from skbio import TreeNode
     >>> tree = TreeNode.read(['((a,b)c,d)e;'])
     >>> print(cladistic(tree, ['a']))
-    'uni'
+    uni
     >>> print(cladistic(tree, ['a', 'b']))
-    'mono'
+    mono
     >>> print(cladistic(tree, ['a', 'd']))
-    'poly'
+    poly
     """
     tips = []
     taxa = set(taxa)
