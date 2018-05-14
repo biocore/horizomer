@@ -91,40 +91,27 @@ def compare_branch_lengths(tree1, tree2):
     tcopy1 = tree1.copy()
     tcopy2 = tree2.copy()
     stack = []  # stack to store nodes in tree2
-    count = 0
 
-    for node in tcopy1.postorder(include_self=False):
+    for count, node in enumerate(tcopy1.postorder(include_self=False)):
         if node.is_tip():
             try:
                 cur = tcopy2.find(node.name)
             except MissingNodeError:
                 return False
-            if _compare_length(node, cur) is False:
-                return False
-            if node.parent.id is None and cur.parent.id is None:
-                cur.parent.id = node.parent.id = str(count)
-            elif (node.parent.id is not None) ^ (cur.parent.id is not None):
-                return False
-            if cur.parent not in stack:
-                stack.append(cur.parent)
-
         else:
             if node.id == stack[-1].id:
-                cur = stack[-1]
-                stack.pop()
-                if node.parent.id is None and cur.parent.id is None:
-                    cur.parent.id = node.parent.id = str(count)
-                elif ((node.parent.id is not None) ^
-                      (cur.parent.id is not None)):
-                    return False
-                if cur.parent not in stack:
-                    stack.append(cur.parent)
-                if _compare_length(node, cur) is False:
-                    return False
+                cur = stack.pop()
             else:
                 return False
 
-        count += 1
+        if _compare_length(node, cur) is False:
+            return False
+        if node.parent.id is None and cur.parent.id is None:
+            cur.parent.id = node.parent.id = str(count)
+        elif (node.parent.id is not None) ^ (cur.parent.id is not None):
+            return False
+        if cur.parent not in stack:
+            stack.append(cur.parent)
     return True
 
 
