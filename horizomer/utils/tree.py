@@ -73,6 +73,14 @@ def compare_branch_lengths(tree1, tree2):
         `True` if two input trees have same topologies and branch lengths
         `False` otherwise
 
+    Notes
+    -----
+    This method compares two unordered trees to check if the two given trees
+    have same topology and same branch lengths. The topology check is done by
+    postorder traversals of the first tree while `find()` the respective nodes
+    in tree 2. Topology of tree2 is determined by storing anchoring nodes in
+    stack temporarily.
+
     See Also
     --------
     compare_topology
@@ -88,14 +96,12 @@ def compare_branch_lengths(tree1, tree2):
     >>> print(compare_branch_lengths(tree3, tree1))
     False
     """
-    tcopy1 = tree1.copy()
-    tcopy2 = tree2.copy()
     stack = []  # stack to store nodes in tree2
 
-    for count, node in enumerate(tcopy1.postorder(include_self=False)):
+    for count, node in enumerate(tree1.postorder(include_self=False)):
         if node.is_tip():
             try:
-                cur = tcopy2.find(node.name)
+                cur = tree2.find(node.name)
             except MissingNodeError:
                 return False
         else:
