@@ -17,7 +17,7 @@ from skbio import TreeNode
 from horizomer.utils.tree import (
     support, unpack, has_duplicates, compare_topology, intersect_trees,
     unpack_by_func, read_taxdump, build_taxdump_tree, order_nodes,
-    is_ordered, cladistic)
+    is_ordered, cladistic, _compare_length, compare_branch_lengths)
 
 
 class TreeTests(TestCase):
@@ -376,6 +376,86 @@ class TreeTests(TestCase):
         self.assertEqual('poly', cladistic(tree2, ['g', 'h']))
         with self.assertRaisesRegex(ValueError, msg):
             cladistic(tree2, ['y', 'b'])
+
+    def test_compare_length(self):
+        tree = TreeNode.read(['((a:1.000000001,(b:1.000000002,c:1):1):3,f)g;'])
+        self.assertTrue(_compare_length(tree.find('f'), tree.find('g')))
+        self.assertTrue(_compare_length(tree.find('a'), tree.find('b')))
+        self.assertTrue(_compare_length(tree.find('c'), tree.find('c').parent))
+        self.assertFalse(_compare_length(tree.find('c'),
+                         tree.find('a').parent))
+        self.assertFalse(_compare_length(tree.find('a').parent,
+                         tree.find('f')))
+        self.assertFalse(_compare_length(tree.find('f'),
+                         tree.find('a').parent))
+
+    def test_compare_branch_lengths(self):
+        tree1 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1)g:1;'])
+        self.assertTrue(compare_branch_lengths(tree1, tree1))
+        tree1 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1)g:1;'])
+        tree2 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1)g:1;'])
+        self.assertTrue(compare_branch_lengths(tree1, tree2))
+
+        tree1 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1)g:1;'])
+        tree3 = TreeNode.read(['(f:1,((b:1,c:1)d:1,a:1)e:1)g:1;'])
+        self.assertTrue(compare_branch_lengths(tree1, tree3))
+        tree1 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1)g:1;'])
+        tree3 = TreeNode.read(['(f:1,((b:1,c:1)d:1,a:1)e:1)g:1;'])
+        self.assertTrue(compare_branch_lengths(tree3, tree1))
+
+        tree1 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1)g:1;'])
+        tree4 = TreeNode.read(['((a:2,(b:1,c:1)d:1)e:1,f:1)g:1;'])
+        self.assertFalse(compare_branch_lengths(tree1, tree4))
+        tree1 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1)g:1;'])
+        tree4 = TreeNode.read(['((a:2,(b:1,c:1)d:1)e:1,f:1)g:1;'])
+        self.assertFalse(compare_branch_lengths(tree4, tree1))
+        tree1 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1)g:1;'])
+        tree5 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e,f:1)g:1;'])
+        self.assertFalse(compare_branch_lengths(tree1, tree5))
+        tree1 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1)g:1;'])
+        tree5 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e,f:1)g:1;'])
+        self.assertFalse(compare_branch_lengths(tree5, tree1))
+
+        tree1 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1)g:1;'])
+        tree7 = TreeNode.read(['((a:1,(b:1,c:1):1)e:1,f:1)g:1;'])
+        self.assertTrue(compare_branch_lengths(tree1, tree7))
+        tree1 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1)g:1;'])
+        tree7 = TreeNode.read(['((a:1,(b:1,c:1):1)e:1,f:1)g:1;'])
+        self.assertTrue(compare_branch_lengths(tree7, tree1))
+        tree1 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1)g:1;'])
+        tree8 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1):1;'])
+        self.assertTrue(compare_branch_lengths(tree1, tree8))
+        tree1 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1)g:1;'])
+        tree8 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1):1;'])
+        self.assertTrue(compare_branch_lengths(tree8, tree1))
+
+        tree1 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1)g:1;'])
+        tree6 = TreeNode.read(['(f:1, ((a:1, b:1)c:1 ,d:1)e:1)g:1;'])
+        self.assertFalse(compare_branch_lengths(tree1, tree6))
+        tree1 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1)g:1;'])
+        tree6 = TreeNode.read(['(f:1, ((a:1, b:1)c:1 ,d:1)e:1)g:1;'])
+        self.assertFalse(compare_branch_lengths(tree6, tree1))
+
+        tree9 = TreeNode.read(['(((a:1,b:1)c:1,(d:1,e:1)f:1)g:1,h:1)i:1;'])
+        tree10 = TreeNode.read(['(((a:1,b:1)c:1,(d:1,e:1)g:1)f:1,h:1)i:1;'])
+        self.assertTrue(compare_branch_lengths(tree9, tree10))
+        tree9 = TreeNode.read(['(((a:1,b:1)c:1,(d:1,e:1)f:1)g:1,h:1)i:1;'])
+        tree10 = TreeNode.read(['(((a:1,b:1)c:1,(d:1,e:1)g:1)f:1,h:1)i:1;'])
+        self.assertTrue(compare_branch_lengths(tree10, tree9))
+
+        tree9 = TreeNode.read(['(((a:1,b:1)c:1,(d:1,e:1)f:1)g:1,h:1)i:1;'])
+        tree12 = TreeNode.read(['(((a:1,b:1):1,(h:1,e:1):1):1,d:1):1;'])
+        self.assertFalse(compare_branch_lengths(tree9, tree12))
+        tree9 = TreeNode.read(['(((a:1,b:1)c:1,(d:1,e:1)f:1)g:1,h:1)i:1;'])
+        tree12 = TreeNode.read(['(((a:1,b:1):1,(h:1,e:1):1):1,d:1):1;'])
+        self.assertFalse(compare_branch_lengths(tree12, tree9))
+
+        tree1 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1)g:1;'])
+        tree11 = TreeNode.read(['((a:1,(x:1,c:1)d:1)e:1,f:1)g:1;'])
+        self.assertFalse(compare_branch_lengths(tree1, tree11))
+        tree1 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1)g:1;'])
+        tree11 = TreeNode.read(['((a:1,(x:1,c:1)d:1)e:1,f:1)g:1;'])
+        self.assertFalse(compare_branch_lengths(tree11, tree1))
 
 
 if __name__ == '__main__':

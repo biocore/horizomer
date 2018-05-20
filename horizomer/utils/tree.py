@@ -13,6 +13,112 @@
 #
 
 from skbio import TreeNode
+from math import isclose
+from skbio.tree import MissingNodeError
+
+
+def _compare_length(node1, node2):
+    """Private function for compare_branch_lengths. Determines if lengths of the
+    two nodes are same.
+
+    Parameters
+    ----------
+    node1: skbio.TreeNode
+        first node to compare
+    node2: skbio.TreeNode
+        second node to compare
+
+    Returns
+    -------
+    bool
+        `True` if lengths of the two input nodes are None, same, or close
+        `False` otherwise
+
+    See Also
+    --------
+    compare_branch_length
+
+    Examples
+    --------
+    >>> from skbio import TreeNode
+    >>> tree = TreeNode.read(["(a:1,b:1)c;"])
+    >>> print(_compare_length(tree.find('a'), tree.find('b')))
+    True
+    >>> print(_compare_length(tree.find('a'), tree.find('c')))
+    False
+
+    """
+    if node1.length is None and node2.length is None:
+        return True
+    elif (node1.length is None) ^ (node2.length is None):
+        return False
+    elif isclose(node1.length, node2.length) is False:
+        return False
+    return True
+
+
+def compare_branch_lengths(tree1, tree2):
+    """Returns `True` if each corresponding node in 2 trees has same length.
+
+    Parameters
+    ----------
+    tree1: skbio.TreeNode
+        first tree to compare
+    tree2: skbio.TreeNode
+        second tree to compare
+
+    Returns
+    -------
+    bool
+        `True` if two input trees have same topologies and branch lengths
+        `False` otherwise
+
+    Notes
+    -----
+    This method compares two unordered trees to check if the two given trees
+    have same topology and same branch lengths. The topology check is done by
+    postorder traversals of the first tree while `find()` the respective nodes
+    in tree 2. Topology of tree2 is determined by storing anchoring nodes in
+    stack temporarily.
+
+    See Also
+    --------
+    compare_topology
+
+    Examples
+    --------
+    >>> from skbio import TreeNode
+    >>> tree1 = TreeNode.read(['((a:1, c:1):2, b:1);'])
+    >>> tree2 = TreeNode.read(['((a:1, c:1):2, b:1);'])
+    >>> print(compare_branch_lengths(tree1, tree2))
+    True
+    >>> tree3 = TreeNode.read(['((a:1, c:1):2, b);'])
+    >>> print(compare_branch_lengths(tree3, tree1))
+    False
+    """
+    stack = []  # stack to store nodes in tree2
+
+    for count, node in enumerate(tree1.postorder(include_self=False)):
+        if node.is_tip():
+            try:
+                cur = tree2.find(node.name)
+            except MissingNodeError:
+                return False
+        else:
+            if node.id == stack[-1].id:
+                cur = stack.pop()
+            else:
+                return False
+
+        if _compare_length(node, cur) is False:
+            return False
+        if node.parent.id is None and cur.parent.id is None:
+            cur.parent.id = node.parent.id = str(count)
+        elif (node.parent.id is not None) ^ (cur.parent.id is not None):
+            return False
+        if cur.parent not in stack:
+            stack.append(cur.parent)
+    return True
 
 
 def order_nodes(tree, increase=True):
@@ -87,7 +193,7 @@ def is_ordered(tree, increase=True):
     --------
     >>> from skbio import TreeNode
     >>> tree = TreeNode.read(['((a,b)c,d)e;'])
-    >>> is_ordered(tree)
+    >>> print(is_ordered(tree))
     True
     """
     tcopy = tree.copy()
@@ -163,12 +269,12 @@ def cladistic(tree, taxa):
     --------
     >>> from skbio import TreeNode
     >>> tree = TreeNode.read(['((a,b)c,d)e;'])
-    >>> cladistic(tree, ['a'])
-    'uni'
-    >>> cladistic(tree, ['a', 'b'])
-    'mono'
-    >>> cladistic(tree, ['a', 'd'])
-    'poly'
+    >>> print(cladistic(tree, ['a']))
+    uni
+    >>> print(cladistic(tree, ['a', 'b']))
+    mono
+    >>> print(cladistic(tree, ['a', 'd']))
+    poly
     """
     tips = []
     taxa = set(taxa)
