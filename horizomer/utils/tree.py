@@ -17,6 +17,242 @@ from math import isclose
 from skbio.tree import MissingNodeError
 
 
+def _extract_support(node):
+    """Extract the support value from a node label, if available.
+    Returns
+    -------
+    tuple of
+        int, float or None
+            The support value extracted from the node label
+        str or None
+            The node label with the support value stripped
+    """
+    support, label = None, None
+    if node.name:
+        # separate support value from node name by the first colon
+        left, _, right = node.name.partition(':')
+        try:
+            support = int(left)
+        except ValueError:
+            try:
+                support = float(left)
+            except ValueError:
+                pass
+        # strip support value from node name
+        label = right or None if support is not None else node.name
+    return support, label
+
+
+def _node_label(node):
+    """Generate a node label in the format of "support:name" if both exist,
+    or "support" or "name" if either exists.
+    Returns
+    -------
+    str
+        Generated node label
+    """
+    lblst = []
+    if node.support is not None:  # prevents support of NoneType
+        lblst.append(str(node.support))
+    if node.name:  # prevents name of NoneType
+        lblst.append(node.name)
+    return ':'.join(lblst)
+
+
+def assign_supports(tree):
+    """Extract support values from internal node labels of a tree.
+    Notes
+    -----
+    A "support value" measures the confidence or frequency of the incoming
+    branch (the branch from parent to self) of an internal node in a tree.
+    Roots and tips do not have support values. To extract a support value
+    from a node label, this method reads from left and stops at the first
+    ":" (if any), and attempts to convert it to a number.
+    For examples: "(a,b)1.0", "(a,b)1.0:2.5", and "(a,b)'1.0:species_A'".
+    In these cases the support values are all 1.0.
+    For examples: "(a,b):1.0" and "(a,b)species_A". In these cases there
+    are no support values.
+    If a support value is successfully extracted, it will be stripped from
+    the node label and assigned to the `support` property.
+    IMPORTANT: mathematically, "support value" is a property of a branch,
+    not a node. Because of historical reasons, support values are usually
+    attached to nodes in a typical tree file [1].
+    [1] Czech, Lucas, Jaime Huerta-Cepas, and Alexandros Stamatakis. "A
+        Critical Review on the Use of Support Values in Tree Viewers and
+        Bioinformatics Toolkits." Molecular biology and evolution 34.6
+        (2017): 1535-1542.
+
+    Examples
+    --------
+    >>> from skbio import TreeNode
+    >>> newick = "((a,b)95,(c,d):1.1,(e,f)'80:speciesA':1.0);"
+    >>> tree = TreeNode.read([newick])
+    >>> tree.assign_supports()
+    >>> tree.lca(['a', 'b']).support
+    95
+    >>> tree.lca(['c', 'd']).support is None
+    True
+    >>> tree.lca(['e', 'f']).support
+    80
+    >>> tree.lca(['e', 'f']).name
+    'speciesA'
+    """
+    for node in tree.traverse():
+        if node.is_root() or node.is_tip():
+            node.support = None
+        else:
+            node.support, node.name = _extract_support(node)
+
+
+def walk_copy(node, src):
+    """Directionally and recursively copy a tree node and its neighbors.
+
+    Parameters
+    ----------
+    node : skbio.TreeNode
+        node and its neighbors to be copied
+    src : skbio.TreeNode
+        an upstream node determining the direction of walking (src -> node)
+
+    Returns
+    -------
+    skbio.TreeNode
+        copied node and its neighbors
+
+    Notes
+    -----
+    After manipulation, `src` will become the parent of `node`, and all other
+    neighbors of `node` will become children of it.
+
+    Unlike scikit-bio's `unrooted_copy` function, this function has special
+    treatment at root: For an unrooted tree, its "root" will be retained as a
+    regular node; for a rooted tree, its root will be deleted, and all basal
+    nodes will become immediate children of the basal node where the source is
+    located.
+
+    The function determines whether a tree is rooted or unrooted in such way:
+    rooted: root has two children; unrooted: root has one or more than two
+    children.
+
+    Logic (pseudocode):
+    if node is root:
+        if tree is rooted:
+            raise error
+        else:
+            if src in node.children:
+                append node.other_child
+            else:
+                raise error
+    elif node is basal (i.e., child of root):
+        if tree is rooted:
+            if src in node.siblings:
+                append node.children
+            elif src in node.children:
+                append node.sibling and node.other_children
+            else:
+                raise error
+        else:
+            if src is node.parent (i.e., root):
+                append node.children
+            elif src in node.children:
+                append node.parent and node.other_children
+            else:
+                raise error
+    else: (i.e., node is derived)
+        if src is node.parent:
+            append node.children
+        elif src in node.children:
+            append node.parent and node.other_children
+        else:
+            raise error
+    """
+    parent = node.parent
+    children = node.children
+
+    # position of node
+    pos = ('root' if node.is_root() else 'basal' if parent.is_root()
+           else 'derived')
+
+    # whether tree is rooted
+    rooted = None if pos == 'derived' else (
+        True if len(children) == 2 else False)
+
+    if rooted:
+        if pos == 'root':
+            raise ValueError('Cannot walk from root of an rooted tree.')
+        elif pos == 'basal':
+            sibling = [x for x in node.siblings()][0]
+
+    # direction of walking
+    move = (('bottom' if src is sibling else 'top' if src in children
+            else 'n/a') if rooted and pos == 'basal'
+            else ('down' if src is parent else 'up' if src in children
+            else 'n/a'))
+    if move == 'n/a':
+        raise ValueError('Source and node are not neighbors.')
+
+    # create a new node
+    res = TreeNode(node.name)
+
+    # determine length of the new node
+    res.length = (node.length if move == 'down'
+                  else src.length + node.length if move == 'bottom'
+                  else src.length)  # up or top
+
+    # determine support of the new node
+    res.support = (node.support if move in ('down', 'bottom')
+                   else src.support)
+
+    # append children except for src (if applies)
+    res.extend([walk_copy(c, node) for c in children if c is not src])
+
+    # append parent if walking up (except at root)
+    if move == 'up' and pos != 'root':
+        res.append(walk_copy(parent, node))
+
+    # append sibling if walking from one basal node to another
+    if move == 'top':
+        res.append(walk_copy(sibling, node))
+
+    return res
+
+
+def root_above(node, name=None):
+    """Re-root a tree between a give node and its parent.
+
+    Parameters
+    ----------
+    node : skbio.TreeNode
+        node above which the new root will be placed
+    name : str, optional
+        name of the new root
+
+    Returns
+    -------
+    skbio.TreeNode
+        resulting rooted tree
+
+    Notes
+    -----
+    Unlike scikit-bio's `root_at` function which actually generates an
+    unrooted tree, this function generates a rooted tree (the root of
+    which has exactly two children).
+    """
+    # walk down from self node
+    left = walk_copy(node, node.parent)
+
+    # walk up from parent node
+    right = walk_copy(node.parent, node)
+
+    # set basal branch lengths to be half of the original, i.e., midpoint
+    left.length = right.length = node.length / 2
+
+    # create new root
+    res = TreeNode(name, children=[left, right])
+    res.support = None
+    return res
+
+
 def _compare_length(node1, node2):
     """Private function for compare_branch_lengths. Determines if lengths of the
     two nodes are same.
