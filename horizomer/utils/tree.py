@@ -174,8 +174,9 @@ def walk_copy(node, src):
            else 'derived')
 
     # whether tree is rooted
+    root = node if pos == 'root' else node.parent if pos == 'basal' else None
     rooted = None if pos == 'derived' else (
-        True if len(children) == 2 else False)
+        True if len(root.children) == 2 else False)
 
     if rooted:
         if pos == 'root':

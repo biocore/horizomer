@@ -462,11 +462,13 @@ class TreeTests(TestCase):
         tree1 = TreeNode.read(['(((a:1.0,b:0.8)c:2.4,(d:0.8,e:0.6)f:1.2)g:0.4,'
                                '(h:0.5,i:0.7)j:1.8)k;'])
         assign_supports(tree1)
+
         # test pos = root
         msg = 'Cannot walk from root of an rooted tree.'
         with self.assertRaisesRegex(ValueError, msg):
             walk_copy(tree1.find('k'), tree1.find('j'))
         msg = 'Source and node are not neighbors.'
+
         # test pos = derived
         with self.assertRaisesRegex(ValueError, msg):
             walk_copy(tree1.find('a'), tree1.find('b'))
@@ -476,14 +478,56 @@ class TreeTests(TestCase):
             walk_copy(tree1.find('f'), tree1.find('j'))
         with self.assertRaisesRegex(ValueError, msg):
             walk_copy(tree1.find('f'), tree1.find('k'))
+
         # test pos = basal
         with self.assertRaisesRegex(ValueError, msg):
             walk_copy(tree1.find('g'), tree1.find('a'))
         with self.assertRaisesRegex(ValueError, msg):
             walk_copy(tree1.find('g'), tree1.find('k'))
 
+        # pos = derived, move = up
+        res = TreeNode.read(['(a:1.0,((d:0.8,e:0.6)f:1.2,'
+                             '(h:0.5,i:0.7)j:2.2)g:2.4)c:0.8;'])
+        output = walk_copy(tree1.find('c'), tree1.find('a'))
+        for n1, n2 in zip(res.postorder(), output.postorder()):
+            self.assertTrue(n1.name, n2.name)
+            self.assertTrue(n1.length, n2.length)
+
+        # pos = derived, move = down
+        res = TreeNode.read(['(d:0.8,e:0.6)f:1.2;'])
+        output = walk_copy(tree1.find('f'), tree1.find('g'))
+        for n1, n2 in zip(res.postorder(), output.postorder()):
+            self.assertTrue(n1.name, n2.name)
+            self.assertTrue(n1.length, n2.length)
+
+        # pos = basal, move = top
         res = TreeNode.read(['((d:0.8,e:0.6)f:1.2,(h:0.5,i:0.7)j:2.2)g:2.4;'])
         output = walk_copy(tree1.find('g'), tree1.find('c'))
+        for n1, n2 in zip(res.postorder(), output.postorder()):
+            self.assertEqual(n1.name, n2.name)
+            self.assertEqual(n1.length, n2.length)
+
+        # pos = basal, move = bottom
+        res = TreeNode.read(['(h:0.5,i:0.7)j:2.2;'])
+        output = walk_copy(tree1.find('j'), tree1.find('g'))
+        for n1, n2 in zip(res.postorder(), output.postorder()):
+            self.assertEqual(n1.name, n2.name)
+            self.assertEqual(n1.length, n2.length)
+
+        tree2 = TreeNode.read(['(((a:1.0,b:0.8)c:2.4,d:0.8)e:0.6,f:1.2,'
+                               'g:0.4)h:0.5;'])
+        assign_supports(tree2)
+
+        # pos = basal, move = down
+        res = TreeNode.read(['((a:1.0,b:0.8)c:2.4,d:0.8)e:0.6;'])
+        output = walk_copy(tree2.find('e'), tree2.find('h'))
+        for n1, n2 in zip(res.postorder(), output.postorder()):
+            self.assertEqual(n1.name, n2.name)
+            self.assertEqual(n1.length, n2.length)
+
+        # pos = basal, move = up
+        res = TreeNode.read(['(d:0.8,(f:1.2,g:0.4)h:0.6)e:2.4;'])
+        output = walk_copy(tree2.find('e'), tree2.find('c'))
         for n1, n2 in zip(res.postorder(), output.postorder()):
             self.assertEqual(n1.name, n2.name)
             self.assertEqual(n1.length, n2.length)
