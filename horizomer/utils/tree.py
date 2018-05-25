@@ -87,7 +87,7 @@ def assign_supports(tree):
     >>> from skbio import TreeNode
     >>> newick = "((a,b)95,(c,d):1.1,(e,f)'80:speciesA':1.0);"
     >>> tree = TreeNode.read([newick])
-    >>> tree.assign_supports()
+    >>> assign_supports(tree)
     >>> tree.lca(['a', 'b']).support
     95
     >>> tree.lca(['c', 'd']).support is None
@@ -165,6 +165,16 @@ def walk_copy(node, src):
             append node.parent and node.other_children
         else:
             raise error
+
+    See Also
+    --------
+    root_above
+
+    Raises
+    ------
+    ValueError
+        if the input node is already a root or if the input node and input
+        source node are not neighbors
     """
     parent = node.parent
     children = node.children

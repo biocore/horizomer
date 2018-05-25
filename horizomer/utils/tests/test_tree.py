@@ -18,7 +18,7 @@ from horizomer.utils.tree import (
     support, unpack, has_duplicates, compare_topology, intersect_trees,
     unpack_by_func, read_taxdump, build_taxdump_tree, order_nodes,
     is_ordered, cladistic, _compare_length, compare_branch_lengths,
-    assign_supports, walk_copy)
+    assign_supports, walk_copy, root_above)
 
 
 class TreeTests(TestCase):
@@ -529,6 +529,54 @@ class TreeTests(TestCase):
         res = TreeNode.read(['(d:0.8,(f:1.2,g:0.4)h:0.6)e:2.4;'])
         output = walk_copy(tree2.find('e'), tree2.find('c'))
         for n1, n2 in zip(res.postorder(), output.postorder()):
+            self.assertEqual(n1.name, n2.name)
+            self.assertEqual(n1.length, n2.length)
+
+    def test_root_above(self):
+        tree1 = TreeNode.read(['(((a:1.0,b:0.8)c:2.4,(d:0.8,e:0.6)f:1.2)g:0.4,'
+                               '(h:0.5,i:0.7)j:1.8)k;'])
+        assign_supports(tree1)
+
+        tree1_cg = root_above(tree1.find('c'))
+        res = TreeNode.read(['((a:1.0,b:0.8)c:1.2,((d:0.8,e:0.6)f:1.2,(h:0.5,'
+                             'i:0.7)j:2.2)g:1.2);'])
+        for n1, n2 in zip(res.postorder(), tree1_cg.postorder()):
+            self.assertEqual(n1.name, n2.name)
+            self.assertEqual(n1.length, n2.length)
+
+        tree1_ij = root_above(tree1.find('i'))
+        res = TreeNode.read(['(i:0.35,(h:0.5,((a:1.0,b:0.8)c:2.4,(d:0.8,'
+                            'e:0.6)f:1.2)g:2.2)j:0.35);'])
+        for n1, n2 in zip(res.postorder(), tree1_ij.postorder()):
+            self.assertEqual(n1.name, n2.name)
+            self.assertEqual(n1.length, n2.length)
+
+        tree2 = TreeNode.read(['(((a:0.6,b:0.5)g:0.3,c:0.8)h:0.4,(d:0.4,'
+                               'e:0.5)i:0.5,f:0.9)j;'])
+        assign_supports(tree2)
+
+        tree2_ag = root_above(tree2.find('a'))
+        res = TreeNode.read(['(a:0.3,(b:0.5,(c:0.8,((d:0.4,e:0.5)i:0.5,'
+                             'f:0.9)j:0.4)h:0.3)g:0.3);'])
+        for n1, n2 in zip(res.postorder(), tree2_ag.postorder()):
+            self.assertEqual(n1.name, n2.name)
+            self.assertEqual(n1.length, n2.length)
+
+        tree2_gh = root_above(tree2.find('g'))
+        res = TreeNode.read(['((a:0.6,b:0.5)g:0.15,(c:0.8,((d:0.4,e:0.5)i:0.5,'
+                             'f:0.9)j:0.4)h:0.15);'])
+        for n1, n2 in zip(res.postorder(), tree2_gh.postorder()):
+            self.assertEqual(n1.name, n2.name)
+            self.assertEqual(n1.length, n2.length)
+
+        tree3 = TreeNode.read(['(((a:0.4,b:0.3)e:0.1,(c:0.4,'
+                               'd:0.1)f:0.2)g:0.6)h:0.2;'])
+        assign_supports(tree3)
+
+        tree3_ae = root_above(tree3.find('a'))
+        res = TreeNode.read(['(a:0.2,(b:0.3,((c:0.4,d:0.1)f:0.2,'
+                             'h:0.6)g:0.1)e:0.2);'])
+        for n1, n2 in zip(res.postorder(), tree3_ae.postorder()):
             self.assertEqual(n1.name, n2.name)
             self.assertEqual(n1.length, n2.length)
 
