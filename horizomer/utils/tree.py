@@ -19,6 +19,12 @@ from skbio.tree import MissingNodeError
 
 def _extract_support(node):
     """Extract the support value from a node label, if available.
+
+    Parameters
+    ----------
+    skbio.TreeNode
+        node from which the support value is extracted
+
     Returns
     -------
     tuple of
@@ -46,21 +52,30 @@ def _extract_support(node):
 def _node_label(node):
     """Generate a node label in the format of "support:name" if both exist,
     or "support" or "name" if either exists.
+
+    Parameters
+    ----------
+    skbio.TreeNode
+        node containing support value or name
+
     Returns
     -------
     str
         Generated node label
     """
     lblst = []
+
     if node.support is not None:  # prevents support of NoneType
         lblst.append(str(node.support))
     if node.name:  # prevents name of NoneType
         lblst.append(node.name)
+
     return ':'.join(lblst)
 
 
 def assign_supports(tree):
     """Extract support values from internal node labels of a tree.
+
     Notes
     -----
     A "support value" measures the confidence or frequency of the incoming
@@ -190,7 +205,7 @@ def walk_copy(node, src):
 
     if rooted:
         if pos == 'root':
-            raise ValueError('Cannot walk from root of an rooted tree.')
+            raise ValueError('Cannot walk from root of a rooted tree.')
         elif pos == 'basal':
             sibling = [x for x in node.siblings()][0]
 
@@ -262,6 +277,30 @@ def root_above(node, name=None):
     res = TreeNode(name, children=[left, right])
     res.support = None
     return res
+
+
+def _exact_compare(tree1, tree2):
+    """Simultaneously compares the name, length, and support of each node from
+    two trees.
+
+    Parameters
+    ----------
+    tree1: skbio.TreeNode
+        first tree to compare
+    tree2: skbio.TreeNode
+        second tree to compare
+
+    Returns
+    -------
+    bool
+        `True` if name, length, and support of each corresponding node are same
+        `False` otherwise
+    """
+    for n1, n2 in zip(tree1.postorder(), tree2.postorder()):
+        if (n1.name != n2.name or n1.length != n2.length or
+           n1.support != n2.support):
+            return False
+    return True
 
 
 def _compare_length(node1, node2):
