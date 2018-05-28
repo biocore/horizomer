@@ -296,10 +296,11 @@ def _exact_compare(tree1, tree2):
         `True` if name, length, and support of each corresponding node are same
         `False` otherwise
     """
+    attrs = ['name', 'length', 'support']
     for n1, n2 in zip(tree1.postorder(), tree2.postorder()):
-        if (n1.name != n2.name or n1.length != n2.length or
-           n1.support != n2.support):
-            return False
+        for attr in attrs:
+            if getattr(n1, attr) != getattr(n2, attr):
+                return False
     return True
 
 
