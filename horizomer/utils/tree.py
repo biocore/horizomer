@@ -299,7 +299,7 @@ def _exact_compare(tree1, tree2):
     attrs = ['name', 'length', 'support']
     for n1, n2 in zip(tree1.postorder(), tree2.postorder()):
         for attr in attrs:
-            if getattr(n1, attr) != getattr(n2, attr):
+            if getattr(n1, attr, None) != getattr(n2, attr, None):
                 return False
     return True
 
