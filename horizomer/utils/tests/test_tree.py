@@ -17,7 +17,8 @@ from skbio import TreeNode
 from horizomer.utils.tree import (
     support, unpack, has_duplicates, compare_topology, intersect_trees,
     unpack_by_func, read_taxdump, build_taxdump_tree, order_nodes,
-    is_ordered, cladistic, _compare_length, compare_branch_lengths)
+    is_ordered, cladistic, _compare_length, compare_branch_lengths,
+    assign_supports, walk_copy, root_above, _exact_compare)
 
 
 class TreeTests(TestCase):
@@ -456,6 +457,143 @@ class TreeTests(TestCase):
         tree1 = TreeNode.read(['((a:1,(b:1,c:1)d:1)e:1,f:1)g:1;'])
         tree11 = TreeNode.read(['((a:1,(x:1,c:1)d:1)e:1,f:1)g:1;'])
         self.assertFalse(compare_branch_lengths(tree11, tree1))
+
+    def test_walk_copy(self):
+        tree1 = TreeNode.read(['(((a:1.0,b:0.8)c:2.4,(d:0.8,e:0.6)f:1.2)g:0.4,'
+                               '(h:0.5,i:0.7)j:1.8)k;'])
+        assign_supports(tree1)
+
+        # test pos = root
+        msg = 'Cannot walk from root of a rooted tree.'
+        with self.assertRaisesRegex(ValueError, msg):
+            walk_copy(tree1.find('k'), tree1.find('j'))
+        msg = 'Source and node are not neighbors.'
+
+        # test pos = derived
+        with self.assertRaisesRegex(ValueError, msg):
+            walk_copy(tree1.find('a'), tree1.find('b'))
+        with self.assertRaisesRegex(ValueError, msg):
+            walk_copy(tree1.find('c'), tree1.find('f'))
+        with self.assertRaisesRegex(ValueError, msg):
+            walk_copy(tree1.find('f'), tree1.find('j'))
+        with self.assertRaisesRegex(ValueError, msg):
+            walk_copy(tree1.find('f'), tree1.find('k'))
+
+        # test pos = basal
+        with self.assertRaisesRegex(ValueError, msg):
+            walk_copy(tree1.find('g'), tree1.find('a'))
+        with self.assertRaisesRegex(ValueError, msg):
+            walk_copy(tree1.find('g'), tree1.find('k'))
+
+        # pos = derived, move = up
+        exp = TreeNode.read(['(b:0.8,((d:0.8,e:0.6)f:1.2,(h:0.5,i:0.7)j:2.2)'
+                             'g:2.4)c:1.0;'])
+        obs = walk_copy(tree1.find('c'), tree1.find('a'))
+        assign_supports(exp)
+        self.assertTrue(_exact_compare(exp, obs))
+
+        # pos = derived, move = down
+        exp = TreeNode.read(['(d:0.8,e:0.6)f:1.2;'])
+        obs = walk_copy(tree1.find('f'), tree1.find('g'))
+        assign_supports(exp)
+        self.assertTrue(_exact_compare(exp, obs))
+
+        # pos = basal, move = top
+        exp = TreeNode.read(['((d:0.8,e:0.6)f:1.2,(h:0.5,i:0.7)j:2.2)g:2.4;'])
+        obs = walk_copy(tree1.find('g'), tree1.find('c'))
+        assign_supports(exp)
+        self.assertTrue(_exact_compare(exp, obs))
+
+        # pos = basal, move = bottom
+        exp = TreeNode.read(['(h:0.5,i:0.7)j:2.2;'])
+        obs = walk_copy(tree1.find('j'), tree1.find('g'))
+        assign_supports(exp)
+        self.assertTrue(_exact_compare(exp, obs))
+
+        tree2 = TreeNode.read(['(((a:1.0,b:0.8)c:2.4,d:0.8)e:0.6,f:1.2,'
+                               'g:0.4)h:0.5;'])
+        assign_supports(tree2)
+
+        # pos = basal, move = down
+        exp = TreeNode.read(['((a:1.0,b:0.8)c:2.4,d:0.8)e:0.6;'])
+        obs = walk_copy(tree2.find('e'), tree2.find('h'))
+        assign_supports(exp)
+        self.assertTrue(_exact_compare(exp, obs))
+
+        # pos = basal, move = up
+        exp = TreeNode.read(['(d:0.8,(f:1.2,g:0.4)h:0.6)e:2.4;'])
+        obs = walk_copy(tree2.find('e'), tree2.find('c'))
+        assign_supports(exp)
+        self.assertTrue(_exact_compare(exp, obs))
+
+    def test_root_above(self):
+        tree1 = TreeNode.read(['(((a:1.0,b:0.8)c:2.4,(d:0.8,e:0.6)f:1.2)g:0.4,'
+                               '(h:0.5,i:0.7)j:1.8)k;'])
+        assign_supports(tree1)
+
+        tree1_cg = root_above(tree1.find('c'))
+        exp = TreeNode.read(['((a:1.0,b:0.8)c:1.2,((d:0.8,e:0.6)f:1.2,(h:0.5,'
+                             'i:0.7)j:2.2)g:1.2);'])
+        assign_supports(exp)
+        self.assertTrue(_exact_compare(exp, tree1_cg))
+
+        tree1_ij = root_above(tree1.find('i'))
+        exp = TreeNode.read(['(i:0.35,(h:0.5,((a:1.0,b:0.8)c:2.4,(d:0.8,'
+                            'e:0.6)f:1.2)g:2.2)j:0.35);'])
+        assign_supports(exp)
+        self.assertTrue(_exact_compare(exp, tree1_ij))
+
+        # test unrooted tree
+        tree2 = TreeNode.read(['(((a:0.6,b:0.5)g:0.3,c:0.8)h:0.4,(d:0.4,'
+                               'e:0.5)i:0.5,f:0.9)j;'])
+        assign_supports(tree2)
+
+        tree2_ag = root_above(tree2.find('a'))
+        exp = TreeNode.read(['(a:0.3,(b:0.5,(c:0.8,((d:0.4,e:0.5)i:0.5,'
+                             'f:0.9)j:0.4)h:0.3)g:0.3);'])
+        assign_supports(exp)
+        self.assertTrue(_exact_compare(exp, tree2_ag))
+
+        tree2_gh = root_above(tree2.find('g'))
+        exp = TreeNode.read(['((a:0.6,b:0.5)g:0.15,(c:0.8,((d:0.4,e:0.5)i:0.5,'
+                             'f:0.9)j:0.4)h:0.15);'])
+        assign_supports(exp)
+        self.assertTrue(_exact_compare(exp, tree2_gh))
+
+        # test unrooted tree with 1 basal node
+        tree3 = TreeNode.read(['(((a:0.4,b:0.3)e:0.1,(c:0.4,'
+                               'd:0.1)f:0.2)g:0.6)h:0.2;'])
+        assign_supports(tree3)
+
+        tree3_ae = root_above(tree3.find('a'))
+        exp = TreeNode.read(['(a:0.2,(b:0.3,((c:0.4,d:0.1)f:0.2,'
+                             'h:0.6)g:0.1)e:0.2);'])
+        assign_supports(exp)
+        self.assertTrue(_exact_compare(exp, tree3_ae))
+
+    def test_exact_compare(self):
+        # test name
+        tree0 = TreeNode.read(['((e,d)f,(c,(a,b)));'])
+        tree1 = TreeNode.read(['(((a,b),c),(d,e)f);'])
+        self.assertTrue(_exact_compare(tree1, tree1))
+        self.assertFalse(_exact_compare(tree0, tree1))
+
+        # test length
+        tree2 = TreeNode.read(['(((a:1,b):2,c:1),(d:1,e:2)f:1);'])
+        self.assertTrue(_exact_compare(tree2, tree2))
+        self.assertFalse(_exact_compare(tree1, tree2))
+        tree3 = TreeNode.read(['(((a:1,b:0.0):2,c:1):0.0,(d:1,e:2)f:1);'])
+        self.assertTrue(_exact_compare(tree3, tree3))
+        self.assertFalse(_exact_compare(tree2, tree3))
+
+        # test support
+        tree4 = TreeNode.read(['(((a:1,b:1)95:2,c:1)98:3,(d:1,e:2)0.0:1);'])
+        tree5 = TreeNode.read(['(((a:1,b:1)95:2,c:1)98:3,(d:1,e:2):1);'])
+        assign_supports(tree4)
+        self.assertTrue(_exact_compare(tree4, tree4))
+        self.assertFalse(_exact_compare(tree4, tree5))
+        assign_supports(tree5)
+        self.assertFalse(_exact_compare(tree4, tree5))
 
 
 if __name__ == '__main__':
