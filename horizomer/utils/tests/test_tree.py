@@ -571,6 +571,30 @@ class TreeTests(TestCase):
         assign_supports(exp)
         self.assertTrue(_exact_compare(exp, tree3_ae))
 
+    def test_exact_compare(self):
+        # test name
+        tree0 = TreeNode.read(['((e,d)f,(c,(a,b)));'])
+        tree1 = TreeNode.read(['(((a,b),c),(d,e)f);'])
+        self.assertTrue(_exact_compare(tree1, tree1))
+        self.assertFalse(_exact_compare(tree0, tree1))
+
+        # test length
+        tree2 = TreeNode.read(['(((a:1,b):2,c:1),(d:1,e:2)f:1);'])
+        self.assertTrue(_exact_compare(tree2, tree2))
+        self.assertFalse(_exact_compare(tree1, tree2))
+        tree3 = TreeNode.read(['(((a:1,b:0.0):2,c:1):0.0,(d:1,e:2)f:1);'])
+        self.assertTrue(_exact_compare(tree3, tree3))
+        self.assertFalse(_exact_compare(tree2, tree3))
+
+        # test support
+        tree4 = TreeNode.read(['(((a:1,b:1)95:2,c:1)98:3,(d:1,e:2)0.0:1);'])
+        tree5 = TreeNode.read(['(((a:1,b:1)95:2,c:1)98:3,(d:1,e:2):1);'])
+        assign_supports(tree4)
+        self.assertTrue(_exact_compare(tree4, tree4))
+        self.assertFalse(_exact_compare(tree4, tree5))
+        assign_supports(tree5)
+        self.assertFalse(_exact_compare(tree4, tree5))
+
 
 if __name__ == '__main__':
     main()
